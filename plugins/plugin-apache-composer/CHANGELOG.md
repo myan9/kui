@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.1](https://github.com/IBM/kui/compare/@kui-shell/plugin-apache-composer@0.10.0...@kui-shell/plugin-apache-composer@0.10.1) (2019-02-04)
+
+
+### Bug Fixes
+
+* **plugin-apache-composer:** hello !! ([1fde618](https://github.com/IBM/kui/commit/1fde618))
+
+
+
+
+
 # 0.10.0 (2019-02-04)
 
 

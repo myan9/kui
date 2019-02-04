@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.7](https://github.com/IBM/kui/compare/@kui-shell/plugin-wskflow@0.0.6...@kui-shell/plugin-wskflow@0.0.7) (2019-02-04)
+
+
+### Bug Fixes
+
+* **plugin-wskflow:** hellov2 ([f7bbcbc](https://github.com/IBM/kui/commit/f7bbcbc))
+
+
+
+
+
 ## 0.0.6 (2019-02-04)
 
 
