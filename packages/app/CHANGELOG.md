@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [2.6.0](https://github.com/IBM/kui/compare/@kui-shell/core@2.5.0...@kui-shell/core@2.6.0) (2019-02-04)
+
+
+### Features
+
+* **core:** hello ([4328edc](https://github.com/IBM/kui/commit/4328edc))
+
+
+
+
+
 # 2.5.0 (2019-02-04)
 
 
