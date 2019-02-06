@@ -47,6 +47,7 @@ const readFileAsync = (fd/* : number */) => new Promise((resolve, reject) => {
     if (err) {
       reject(err)
     } else {
+      console.log('trying to read data:', data)
       resolve(data)
     }
   })
@@ -58,20 +59,30 @@ const readFileAsync = (fd/* : number */) => new Promise((resolve, reject) => {
  */
 const pollForEndMarker = async (fd/*: number */)/* : Promise<string> */ => {
   return new Promise((resolve, reject) => {
-    const iter = async () => {
+    const wait = async (ms) => {
+      return new Promise(resolve => {
+        setTimeout(resolve, ms)
+      })
+    }
+
+    const iter = async (tryTimes) => {
       try {
+        console.log(`${tryTimes} try polling for end marker`)
         const maybe = await readFileAsync(fd)
         if (maybe.indexOf(KUI_TEE_TO_FILE_END_MARKER) >= 0) {
           resolve(maybe.toString().replace(KUI_TEE_TO_FILE_END_MARKER, ''))
-        } else {
-          setTimeout(iter, 500)
+        } else { // wait and retry, since launching UI needs time
+          if (tryTimes < 30) {
+            wait(2000)
+              .then(() => iter(tryTimes + 1))
+          } else throw new Error('Failed to poll end marker')
         }
       } catch (err) {
         reject(err)
       }
     }
 
-    iter()
+    iter(1)
   })
 }
 
@@ -121,6 +132,7 @@ class CLI {
       if (this.teeToFile) {
         tmpobj = makeTempFile()
         ourEnv.KUI_TEE_TO_FILE = tmpobj.name
+        console.log(ourEnv.KUI_TEE_TO_FILE)
         ourEnv.KUI_TEE_TO_FILE_END_MARKER = KUI_TEE_TO_FILE_END_MARKER
         ourEnv.KUI_TEE_TO_FILE_EXIT_ON_END_MARKER = true
         // ourEnv.DEBUG = '*' // be careful with this one, as it is incompatible with child_process.exec
@@ -148,8 +160,15 @@ class CLI {
           debug('stdout', stdout)
           debug('stderr', stderr)
 
-          const output = await stdoutPromise
-          resolve({ code: 0, output, stderr })
+          console.log('stdout', stdout)
+          console.log('stderr', stderr)
+
+          try {
+            const output = await stdoutPromise
+            resolve({ code: 0, output, stderr })
+          } catch (err) { // FIXME: maybe no need for this catch
+            reject(err)
+          }
         }
       })
     })

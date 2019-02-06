@@ -15,6 +15,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+set -e
+set -o pipefail
 
 SCRIPTDIR=$(cd $(dirname "$0") && pwd)
 
@@ -56,7 +58,7 @@ if [ -n "$LAYERS" ]; then
     # remove HEADLESS from the list, as we are handling in specially
     # in the else clause below
     NON_HEADLESS_LAYERS=${LAYERS#HEADLESS}
-    if [ -n "$NON_HEADLESS_LAYERS" ]; then
+    if [ -n "$NON_HEADLESS_LAYERS" ] && [ "$NON_HEADLESS_LAYERS" != "k8s" ]; then
         echo "running these non-headless layers: $NON_HEADLESS_LAYERS"
         (cd tests && ./bin/runLocal.sh $NON_HEADLESS_LAYERS)
         EC=$?

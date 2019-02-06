@@ -690,6 +690,9 @@ class InProcessExecutor implements IExecutor {
             // response=true means we are in charge of 'ok'
             if (nested || response.mode === 'prompt' || block['_isFakeDom']) {
               // the parent exec will deal with the repl
+              debug('1', nested)
+              debug('2', response.mode)
+              debug('3', block)
               debug('passing control back to prompt processor or headless', response, commandUntrimmed)
               return Promise.resolve(response)
             } else {

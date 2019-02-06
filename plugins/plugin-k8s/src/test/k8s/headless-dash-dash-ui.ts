@@ -40,10 +40,10 @@ const doTests = (ctx: common.ISuite, impl: CLI) => {
   })
 }
 
-describe('k8s with electron via bin/kui', function (this: common.ISuite) {
+describe('k8s bin/kui --ui', function (this: common.ISuite) {
   doTests(this, kuiElectron)
 })
 
-describe('k8s with electron via kubectl kui', function (this: common.ISuite) {
+describe('k8s kubectl kui --ui', function (this: common.ISuite) {
   doTests(this, kubectlElectron)
 })

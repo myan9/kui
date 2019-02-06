@@ -1,5 +1,5 @@
 // /*
-//  * Copyright 2018 IBM Corporation
+//  * Copyright 2019 IBM Corporation
 //  *
 //  * Licensed under the Apache License, Version 2.0 (the "License");
 //  * you may not use this file except in compliance with the License.
@@ -32,26 +32,9 @@
 //       .catch(common.oops(ctx))
 //   })
 //
-//   it('should list the new pod', () => {
-//     return impl.do('kubectl get pods', ctx.app)
+//   it('should list the new pod via the status command', () => {
+//     return impl.do('k8s status', ctx.app)
 //       .then(impl.expectOK('nginx'))
-//       .catch(common.oops(ctx))
-//   })
-//
-//   it('should get the new pod', () => {
-//     return impl.do('kubectl get pod nginx', ctx.app)
-//       .then(impl.expectOK('nginx'))
-//       .catch(common.oops(ctx))
-//   })
-//
-//   it('should get the new pod as JSON', () => {
-//     return impl.do('kubectl get pod nginx -o json', ctx.app)
-//       .then(impl.expectOK({
-//         kind: 'Pod',
-//         metadata: {
-//           name: 'nginx'
-//         }
-//       }))
 //       .catch(common.oops(ctx))
 //   })
 //
@@ -62,23 +45,17 @@
 //       .catch(common.oops(ctx))
 //   })
 //
-//   it('should re-create sample pod from local file', () => {
-//     return impl.do('kubectl create -f ./data/k8s/headless/pod.yaml', ctx.app)
-//       .then(impl.expectOK('nginx'))
-//       .catch(common.oops(ctx))
-//   })
-//
-//   it('should delete the new pod by name', () => {
-//     return impl.do('kubectl delete pod nginx', ctx.app)
-//       .then(impl.expectOK('pod "nginx" deleted'))
+//   it('should NOT list the new pod via the status command', () => {
+//     return impl.do('k8s status', ctx.app)
+//       .then(impl.expectJustOK())
 //       .catch(common.oops(ctx))
 //   })
 // }
 //
-// describe('headless create pod kubectl kui mode', function (this: common.ISuite) {
+// describe('k8s status kubectl kui headless mode', function (this: common.ISuite) {
 //   doHeadless(this, kubectl)
 // })
 //
-// describe('headless create pod bin/kui mode', function (this: common.ISuite) {
+// describe('k8s status bin/kui headless mode', function (this: common.ISuite) {
 //   doHeadless(this, kui)
 // })

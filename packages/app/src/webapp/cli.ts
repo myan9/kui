@@ -169,7 +169,6 @@ export const printResults = (block: Element, nextBlock: Element, resultDom: Elem
 
   if (process.env.KUI_TEE_TO_FILE) {
     // we were asked to tee the output to the system console
-    debug('teeing output to file', process.env.KUI_TEE_TO_FILE)
     try {
       const { print } = require('../main/headless-pretty-print')
       const { createWriteStream } = require('fs')
