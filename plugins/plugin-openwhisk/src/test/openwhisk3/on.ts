@@ -27,8 +27,9 @@ const ruleName = `on_${triggerName}_do_${actionName}`
 const ruleName2 = `on_${triggerName}_do_${actionName2}`
 const ruleName3 = `on_${triggerName2}_do_${actionName2}`
 
-import { join } from 'path'
-const { expectRule } = require(join(process.env.TEST_ROOT, 'lib/composer-viz-util'))
+import { join, dirname } from 'path'
+const testUtilRoot = join(dirname(require.resolve('@kui-shell/plugin-openwhisk/package.json')), 'tests')
+const { expectRule } = require(join(testUtilRoot, 'lib/composer-viz-util')) //FIXME: don;t cross-plugin
 
 describe('Create a rule via on', function (this: common.ISuite) {
   before(openwhisk.before(this))

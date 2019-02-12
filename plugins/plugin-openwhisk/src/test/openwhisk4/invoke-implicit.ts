@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { join } from 'path'
+import { join, dirname } from 'path'
 
 import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
+const testUtilRoot = join(dirname(require.resolve('@kui-shell/plugin-openwhisk/package.json')), 'tests')
 
 const actionName = 'foo'
 
@@ -45,7 +46,7 @@ describe('wsk action invoke with implicit entity', function (this: common.ISuite
       .catch(common.oops(this)))
   }
 
-  const paramsJson = require(join(process.env.TEST_ROOT, 'data/openwhisk/params.json'))
+  const paramsJson = require(join(testUtilRoot, 'data/openwhisk/params.json'))
 
   it(`should invoke ${actionName} with implicit entity and --param-file`, () => cli.do(`invoke --param-file ./data/openwhisk/params.json`, this.app)
     .then(cli.expectOK)

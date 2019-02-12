@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { readFile } from 'fs'
 import * as assert from 'assert'
 
@@ -23,6 +23,7 @@ import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, normalizeHTML, selectors, sidecar } = ui
 const { rp } = common
+const testUtilRoot = join(dirname(require.resolve('@kui-shell/plugin-openwhisk/package.json')), 'tests')
 
 const REMOTE1 = {
   url: 'https://ibm.box.com/shared/static/8eraoo66gza7rbd7xxi2nal7v9jav8wf.html',
@@ -51,7 +52,7 @@ describe('Create an action via let from a remote resource', function (this: comm
       .then(cli.expectOKWithCustom({ selector: '.entity-web-export-url' }))
       .then(selector => this.app.client.getText(selector))
       .then(href => rp({ url: href, rejectUnauthorized: false }))
-      .then(content => readFile(join(process.env.TEST_ROOT, remote.local), (err, data) => {
+      .then(content => readFile(join(testUtilRoot, remote.local), (err, data) => {
         if (err) {
           throw err
         } else {

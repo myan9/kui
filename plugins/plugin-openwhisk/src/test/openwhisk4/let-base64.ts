@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { readFileSync } from 'fs'
 
 import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
+const testUtilRoot = join(dirname(require.resolve('@kui-shell/plugin-openwhisk/package.json')), 'tests')
 
 const file = './data/openwhisk/not-really-png.png'
-const content = readFileSync(join(process.env.TEST_ROOT, file)).toString()
+const content = readFileSync(join(testUtilRoot, file)).toString()
 
 const actionName1 = 'foo'
 

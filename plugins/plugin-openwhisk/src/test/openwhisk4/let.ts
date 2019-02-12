@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { readFile } from 'fs'
 import * as assert from 'assert'
 
@@ -24,6 +24,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 const { cli, selectors, sidecar } = ui
 const { rp } = common
 
+const testUtilRoot = join(dirname(require.resolve('@kui-shell/plugin-openwhisk/package.json')), 'tests')
 const CSS_INPUT = './data/openwhisk/style.css'
 
 const actionName = 'foo'
@@ -208,7 +209,7 @@ describe('Create an action via let core tests', function (this: common.ISuite) {
     .then(cli.expectOKWithCustom({ selector: '.entity-web-export-url' }))
     .then(selector => this.app.client.getText(selector))
     .then(href => rp({ url: href, rejectUnauthorized: false }))
-    .then(content => readFile(join(process.env.TEST_ROOT, CSS_INPUT), (err, data) => {
+    .then(content => readFile(join(testUtilRoot, CSS_INPUT), (err, data) => {
       if (err) throw err
       else assert.strictEqual(content, data.toString())
     }))
