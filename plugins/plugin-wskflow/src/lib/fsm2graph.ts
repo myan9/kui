@@ -37,6 +37,7 @@ let visited
 let activations
 let actions
 let taskIndex
+let deployed
 
 function addDummy (sources = [], targets, obj, options?, directionS?: string, directionT?: string) {
   let dummyId = 'dummy_' + dummyCount
@@ -88,6 +89,7 @@ interface INode {
   visited?: Array<string>
   children?: Array<INode>
   edges?: Array<IEdge>
+  deployed?: boolean
 }
 
 interface INodeOptions {
@@ -641,6 +643,7 @@ export default function fsm2graph (ir, containerElement, acts, options, rule): v
   taskIndex = 0
   activations = acts
   visited = undefined // see shell issue #602
+  deployed = undefined
   dummyCount = 0
   graphData = {
     id: 'root',
