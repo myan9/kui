@@ -112,6 +112,18 @@ exports.before = (ctx, { fuzz, noApp = false } = {}) => {
       return ctx.app.start() // this will launch electron
       // commenting out setTitle due to buggy spectron (?) "Cannot call function 'setTitle' on missing remote object 1"
         // .then(() => ctx.title && ctx.app.browserWindow.setTitle(ctx.title)) // set the window title to the current test
+        .then(() => {
+          if (process.env.WEBPACK_TEST === 'chrome') {
+              ctx.app.client.url('https://localhost:9080/')
+                .then(() => ctx.app.client.getUrl())
+                .then(url => {
+                  if (url === 'https://localhost:9080/') {
+                    console.log('testing https://localhost:9080/')
+                  }
+                  else ctx.app.client.end()
+                })
+          }
+        })
         .then(() => ctx.app.client.localStorage('DELETE')) // clean out local storage
     }
 
