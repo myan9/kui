@@ -20,13 +20,13 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 const sidecar = ui.sidecar
-
+const { localDescribe } = common
 import { dirname, join } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
 
 const srcDir = `${ROOT}/data/composer/composer-source` // inputs for create-from-source
 
-describe('composer create from source', function (this: common.ISuite) {
+localDescribe('composer create from source', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

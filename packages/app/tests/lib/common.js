@@ -200,3 +200,9 @@ exports.oops = ctx => err => {
   // return new Promise((resolve, reject) => setTimeout(() => { reject(err) }, 100000))
   throw err
 }
+
+// only execute the test in local
+exports.localIt = (msg, func) => !process.env.WEBPACK_TEST ? it(msg, func) : it.skip(msg, func)
+
+// only execute the test suite in local
+exports.localDescribe = (msg, func) => !process.env.WEBPACK_TEST ? describe(msg, func) : describe.skip(msg, func)
