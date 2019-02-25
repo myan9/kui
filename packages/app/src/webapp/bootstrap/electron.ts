@@ -25,7 +25,7 @@ if (process.cwd() === '/') {
   }
 }
 
-if (process.env.TEST_ROOT) {
+if (process.env.TEST_ROOT || process.env.WEBPACK_TEST) {
   myDebug('lifting repl to global for tests')
   global['repl'] = require('@kui-shell/core/core/repl')
 }

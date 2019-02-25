@@ -37,7 +37,7 @@ const ROOT = path.dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/pac
 const fooSrc = readFileSync(path.join(ROOT, 'data/openwhisk/foo.js')).toString()
 const foo2Src = readFileSync(path.join(ROOT, 'data/openwhisk/foo2.js')).toString()
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Sidecar bottom stripe interactions for actions', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

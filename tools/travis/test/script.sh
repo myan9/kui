@@ -46,6 +46,24 @@ fi
 # for now, wait, as webpack build conflicts with electron build
 wait_and_get_exit_codes "${children[@]}"
 
+if [ -n "$WEBPACK_LAYERS" ]; then
+    #
+    # then we were asked to run one or more test.d/ scripts
+    #
+    (cd clients/default; npx kui-run-webpack &) # FIXME: refine this?
+    export KEY=$TRAVIS_JOB_NUMBER
+    echo "Using KEY=$KEY"
+
+    echo "running these webpack layers: $WEBPACK_LAYERS"
+    for WEBPACK_RUN_LAYER in $WEBPACK_LAYERS; do
+      echo "running single webpack layer: $WEBPACK_RUN_LAYER"
+      (cd packages/tests && ./bin/runMochaLayers.sh $WEBPACK_RUN_LAYER)
+      EC=$?
+      echo "script.sh thinks runLocal finished with $EC"
+      if [ $EC != 0 ]; then exit $EC; fi
+    done
+fi
+
 if [ -n "$LAYERS" ]; then
     #
     # we were asked to run one or more mocha test suites (which suites

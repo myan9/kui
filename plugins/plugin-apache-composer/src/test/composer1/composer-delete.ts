@@ -26,7 +26,7 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 
 const seqName1 = 'seq1'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Use the app delete command to delete an invokeable composition', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

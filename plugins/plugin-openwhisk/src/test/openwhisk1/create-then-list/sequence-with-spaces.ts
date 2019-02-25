@@ -31,7 +31,7 @@ const actionName1 = 'foo bar'
 const actionName2 = 'bam'
 const sequenceName1 = 'sss'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Create a sequence with whitespacey names', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

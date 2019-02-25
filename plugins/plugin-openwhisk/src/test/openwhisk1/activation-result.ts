@@ -29,7 +29,7 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.
 
 const actionName1 = `foo1-${new Date().getTime()}`
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('wsk activation result and wsk activation logs', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

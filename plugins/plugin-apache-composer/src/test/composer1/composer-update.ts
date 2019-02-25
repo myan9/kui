@@ -23,7 +23,7 @@ const appName1 = 'foo1'
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
-const { localDescribe } =common
+const { localDescribe } = common
 
 localDescribe('confirm that app update preserves annotations and parameters', function (this: common.ISuite) {
   before(openwhisk.before(this))

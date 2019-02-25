@@ -59,7 +59,7 @@ const prepareElectron = (fuzz) => {
 
   const opts = {
     env,
-    chromeDriverArgs: [ '--no-sandbox' ],
+    chromeDriverArgs: [ '--no-sandbox', '--disable-web-security', '--allow-running-insecure-content', '--user-data-dir=./' ],
     waitTimeout: process.env.TIMEOUT || 60000
   }
 
@@ -67,7 +67,11 @@ const prepareElectron = (fuzz) => {
     opts.port = 9515 + parseInt(process.env.PORT_OFFSET)
   }
 
-  if (process.env.TEST_FROM_BUILD) {
+  if (process.env.WEBPACK_TEST === 'chrome') {
+    console.log(`test webpack against browser: ${process.env.WEBPACK_TEST}`)
+    opts.path = electron // this means spectron will use electron located in node_modules
+    opts.args = [ '../app/tests/lib/main.js' ] // relative to the tests/ directory
+  } else if (process.env.TEST_FROM_BUILD) {
     console.log(`Using build-based assets: ${process.env.TEST_FROM_BUILD}`)
     opts.path = process.env.TEST_FROM_BUILD
   } else {

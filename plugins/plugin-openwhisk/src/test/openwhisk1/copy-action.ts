@@ -34,7 +34,7 @@ const actionName = 'foo'
 const actionName2 = 'foo2'
 const actionName3 = 'foo3'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Copy actions using the wsk syntax', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

@@ -28,7 +28,7 @@ const { localDescribe } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Create an action, list it, delete it, then list nothing (implicit entity type)', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

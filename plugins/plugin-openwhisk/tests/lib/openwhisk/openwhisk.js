@@ -153,11 +153,14 @@ exports.before = (ctx, { fuzz, noApp = false } = {}) => {
     const { cli } = ui
 
     const addWskAuth = !process.env.WEBPACK_TEST || fuzz ? x => x
-      : () => cli.do(`wsk auth add ${process.env.__OW_API_KEY || process.env.AUTH}`, ctx.app)
+      : () => cli.do(`wsk auth add ${process.env.AUTH || process.env.__OW_API_KEY}`, ctx.app) // DEBUG
         .then(cli.expectOK)
         .catch(common.oops(ctx))
 
     // clean openwhisk assets from previous runs, then start the app
+    console.log(process.env.__OW_API_KEY) // DEBUG
+    console.log(process.env.AUTH) // DEBUG
+    console.log(`wsk auth add ${process.env.__OW_API_KEY || process.env.AUTH}`) // DEBUG
     return Promise.all([ cleanAll(false, process.env.__OW_API_KEY || process.env.AUTH), cleanAll(true, process.env.AUTH2) ])
       .then(common.before(ctx, { fuzz, noApp }))
       .then(addWskAuth)

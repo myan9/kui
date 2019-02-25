@@ -27,7 +27,7 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.
 const actionName = 'foo'
 const packageName = 'ppp'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Add parameters to packages', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

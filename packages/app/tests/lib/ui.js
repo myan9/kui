@@ -141,7 +141,8 @@ exports.cli = {
       .then(() => app.client.getAttribute(selectors.CURRENT_PROMPT_BLOCK, 'data-input-count'))
       .then(count => app.client.getValue(selectors.CURRENT_PROMPT)
         .then(currentValue => app.client.setValue(selectors.CURRENT_PROMPT, `${currentValue}${cmd}`))
-        .then(() => { if (noNewline !== true) app.client.execute('repl.doEval()') })
+        // .then(() => { if (noNewline !== true) app.client.execute('repl.doEval()') }) // FIXME: repl not found in webpack test for some reason
+        .then(() => { if (noNewline !== true) app.client.keys(keys.ENTER) })
         .then(() => ({ app: app, count: parseInt(count) })))
   },
 

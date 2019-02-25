@@ -47,7 +47,7 @@ function wait_and_get_exit_codes() {
 echo "APIHOST=$API_HOST" > ~/.wskprops
 echo "AUTH=nope" >>  ~/.wskprops
 
-if [ -n "$LAYERS" ]; then
+if [ -n "$LAYERS" ] || [ -n "$WEBPACK_LAYERS" ]; then
     #
     # we are running mocha test suites (which suites as indicated by $LAYERS)
     #
@@ -99,7 +99,7 @@ if [ -n "$LAYERS" ]; then
     # start Xvfb to allow for electron to do its thing
     # careful: make sure this comes after the "wait" just above
     idx=1
-    for i in $LAYERS; do
+    for i in ${LAYERS:-${WEBPACK_LAYERS}}; do
         DISPLAY=":$idx"
         echo "spawning Xvfb on DISPLAY=$DISPLAY"
         Xvfb $DISPLAY -screen 0 ${WINDOW_WIDTH}x${WINDOW_HEIGHT}x24 $DISPLAY -ac >& /dev/null &

@@ -41,7 +41,7 @@ const filter = (L, f) => {
   return filtered
 }
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('List root-most non-erroring activations with $$!', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

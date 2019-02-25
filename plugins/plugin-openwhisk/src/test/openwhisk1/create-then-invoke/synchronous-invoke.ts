@@ -32,7 +32,7 @@ const actionName = 'foo'
 const actionName2 = 'foo2'
 const packageName = 'ppp'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Test synchronous action invocation', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

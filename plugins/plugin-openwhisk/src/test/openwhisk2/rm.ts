@@ -30,7 +30,7 @@ const packageName = 'ppp'
 const packageNameWithSpaces = 'ppp ppp'
 const seqName = 'sss'
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Delete multiple actions using rimraf', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

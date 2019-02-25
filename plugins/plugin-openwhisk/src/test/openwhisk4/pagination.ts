@@ -99,7 +99,7 @@ const testPagination = (ctx: common.ISuite, actionName?: string) => {
     .catch(common.oops(ctx))
 }
 
-//TODO: test this in webpack
+// TODO: test this in webpack
 localDescribe('Activation list paginator', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
