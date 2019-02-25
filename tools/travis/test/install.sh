@@ -114,6 +114,19 @@ if [ -z "$LAYERS" ] && [ -n "$SCRIPTS" ]; then
     # plain npm install to set things up for the SCRIPTS
     #
     npm install
+
+    # FIXME: maybe put this to somewhere else?
+    if [ -n "$WEBPACK_LAYERS" ]; then
+      # start Xvfb to allow for electron to do its thing
+      # careful: make sure this comes after the "wait" just above
+      idx=1
+      for i in $WEBPACK_LAYERS; do
+          DISPLAY=":$idx"
+          echo "spawning Xvfb on DISPLAY=$DISPLAY"
+          Xvfb $DISPLAY -screen 0 ${WINDOW_WIDTH}x${WINDOW_HEIGHT}x24 $DISPLAY -ac >& /dev/null &
+          idx=$((idx+1))
+      done
+    fi
 fi
 
 # we will return to code coverage later:

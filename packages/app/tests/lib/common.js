@@ -67,7 +67,11 @@ const prepareElectron = (fuzz) => {
     opts.port = 9515 + parseInt(process.env.PORT_OFFSET)
   }
 
-  if (process.env.TEST_FROM_BUILD) {
+  if (process.env.WEBPACK_TEST === 'chrome') {
+    console.log(`test webpack against browser: ${process.env.WEBPACK_TEST}`)
+    opts.path = electron // this means spectron will use electron located in node_modules
+    opts.args = [ 'lib/main.js' ] // relative to the tests/ directory
+  } else if (process.env.TEST_FROM_BUILD) {
     console.log(`Using build-based assets: ${process.env.TEST_FROM_BUILD}`)
     opts.path = process.env.TEST_FROM_BUILD
   } else {

@@ -7,7 +7,7 @@ dist: trusty
 
 env:
   matrix:
-    - SCRIPTS="lint.sh webpack.sh"
+    - SCRIPTS="lint.sh"
       LAYERS="core bash-like core-support field-installed-plugins editor"
       NEEDS_ELECTRON=true
       NEEDS_IBMCLOUD_CLI=true # see plugins/plugin-bash-like/src/test/bash-like/bash-like.ts
@@ -37,6 +37,10 @@ env:
       NEEDS_HEADLESS=true
       NEEDS_OPENWHISK=true
       NEEDS_KUBERNETES=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="core bash-like core-support field-installed-plugins editor"
+      WEBPACK_TEST="chrome"
 
   global:
     - TRAVIS_KUBE_VERSION=1.12 # kubeadm-dind
