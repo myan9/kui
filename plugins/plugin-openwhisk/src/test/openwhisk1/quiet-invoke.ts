@@ -25,6 +25,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
+const { localIt } = common
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
@@ -37,13 +38,16 @@ describe('Invoke -q (quiet invoke)', function (this: common.ISuite) {
   after(common.after(this))
 
   // create an action, using the implicit entity type
-  it('should create an action', () => cli.do(`create ${actionName} ${ROOT}/data/openwhisk/foo.js -p x 5 -p y 10`, this.app)
+  const createFoo = (name) => process.env.WEBPACK_TEST ? `let ${name} = (params) => { name: "Step1 " + params.name } -p x 5 -p y 10`
+    : `create ${name} ${ROOT}/data/openwhisk/foo.js -p x 5 -p y 10`
+
+  localIt('should create an action', () => cli.do(createFoo(actionName), this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName)))
 
   // create an action, using the implicit entity type
-  it('should create an action', () => cli.do(`create ${actionName2} ${ROOT}/data/openwhisk/foo.js -p x 5 -p y 10`, this.app)
+  localIt('should create an action', () => cli.do(createFoo(actionName2), this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName2)))

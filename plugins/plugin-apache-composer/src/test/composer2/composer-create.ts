@@ -20,7 +20,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 const sidecar = ui.sidecar
-
+const { localDescribe } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
 
@@ -35,7 +35,8 @@ import {
   verifyTheBasicStuff
 } from '@kui-shell/plugin-apache-composer/tests/lib/composer-viz-util'
 
-describe('app create and sessions', function (this: common.ISuite) {
+// TODO: test this in webpack
+localDescribe('app create and sessions', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

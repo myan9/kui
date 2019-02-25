@@ -21,7 +21,7 @@ import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
 const { rp } = common
-
+const { localDescribe } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
@@ -29,7 +29,7 @@ const HTML_WITH_JS_INPUT = `${ROOT}/data/openwhisk/hello-with-script.html`
 
 const actionName = 'foo'
 
-describe('Create a javascript web action via let', function (this: common.ISuite) {
+localDescribe('Create a javascript web action via let', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

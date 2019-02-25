@@ -22,11 +22,13 @@ const sidecar = ui.sidecar
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
+const { localDescribe } = common
 
 const seqName1 = 'seq1'
 const seqName2 = 'seq2'
 
-describe('Use the app list command to list the invokeable compositions', function (this: common.ISuite) {
+// TODO: test this in webpack
+localDescribe('Use the app list command to list the invokeable compositions', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

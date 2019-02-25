@@ -21,7 +21,7 @@ const { cli, selectors, sidecar } = ui
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
-
+const { localDescribe } = common
 const fileWithSpaces = `${ROOT}/data/openwhisk/dir with spaces/foo.js`
 const fileWithSpacesAndQuotes = [
   `${ROOT}/data/openwhisk/"dir with spaces"/foo.js`,
@@ -33,7 +33,7 @@ const actionName3 = 'foo3 fun'
 const packageName1 = 'ppp'
 const packageName2 = 'ppp fun'
 
-describe('Create an action via let with spaces', function (this: common.ISuite) {
+localDescribe('Create an action via let with spaces', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

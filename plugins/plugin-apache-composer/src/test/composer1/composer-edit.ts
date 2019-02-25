@@ -22,7 +22,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 const sidecar = ui.sidecar
-
+const { localIt } = common
 import {
   verifyTheBasicStuff,
   verifyNodeExists,
@@ -115,17 +115,17 @@ describe('edit compositions', function (this: common.ISuite) {
        .then(cli.expectOKWithCustom({expect: 'Successfully initialized and reset the required services. You may now create compositions.'}))
        .catch(common.oops(this))) */
 
-  it('should create an app from FSM', () => cli.do(`app create compFromFSM ${ROOT}/data/composer/fsm.json`, this.app)
+  localIt('should create an app from FSM', () => cli.do(`app create compFromFSM ${ROOT}/data/composer/fsm.json`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing('compFromFSM'))
     .catch(common.oops(this)))
 
-  it('should fail to edit the fsm-based app', () => cli.do('edit compFromFSM', this.app)
+  localIt('should fail to edit the fsm-based app', () => cli.do('edit compFromFSM', this.app)
     .then(cli.expectError(406))
     .catch(common.oops(this)))
 
-  it('should create an app from source', () => cli.do(`app create compFromSrc ${ROOT}/data/composer/composer-source/seq.js`, this.app)
+  localIt('should create an app from source', () => cli.do(`app create compFromSrc ${ROOT}/data/composer/composer-source/seq.js`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing('compFromSrc'))
@@ -145,7 +145,7 @@ describe('edit compositions', function (this: common.ISuite) {
   //     .catch(common.oops(this)))
   // }
 
-  it(`should fail to open the editor for compose against existing composition`, () => cli.do('compose compFromSrc', this.app)
+  localIt(`should fail to open the editor for compose against existing composition`, () => cli.do('compose compFromSrc', this.app)
     .then(cli.expectError(409))
     .catch(common.oops(this)))
 
