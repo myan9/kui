@@ -7,7 +7,7 @@ dist: trusty
 
 env:
   matrix:
-    - SCRIPTS="lint.sh webpack.sh"
+    - SCRIPTS="lint.sh"
       LAYERS="core bash-like core-support field-installed-plugins editor"
       NEEDS_ELECTRON=true
       NEEDS_IBMCLOUD_CLI=true # see plugins/plugin-bash-like/src/test/bash-like/bash-like.ts
@@ -36,6 +36,48 @@ env:
     - LAYERS="HEADLESS"
       NEEDS_HEADLESS=true
       NEEDS_OPENWHISK=true
+      NEEDS_KUBERNETES=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="core bash-like core-support field-installed-plugins editor"
+      WEBPACK_TEST="chrome"
+
+    # NOTE: split the tests for easy debuging now
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="openwhisk1"
+      WEBPACK_TEST="chrome"
+      NEEDS_OPENWHISK=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="openwhisk2"
+      WEBPACK_TEST="chrome"
+      NEEDS_OPENWHISK=true
+      NEEDS_OPENWHISK_API_GATEWAY=true
+      NEEDS_OPENWHISK_NODEJS8=true
+      NEEDS_OPENWHISK_JAVA8=true
+      NEEDS_SECOND_OPENWHISK_AUTH=true # see plugins/plugin-openwhisk/src/test/openwhisk2/auth.ts
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="openwhisk3"
+      WEBPACK_TEST="chrome"
+      NEEDS_OPENWHISK=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="openwhisk4"
+      WEBPACK_TEST="chrome"
+      NEEDS_OPENWHISK=true
+      NEEDS_OPENWHISK_API_GATEWAY=true
+      NEEDS_OPENWHISK_NODEJS8=true
+      NEEDS_OPENWHISK_JAVA8=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="grid"
+      WEBPACK_TEST="chrome"
+      NEEDS_OPENWHISK=true
+
+    - SCRIPTS="webpack.sh"
+      WEBPACK_LAYERS="k8s"
+      WEBPACK_TEST="chrome"
       NEEDS_KUBERNETES=true
 
   global:
