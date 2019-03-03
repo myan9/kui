@@ -55,6 +55,20 @@ if [ -n "$LAYERS" ]; then
     export KEY=$TRAVIS_JOB_NUMBER
     echo "Using KEY=$KEY"
 
+    # headless
+    if [ -n "$WEBPACK_TEST" ]; then
+
+      echo "running webpack"
+      (cd clients/default; npx kui-run-webpack &)
+
+      echo "running these webpack layers: $LAYERS"
+      (cd packages/tests && ./bin/runMochaLayers.sh $LAYERS)
+
+      EC=$?
+      echo "script.sh thinks runLocal finished with $EC"
+      if [ $EC != 0 ]; then exit $EC; fi
+    fi
+
     # remove HEADLESS from the list, as we are handling in specially
     # in the else clause below
     NON_HEADLESS_LAYERS=${LAYERS#HEADLESS}

@@ -67,7 +67,11 @@ const prepareElectron = (fuzz) => {
     opts.port = 9515 + parseInt(process.env.PORT_OFFSET)
   }
 
-  if (process.env.TEST_FROM_BUILD) {
+  if (process.env.WEBPACK_TEST) {
+    console.log(`Testing Webpack in : ${process.env.WEBPACK_TEST}`)
+    opts.path = electron // this means spectron will use electron located in node_modules
+    opts.args = [ '../app/tests/lib/main.js' ] // relative to the tests/ directory
+  } else if (process.env.TEST_FROM_BUILD) {
     console.log(`Using build-based assets: ${process.env.TEST_FROM_BUILD}`)
     opts.path = process.env.TEST_FROM_BUILD
   } else {
@@ -200,3 +204,12 @@ exports.oops = ctx => err => {
   // return new Promise((resolve, reject) => setTimeout(() => { reject(err) }, 100000))
   throw err
 }
+
+// only execute the test in local
+exports.localIt = (msg, func) => !process.env.WEBPACK_TEST ? it(msg, func) : it.skip(msg, func)
+
+// only execute the test suite in local
+exports.localDescribe = (msg, func) => !process.env.WEBPACK_TEST ? describe(msg, func) : describe.skip(msg, func)
+
+// only execute the test in non-proxy browser
+exports.remoteIt = (msg, func) => process.env.WEBPACK_TEST ? it(msg, func) : it.skip(msg, func)

@@ -38,6 +38,10 @@ env:
       NEEDS_OPENWHISK=true
       NEEDS_KUBERNETES=true
 
+    - SCRIPTS="webpack.sh"
+      LAYERS="core bash-like core-support field-installed-plugins editor"
+      WEBPACK_TEST="chrome"
+
   global:
     - TRAVIS_KUBE_VERSION=1.12 # kubeadm-dind
     - TEST_ORG=testorg
