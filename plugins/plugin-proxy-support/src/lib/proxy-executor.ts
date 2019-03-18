@@ -49,7 +49,7 @@ class ProxyEvaluator implements IEvaluator {
   async apply (command: string, execOptions: IExecOptions, evaluator, args) {
     debug('apply', evaluator)
 
-    if (evaluator.options && (evaluator.options.inBrowserOK || evaluator.options.inBrowserOk || evaluator.options.needsUI)) {
+    if (evaluator.options && (evaluator.options.inBrowserOK || evaluator.options.needsUI)) {
       debug('delegating to direct evaluator')
       return directEvaluator.apply(command, execOptions, evaluator, args)
     } else {

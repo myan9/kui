@@ -57,7 +57,11 @@ const add = async ({ block, nextBlock }) => {
         } else {
           const cafile = kubeconfig.clusters[0].cluster['certificate-authority']
           if (!cafile) {
-            return Promise.reject('Could not find a certificate-authority')
+            const ignoreCafile = kubeconfig.clusters[0].cluster['insecure-skip-tls-verify']
+            if (ignoreCafile) {
+              setAuth(kubeconfigString)
+              return Promise.resolve()
+            } else return Promise.reject('Could not find a certificate-authority')
           } else {
             return {
               reprompt: true,

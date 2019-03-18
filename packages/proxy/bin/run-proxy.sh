@@ -23,4 +23,4 @@ if [ $? != 0 ]; then
 fi
 
 echo 'starting proxy'
-docker run -e DEBUG=$DEBUG --name kui-proxy --rm -p 8081:3000 kui-proxy
+docker run --net=kubeadm-dind-net -e DEBUG=$DEBUG --name kui-proxy --rm -p 8081:3000 kui-proxy

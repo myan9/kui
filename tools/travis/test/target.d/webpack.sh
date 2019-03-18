@@ -26,3 +26,12 @@ npm run build:webpack
 
 echo "run webpack"
 nohup npx kui-run-webpack >/dev/null 2>&1  &
+
+if [ "$KUI_USE_PROXY" == false ]; then
+  echo "KUI_USE_PROXY = $KUI_USE_PROXY"
+else
+  echo "build proxy"
+  npm run build:proxy
+  echo "run proxy"
+  DEBUG=* npx kui-run-proxy &
+fi

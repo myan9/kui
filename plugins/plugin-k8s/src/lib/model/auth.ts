@@ -24,12 +24,14 @@ const localStorageKey = {
  * Model update
  *
  */
-export const setAuth = (kubeconfigString: string, ca: string, cafile: string): void => {
-  const auth = {
-    kubeconfig: kubeconfigString,
-    ca: ca,
-    cafile
+export const setAuth = (kubeconfigString: string, ca?: string, cafile?: string): void => {
+  let auth = {
+    kubeconfig: kubeconfigString
   }
+
+  // TODO: clean this up
+  if (ca) auth['ca'] = ca
+  if (cafile) auth['cafile'] = cafile
 
   setHasAuth('k8s', auth)
   window.localStorage.setItem(localStorageKey.auth, JSON.stringify(auth))

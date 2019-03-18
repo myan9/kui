@@ -20,11 +20,12 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import { expectYAMLSubset, cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { waitTillNone } from '@kui-shell/plugin-k8s/tests/lib/k8s/wipe'
 import { defaultModeForGet } from '@kui-shell/plugin-k8s/tests/lib/k8s/defaults'
+import * as kubeCommon from '@kui-shell/plugin-k8s/tests/lib/k8s/kubeCommon'
 
 const synonyms = ['kubectl']
 
 describe('electron configmap', function (this: common.ISuite) {
-  before(common.before(this))
+  before(kubeCommon.before(this))
   after(common.after(this))
 
   synonyms.forEach(kubectl => {

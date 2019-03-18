@@ -81,7 +81,7 @@ const possiblyExportCredentials = (execOptions, env): Promise<CleanupFunction> =
 
           await Promise.all([
             writeFile(kubeconfigFilepath, kubeconfig),
-            writeFile(join(path, cafile), ca)
+            ca && cafile ? writeFile(join(path, cafile), ca) : Promise.resolve()
           ])
 
           env.KUBECONFIG = kubeconfigFilepath

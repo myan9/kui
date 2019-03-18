@@ -87,16 +87,17 @@ if [ -n "$LAYERS" ]; then
         #children+=("$!")
     fi
 
+    # wait for the openwhisk or kubernetes setup logic to complete
+    wait_and_get_exit_codes "${children[@]}"
+    if [ $EXIT_CODE != 0 ]; then exit $EXIT_CODE; fi
+
+    # wait for kubernetes finish before building proxy
     if [ -n "$MOCHA_TARGETS" ]; then
         # create mocha targets to test aginst
         for MOCHA_TARGET in $MOCHA_TARGETS; do
           ./tools/travis/test/target.d/$MOCHA_TARGET.sh # DO NOT DO WEBPACK and ELECTRON BUILD IN PARALLEL; link:init updates the client directory
         done
     fi
-
-    # wait for the openwhisk or kubernetes setup logic to complete
-    wait_and_get_exit_codes "${children[@]}"
-    if [ $EXIT_CODE != 0 ]; then exit $EXIT_CODE; fi
 
     # start Xvfb to allow for electron to do its thing
     # careful: make sure this comes after the "wait" just above

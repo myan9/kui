@@ -30,7 +30,7 @@ env:
       NEEDS_OPENWHISK=true
 
     - LAYERS="k8s"
-      MOCHA_TARGETS="electron"
+      MOCHA_TARGETS="webpack electron"
       NEEDS_HEADLESS=true
       NEEDS_KUBERNETES=true
 

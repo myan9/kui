@@ -43,6 +43,32 @@ if [ ! -f ~/.wskprops ]; then
     echo "INSECURE_SSL=true" >> ~/.wskprops
 fi
 
+if [ -z "${KUBECONFIG}" ] && [ "$NEEDS_KUBERNETES" == true ]; then
+  echo "setting KUI_KUBECONFIG"
+  KUI_KUBECONFIG=`kubectl config view`
+  export KUI_KUBECONFIG
+
+  echo ${KUI_KUBECONFIG} #NOTE: test only
+
+  KUBECONFIG="$HOME/.kube/config"
+  export KUBECONFIG
+
+  docker network ls
+  echo "--------host-----------"
+  docker network inspect host
+  echo "--------bridge-----------"
+  docker network inspect bridge
+  echo "--------kubeadm-dind-net-----------"
+  docker network inspect kubeadm-dind-net
+
+  echo "--------proxy kubectl-----------"
+  docker exec -it kui-proxy kubectl
+
+  echo "--------kubectl config view-----------"
+  docker exec -it kui-proxy kubectl config view
+
+fi
+
 export PATH=./node_modules/.bin:$PATH
 
 if [ ! -d logs ]; then
