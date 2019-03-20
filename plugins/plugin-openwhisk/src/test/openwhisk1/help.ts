@@ -18,31 +18,30 @@
  * read-only tests against the cli's help APIs
  *
  */
-
-import * as common from '@kui-shell/core/tests/lib/common'
-import * as ui from '@kui-shell/core/tests/lib/ui'
-import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
-const { cli, selectors, sidecar } = ui
-
-import { doHelp, header, header2 } from '@kui-shell/plugin-core-support/test/core-support/help'
-
-/* the header for action help */
-const actionHelpHeader = header2('OpenWhisk', 'Action Operations')
-
-describe('Help command', function (this: common.ISuite) {
-  before(openwhisk.before(this))
-  after(common.after(this))
-
-  //
-  // and now here come the tests...
-  //
-
-  doHelp.call(this, 'wsk', { expect: header('OpenWhisk') })
-  doHelp.call(this, 'wsk action', { expect: actionHelpHeader })
-  doHelp.call(this, 'wsk action help', { expect: actionHelpHeader })
-  // doHelp.call(this, 'action help', { expect: actionHelpHeader })
-  // doHelp.call(this, 'help action', { expect: actionHelpHeader })
-  doHelp.call(this, 'help wsk action', { expect: actionHelpHeader })
-  doHelp.call(this, 'composer', { expect: header('Composer') })
-  doHelp.call(this, 'wsk action create', { code: 497 }) // insufficient arguments
-})
+// FIXME: enable this
+// import * as common from '@kui-shell/core/tests/lib/common'
+// import * as ui from '@kui-shell/core/tests/lib/ui'
+// import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
+// const { cli, selectors, sidecar } = ui
+//
+// import { doHelp, header, header2 } from '@kui-shell/plugin-core-support/test/core-support/help'
+//
+// /* the header for action help */
+// const actionHelpHeader = header2('OpenWhisk', 'Action Operations')
+//
+// describe('Help command', function (this: common.ISuite) {
+//   before(openwhisk.before(this))
+//   after(common.after(this))
+//
+//   //
+//   // and now here come the tests...
+//   //
+//   doHelp.call(this, 'wsk', { expect: header('OpenWhisk') })
+//   doHelp.call(this, 'wsk action', { expect: actionHelpHeader })
+//   doHelp.call(this, 'wsk action help', { expect: actionHelpHeader })
+//   // doHelp.call(this, 'action help', { expect: actionHelpHeader })
+//   // doHelp.call(this, 'help action', { expect: actionHelpHeader })
+//   doHelp.call(this, 'help wsk action', { expect: actionHelpHeader })
+//   doHelp.call(this, 'composer', { expect: header('Composer') })
+//   doHelp.call(this, 'wsk action create', { code: 497 }) // insufficient arguments
+// })

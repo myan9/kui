@@ -26,6 +26,7 @@ import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
 
+// FIXME: in webpack, this test will cause endlessly tutorial play
 describe('wsk package bind tests', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

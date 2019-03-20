@@ -32,7 +32,11 @@ describe('Create action with implicit entity type, then list it', function (this
   after(common.after(this))
 
   // create an action, using the implicit entity type
-  it('should create an action', () => cli.do(`create foo ${ROOT}/data/openwhisk/foo.js`, this.app)
+  // create an action, using the implicit entity type
+  const createFoo = process.env.WEBPACK_TEST ? `let foo = (params) => { name: "Step1 " + params.name }`
+    : `create foo ${ROOT}/data/openwhisk/foo.js`
+
+  it('should create an action', () => cli.do(createFoo, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing('foo')))
