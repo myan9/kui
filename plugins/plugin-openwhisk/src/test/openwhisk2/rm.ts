@@ -18,6 +18,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, rp, selectors, sidecar } = ui
+const { localDescribe, localIt } = common
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
@@ -29,7 +30,8 @@ const packageName = 'ppp'
 const packageNameWithSpaces = 'ppp ppp'
 const seqName = 'sss'
 
-describe('Delete multiple actions using rimraf', function (this: common.ISuite) {
+// TODO: test this in webpack
+localDescribe('Delete multiple actions using rimraf', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 
@@ -39,30 +41,30 @@ describe('Delete multiple actions using rimraf', function (this: common.ISuite) 
     .catch(common.oops(this)))
 
   // create an action, using the implicit entity type
-  it('should create an action', () => cli.do(`create ${actionName} ${ROOT}/data/openwhisk/foo.js`, this.app)
+  localIt('should create an action', () => cli.do(`create ${actionName} ${ROOT}/data/openwhisk/foo.js`, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))
     .catch(common.oops(this)))
 
   // create an action, using the implicit entity type
-  it('should create another action', () => cli.do(`create ${actionName2} ${ROOT}/data/openwhisk/foo2.js`, this.app)
+  localIt('should create another action', () => cli.do(`create ${actionName2} ${ROOT}/data/openwhisk/foo2.js`, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName2))
     .catch(common.oops(this)))
 
   // delete them both
-  it('should delete them both', () => cli.do(`rimraf ${actionName} ${actionName2}`, this.app)
+  localIt('should delete them both', () => cli.do(`rimraf ${actionName} ${actionName2}`, this.app)
     .then(cli.expectOKWithCustom({ expect: 'deleted 2 elements', exact: true }))
     .then(sidecar.expectClosed)
     .catch(common.oops(this)))
 
-  it('should NOT find a deleted action', () => cli.do(`action get ${actionName} --no-retry`, this.app)
+  localIt('should NOT find a deleted action', () => cli.do(`action get ${actionName} --no-retry`, this.app)
     .then(cli.expectError(404))
     .catch(common.oops(this)))
 
-  it('should FAIL to delete a non-existent action', () => cli.do(`rimraf ${actionName} --no-retry`, this.app)
+  localIt('should FAIL to delete a non-existent action', () => cli.do(`rimraf ${actionName} --no-retry`, this.app)
     .then(cli.expectError(404))
     .catch(common.oops(this)))
 
@@ -118,22 +120,22 @@ describe('Delete multiple actions using rimraf', function (this: common.ISuite) 
   //
   // recursive removal of anonymous inline functions
   //
-  it('should create an action', () => cli.do(`create ${actionName} ${ROOT}/data/openwhisk/foo.js`, this.app)
+  localIt('should create an action', () => cli.do(`create ${actionName} ${ROOT}/data/openwhisk/foo.js`, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))
     .catch(common.oops(this)))
-  it('should create another action', () => cli.do(`create ${actionName2} ${ROOT}/data/openwhisk/foo2.js`, this.app)
+  localIt('should create another action', () => cli.do(`create ${actionName2} ${ROOT}/data/openwhisk/foo2.js`, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName2))
     .catch(common.oops(this)))
-  it('should create a sequence with anonymous inline action', () => cli.do(`let ${seqName} = ${actionName} -> x=>x -> ${actionName2}`, this.app)
+  localIt('should create a sequence with anonymous inline action', () => cli.do(`let ${seqName} = ${actionName} -> x=>x -> ${actionName2}`, this.app)
     .then(cli.expectJustOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(seqName))
     .catch(common.oops(this)))
-  it('should delete the sequence recursively', () => cli.do(`rimraf -r ${seqName}`, this.app)
+  localIt('should delete the sequence recursively', () => cli.do(`rimraf -r ${seqName}`, this.app)
     .then(cli.expectOKWithCustom({ expect: 'deleted 2 elements', exact: true }))
     .then(sidecar.expectClosed)
     .catch(common.oops(this)))

@@ -18,7 +18,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
-
+const { localIt } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
@@ -46,7 +46,7 @@ describe('wsk action invoke with implicit entity', function (this: common.ISuite
       .catch(common.oops(this)))
   }
 
-  it(`should invoke ${actionName} with implicit entity and --param-file`, () => cli.do(`invoke --param-file ${ROOT}/data/openwhisk/params.json`, this.app)
+  localIt(`should invoke ${actionName} with implicit entity and --param-file`, () => cli.do(`invoke --param-file ${ROOT}/data/openwhisk/params.json`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))
@@ -54,7 +54,7 @@ describe('wsk action invoke with implicit entity', function (this: common.ISuite
     .then(ui.expectStruct(Object.assign({ x: 3 }, paramsJson)))
     .catch(common.oops(this)))
 
-  it(`should invoke ${actionName} with implicit entity and -P`, () => cli.do(`invoke -P ${ROOT}/data/openwhisk/params.json`, this.app)
+  localIt(`should invoke ${actionName} with implicit entity and -P`, () => cli.do(`invoke -P ${ROOT}/data/openwhisk/params.json`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))
@@ -62,7 +62,7 @@ describe('wsk action invoke with implicit entity', function (this: common.ISuite
     .then(ui.expectStruct(Object.assign({ x: 3 }, paramsJson)))
     .catch(common.oops(this)))
 
-  it(`should invoke ${actionName} with explicit entity and -P`, () => cli.do(`invoke ${actionName} -P ${ROOT}/data/openwhisk/params.json`, this.app)
+  localIt(`should invoke ${actionName} with explicit entity and -P`, () => cli.do(`invoke ${actionName} -P ${ROOT}/data/openwhisk/params.json`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))

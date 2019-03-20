@@ -20,7 +20,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
-const { rp } = common
+const { rp, localIt } = common
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
@@ -125,7 +125,7 @@ describe('Webbify actions', function (this: common.ISuite) {
   //
   // not quite webbify, but closely related; web action via action create --web
   //
-  it('should create a web action via action create --web', () => cli.do(`action create ${actionName7} ${ROOT}/data/openwhisk/foo.js --web`, this.app)
+  localIt('should create a web action via action create --web', () => cli.do(`action create ${actionName7} ${ROOT}/data/openwhisk/foo.js --web`, this.app)
     // make sure the REPL output has the proper href:
     .then(cli.expectOKWithCustom({ selector: '.entity-web-export-url' }))
     .then(selector => this.app.client.getText(selector))

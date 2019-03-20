@@ -24,6 +24,7 @@ import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, rp, selectors, sidecar } = ui
 
+// FIXME: see webpack test failure: https://travis.ibm.com/composer/kui/jobs/14942262
 describe('create new actions in editor', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))

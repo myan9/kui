@@ -22,6 +22,7 @@ import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, normalizeHTML, selectors, sidecar } = ui
 const { rp } = common
+const { localDescribe } = common
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
@@ -44,7 +45,8 @@ const packageName = 'ppp'
 const packageName2 = 'ppp2'
 const packageName3 = 'ppp3'
 
-describe('Create an action via let from a remote resource', function (this: common.ISuite) {
+// FIXME: see webpack test travis failure: https://travis.ibm.com/composer/kui/jobs/14942263
+localDescribe('Create an action via let from a remote resource', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

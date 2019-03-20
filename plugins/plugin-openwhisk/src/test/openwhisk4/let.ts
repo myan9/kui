@@ -21,7 +21,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
-const { rp } = common
+const { rp, localDescribe } = common
 
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
@@ -57,7 +57,7 @@ const packageName1 = 'ppp1'
 const packageName2 = 'ppp2'
 const packageName3 = 'ppp3'
 
-describe('Create an action via let core tests', function (this: common.ISuite) {
+localDescribe('Create an action via let core tests', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

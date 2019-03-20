@@ -51,9 +51,15 @@ const go = (theme: string) => (ctx: ISuite) => {
  *
  */
 const restartAndThen = (theme: string) => (ctx: ISuite) => {
-  it(`should still be using ${theme} theme after a restart`, () => ctx.app.restart()
-     .then(() => ctx.app.client.waitForExist(`body[kui-theme="${theme}"]`))
-     .catch(common.oops(ctx)))
+  if (!process.env.WEBPACK_TEST) {
+    it(`should still be using ${theme} theme after an electron restart`, () => ctx.app.restart()
+       .then(() => ctx.app.client.waitForExist(`body[kui-theme="${theme}"]`))
+       .catch(common.oops(ctx)))
+  } else { // use app.client.url() to retart a browser without clearing its local storage
+    it(`should still be using ${theme} theme after a browser restart`, () => ctx.app.client.url('https://localhost:9080/')
+      .then(() => ctx.app.client.waitForExist(`body[kui-theme="${theme}"]`))
+      .catch(common.oops(ctx)))
+  }
 }
 
 /**
@@ -80,6 +86,10 @@ const clickOnThemeButtonThenClickOnTheme = (clickOn: string) => (ctx: ISuite) =>
       common.oops(ctx)(err)
     }
   })
+
+  it(`should show that we are using the ${clickOn} theme`, () => cli.do('theme current', ctx.app)
+     .then(cli.expectOKWithString(clickOn))
+     .catch(common.oops(ctx)))
 
   restartAndThen(clickOn)(ctx)
 }

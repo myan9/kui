@@ -19,7 +19,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 const sidecar = ui.sidecar
-
+const { localDescribe } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
 
@@ -27,7 +27,8 @@ const seqName1 = 'seq1'
 const seqName2 = 'seq2'
 const seqName3 = 'seq3'
 
-describe('session get --last and --last-failed', function (this: common.ISuite) {
+// TODO: test in webpack
+localDescribe('session get --last and --last-failed', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

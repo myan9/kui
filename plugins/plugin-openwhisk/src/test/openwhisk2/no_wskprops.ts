@@ -23,8 +23,9 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli } = ui
+const { localDescribe } = common
 
-describe('no .wskprops tests', function (this: common.ISuite) {
+localDescribe('no .wskprops tests', function (this: common.ISuite) {
   if (!process.env.WSK_CONFIG_FILE) {
     before(openwhisk.before(this))
     after(common.after(this))

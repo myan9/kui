@@ -152,6 +152,11 @@ exports.before = (ctx, { fuzz, noApp = false } = {}) => {
   return function () {
     const { cli } = ui
 
+    const setWskHost = !process.env.WEBPACK_TEST || fuzz ? x => x
+      : () => cli.do(`wsk host set ${process.env.API_HOST}`, ctx.app) // DEBUG: wsk host set local? could it read the wskprops? no?
+        .then(cli.expectOK)
+        .catch(common.oops(ctx))
+
     const addWskAuth = !process.env.WEBPACK_TEST || fuzz ? x => x
       : () => cli.do(`wsk auth add ${process.env.__OW_API_KEY || process.env.AUTH}`, ctx.app)
         .then(cli.expectOK)
@@ -160,6 +165,7 @@ exports.before = (ctx, { fuzz, noApp = false } = {}) => {
     // clean openwhisk assets from previous runs, then start the app
     return Promise.all([ cleanAll(false, process.env.__OW_API_KEY || process.env.AUTH), cleanAll(true, process.env.AUTH2) ])
       .then(common.before(ctx, { fuzz, noApp }))
+      .then(setWskHost)
       .then(addWskAuth)
   }
 }

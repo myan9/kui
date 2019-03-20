@@ -23,7 +23,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, rp, selectors, sidecar } = ui
-
+const { localDescribe } = common
 const paramsFileContent = require('@kui-shell/plugin-openwhisk/tests/data/openwhisk/params.json')
 
 import { dirname } from 'path'
@@ -34,7 +34,7 @@ const actionName2 = 'foo2'
 const actionName3 = 'foo3'
 const seqName = 'sss'
 
-describe('@file params and annotations', function (this: common.ISuite) {
+localDescribe('@file params and annotations', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

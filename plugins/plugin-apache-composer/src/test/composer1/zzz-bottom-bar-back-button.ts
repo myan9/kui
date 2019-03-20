@@ -26,7 +26,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 const sidecar = ui.sidecar
-
+const { localDescribe } = common
 import { dirname } from 'path'
 const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/package.json'))
 
@@ -38,7 +38,8 @@ const seqName1 = 'seq1'
 const cell1 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .grid:first-child .grid-cell:first-child`
 const cell2 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .grid:first-child .grid-cell:last-child`
 
-describe('Bottom bar back button functionality', function (this: common.ISuite) {
+// TODO: test this in webpack
+localDescribe('Bottom bar back button functionality', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

@@ -20,14 +20,21 @@ import { ISuite } from '@kui-shell/core/tests/lib/common'
 import * as common from '@kui-shell/core/tests/lib/common' // tslint:disable-line:no-duplicate-imports
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, selectors, sidecar } = ui
+const { version: expectedVersion } = require('@kui-shell/settings/package.json')
 
 describe('About command', function (this: ISuite) {
   before(common.before(this))
   after(common.after(this))
 
-  it('should open the about window', () => cli.do('about', this.app)
-    .then(cli.expectOK)
-    .then(() => this.app.client.getWindowCount())
-    .then(count => assert.strictEqual(count, 2)) // about should open a new window
-    .catch(common.oops(this)))
+  if (process.env.WEBPACK_TEST) {
+    it('should open the about window', () => cli.do('about', this.app)
+      .then(cli.expectOKWithCustom({ expected: expectedVersion }))
+      .catch(common.oops(this)))
+  } else {
+    it('should open the about window', () => cli.do('about', this.app)
+      .then(cli.expectOK)
+      .then(() => this.app.client.getWindowCount())
+      .then(count => assert.strictEqual(count, 2)) // about should open a new window
+      .catch(common.oops(this)))
+  }
 })
