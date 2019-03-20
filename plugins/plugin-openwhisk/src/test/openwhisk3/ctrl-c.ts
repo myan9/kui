@@ -20,11 +20,13 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, selectors, sidecar } = ui
+const { localDescribe } = common
 
 const delay = 3000
 const actionName = 'foo'
 
-describe('Cancel via Ctrl+C', function (this: common.ISuite) {
+// TODO: test this in webpack
+localDescribe('Cancel via Ctrl+C', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 

@@ -18,6 +18,7 @@ import * as common from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, keys, selectors, sidecar } = ui
+const { localDescribe } = common
 
 /** execute the given async task n times */
 const doTimes = (n, task) => {
@@ -28,7 +29,8 @@ const doTimes = (n, task) => {
   }
 }
 
-describe('Tab completion', function (this: common.ISuite) {
+// FIXME: disable the test suite until repl is defined in browser
+localDescribe('Tab completion', function (this: common.ISuite) {
   before(openwhisk.before(this))
   after(common.after(this))
 
