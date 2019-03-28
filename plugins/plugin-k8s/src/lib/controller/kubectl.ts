@@ -387,10 +387,13 @@ const dispatch = async (argv: Array<string>, options, FQN, command, execOptions)
  *
  */
 const shouldWeDisplayAsTable = (verb: string, entityType: string, output: string, options) => {
-  return !options.help && !options.h &&
-    verb !== 'describe' &&
-    verb !== 'install' &&
-    (!output || output === 'wide' || output === 'name' || output.match(/^custom-columns/))
+  const checkOption = !options.help && !options.h
+
+  const checkVerb = verb !== 'describe' && verb !== 'install' && (verb === 'ls' || verb === 'list' || verb === 'get' || (verb === 'config' && entityType.match(/^get/)))
+
+  const checkOutputType =  !output || output === 'wide' || output === 'name' || output.match(/^custom-columns/)
+
+  return checkOption && checkVerb && checkOutputType
 }
 
 /**
@@ -400,16 +403,10 @@ const shouldWeDisplayAsTable = (verb: string, entityType: string, output: string
 const table = (decodedResult: string, stderr: string, command: string, verb: string, entityType: string, entity: string, options, execOptions) => {
   debug('displaying as table', verb, entityType)
 
-  // TODO move this to shouldWe...
-  const reallyTabularize = verb === 'ls' ||
-    verb === 'list' ||
-    verb === 'get' ||
-    (verb === 'config' && entityType.match(/^get/))
-
   // the ?=\s+ part is a positive lookahead; we want to
   // match only "NAME " but don't want to capture the
   // whitespace
-  const tables = reallyTabularize && preprocessTable(decodedResult.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
+  const tables = preprocessTable(decodedResult.split(/^(?=LAST SEEN|NAMESPACE|NAME\s+)/m))
 
   if (tables && tables.length === 1 && tables[0].length === 0) {
     // degenerate case of "really not a table"
