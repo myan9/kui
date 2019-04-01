@@ -20,8 +20,8 @@ const debug = Debug('core/webapp/util/ascii-to-usage')
 import UsageError from '../../core/usage-error'
 import { split } from '../../core/repl'
 
-const sectionHeader = /([A-Z ]+):/
-const matcher = /\n([A-Z ]+:)/
+const sectionHeader = /([a-zA-Z ]+):/ // TODO: Does it really match Xxxx: ?
+const matcher = /\n([a-zA-Z ]+:)/ // TODO: Does it really match Xxxx: ?
 
 interface IOptions {
   drilldownWithPip?: boolean
@@ -73,7 +73,10 @@ export const formatUsage = (command: string, str: string, options: IOptions = ne
       .slice(1)
       .reduce((groups, row) => {
         const maybeHeader = row.match(sectionHeader)
-        debug('maybeHeader', row, maybeHeader, groups.length)
+        debug('groups', groups)
+        debug('row', row)
+        debug('maybeHeader', maybeHeader)
+        //debug('maybeHeader', row, maybeHeader, groups.length)
 
         if (maybeHeader) {
           groups.push({ title: maybeHeader[1].toLowerCase(), rows: [] })
@@ -103,7 +106,8 @@ export const formatUsage = (command: string, str: string, options: IOptions = ne
         }))
 
       const header = nameSectionIdx >= 0 && sections[nameSectionIdx].rows[0]
-      const example = usageSectionIdx >= 0 && sections[usageSectionIdx].rows[0]
+      // const example = usageSectionIdx >= 0 && sections[usageSectionIdx].rows[0]
+      const example = usageSectionIdx >= 0 && sections[usageSectionIdx].rows.join('\n')
       debug('header', header, nameSectionIdx)
       debug('example', example, usageSectionIdx)
 
