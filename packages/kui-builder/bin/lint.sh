@@ -19,4 +19,4 @@
 SCRIPTDIR=$(cd $(dirname "$0") && pwd)
 cd "$SCRIPTDIR/.."
 
-npx tslint --config tslint.json --project .
+npx tslint --fix --config tslint.json --project .
