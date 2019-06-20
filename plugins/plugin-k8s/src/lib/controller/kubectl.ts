@@ -395,8 +395,9 @@ const executeLocally = (command: string) => (opts: EvaluatorArgs) => new Promise
           : ''
 
         debug('about to get status', file, entityType, entity, resourceNamespace)
-        return repl.qexec(`${statusCommand} status ${file || entityType} ${entity || ''} ${finalState} ${resourceNamespace}`,
-          undefined, undefined, { parameters: execOptions.parameters })
+        const refreshCommand = `${statusCommand} status ${file || entityType} ${entity || ''} ${finalState} ${resourceNamespace}`
+        return repl.qexec(refreshCommand, undefined, undefined, { parameters: execOptions.parameters })
+          .then(result => Object.assign({}, result, { refreshCommand, watchByDefault: true })) // toggle the watcher
           .catch(err => {
             if (err.code === 404 && expectedState === FinalState.OfflineLike) {
             // that's ok!

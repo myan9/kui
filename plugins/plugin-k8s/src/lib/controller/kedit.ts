@@ -152,7 +152,7 @@ const showResource = async (yaml: KubeResource, filepath: string, tab: Tab) => {
  * Render the resources as a REPL table
  *
  */
-const showAsTable = (yamls: any[], filepathAsGiven: string, parsedOptions): Table => {
+const showAsTable = (yamls: any[], filepathAsGiven: string, parsedOptions): Promise<Table> => {
   debug('showing as table', yamls)
 
   const ourOptions = {
@@ -164,10 +164,12 @@ const showAsTable = (yamls: any[], filepathAsGiven: string, parsedOptions): Tabl
       }
     }
   }
-
-  return new Table({
-    body: yamls.map(formatEntity(Object.assign({}, parsedOptions, ourOptions)))
-  })
+  return Promise.all(yamls.map(formatEntity(Object.assign({}, parsedOptions, ourOptions))))
+    .then(rows => {
+      return new Table({
+        body: rows
+      })
+    })
 }
 
 /**

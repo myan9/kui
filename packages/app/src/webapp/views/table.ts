@@ -31,6 +31,7 @@ interface TableFormatOptions {
 }
 
 export const formatTable = (tab: Tab, table: Table | WatchableTable, resultDom: HTMLElement, options: TableFormatOptions = {}): void => {
+  debug('format table', table)
   const tableDom = document.createElement('div')
   tableDom.classList.add('result-table')
 
@@ -352,6 +353,19 @@ export const formatOneRowResult = (tab: Tab, options: RowFormatOptions = {}) => 
         }
 
         try {
+          // TODO1: refresh status function => command
+          // this command will return these stuff
+          // and I update with this
+
+          // TODO2: refresh command should just return a table
+          // So: 1, create -f, we will get the status ping which tells us the underlying resource
+          //     2.1, refresh command shoud be k get status ping (could be multil result, so nope)
+          //     2.2, refresh command should be k status show which is a multi-k-get-resource-table
+          //     2.3  The underlying command for create -f should also be the multi-k-get-resource table, which is k status show
+          //     2.4. We need a k status show with static table
+          //     3. To do this, we could either change from the code base, or come up with a new methods and learn
+
+          // TODO2.3: just change the static part
           Promise.resolve(watch(watchLimit - count - 1))
             .then(({ value, done = false, css, onclick, others = [], unchanged = false, outerCSS, slowPoll = false }) => {
               if (unchanged) {

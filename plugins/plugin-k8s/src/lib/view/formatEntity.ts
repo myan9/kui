@@ -37,7 +37,7 @@ export const formatContextAttr = (context: string, extraCSS?: string) => {
  * Return a repl attribute for the given readiness
  *
  */
-export const formatEntity = (parsedOptions, context?: string) => kubeEntity => {
+export const formatEntity = (parsedOptions, context?: string) => async (kubeEntity) => {
   debug('formatEntity', kubeEntity)
 
   const doWatch = true
@@ -82,45 +82,60 @@ export const formatEntity = (parsedOptions, context?: string) => kubeEntity => {
     outerCSS: 'pretty-narrow hide-with-sidecar'
   }]
 
-  const statusAttrs = parsedOptions['no-status'] ? [] : [
-    {
-      key: 'status',
-      value: States.Pending,
-      placeholderValue: true, // allows headless to make an informed rendering decision
-      tag: 'badge',
-      watch: !doWatch ? undefined : (iter: number) => {
-        const watchResponse = watchStatus(watch, finalState, iter)
-        watchResponse.then(({ done }) => {
-          if (done) {
-            eventBus.removeListener(eventType, listener)
-          }
-        })
+  return Promise.resolve(watchStatus(watch, finalState))
+    .then(statuss => {
+      debug('statuss', statuss)
 
-        return watchResponse
-      },
-      outerCSS,
-      css: cssForState(States.Pending)
-    },
+      const statusAttrs = parsedOptions['no-status'] ? [] : [
+        {
+          key: 'status',
+          value: statuss.value,
+          placeholderValue: true, // allows headless to make an informed rendering decision
+          tag: 'badge',
+          // watch: !doWatch ? undefined : (iter: number) => {
+          //   const watchResponse = watchStatus(watch, finalState, iter)
+          //   watchResponse.then(({ done }) => {
+          //     if (done) {
+          //       eventBus.removeListener(eventType, listener)
+          //     }
+          //   })
+          //   debug('watch response', watchResponse)
+          //   return watchResponse
+          // },
+          outerCSS,
+          css: cssForState(statuss.value)
+        },
 
-    {
-      key: 'message',
-      value: '',
-      css: 'somewhat-smaller-text slightly-deemphasize',
-      outerCSS: 'hide-with-sidecar not-too-wide min-width-date-like'
-    }
-  ]
+        {
+          key: 'message',
+          value: '',
+          css: 'somewhat-smaller-text slightly-deemphasize',
+          outerCSS: 'hide-with-sidecar not-too-wide min-width-date-like'
+        }
+      ]
 
-  const attributes: any[] = kindAttr.concat(contextAttr)
-    .concat(namespaceAttrs)
-    .concat(statusAttrs)
+      const attributes: any[] = kindAttr.concat(contextAttr)
+        .concat(namespaceAttrs)
+        .concat(statusAttrs)
 
-  return Object.assign({}, kubeEntity, {
-    type: 'status',
-    prettyType: kindForDisplay,
-    name: title || actionName || fqn,
-    packageName,
-    noSort: true,
-    onclick: parsedOptions.onclickFn ? parsedOptions.onclickFn(kubeEntity) : false,
-    attributes
-  })
+      debug('hei', Object.assign({}, kubeEntity, {
+        type: 'status',
+        prettyType: kindForDisplay,
+        name: title || actionName || fqn,
+        packageName,
+        noSort: true,
+        onclick: parsedOptions.onclickFn ? parsedOptions.onclickFn(kubeEntity) : false,
+        attributes
+      }))
+
+      return Object.assign({}, kubeEntity, {
+        type: 'status',
+        prettyType: kindForDisplay,
+        name: title || actionName || fqn,
+        packageName,
+        noSort: true,
+        onclick: parsedOptions.onclickFn ? parsedOptions.onclickFn(kubeEntity) : false,
+        attributes
+      })
+    })
 }

@@ -218,10 +218,12 @@ const getStatusForKnownContexts = (execOptions: ExecOptions, parsedOptions: Pars
         const balloon = thisContextIsCurrent ? strings.currentContext : strings.notCurrentContext
 
         if (!parsedOptions.multi) {
-          return resources.map(formatEntity(parsedOptions, name))
+          return Promise.all(resources.map(formatEntity(parsedOptions, name)))
         } else {
-          return Promise.all([ headerRow({ title: name, fontawesome, fontawesomeCSS, balloon, tableCSS }) ].concat(
-            resources.map(formatEntity(parsedOptions, name))))
+          return Promise.all(resources.map(formatEntity(parsedOptions, name)))
+            .then(rows => {
+              return [ headerRow({ title: name, fontawesome, fontawesomeCSS, balloon, tableCSS }) ].concat(rows)
+            })
         }
         /* const formattedEntities = resources.map(formatEntity(parsedOptions, name));
           debug('formattedEntities', name, formattedEntities);
@@ -494,7 +496,10 @@ const findControlledResources = async (args: EvaluatorArgs, kubeEntities: KubeRe
   if (args.execOptions.raw) {
     return pods
   } else if (pods.length > 0) {
-    return [ headerRow({ title: 'pods' }) ].concat(flatten(pods.map(formatEntity(args.parsedOptions))))
+    return Promise.all(pods.map(formatEntity(args.parsedOptions)))
+      .then(rows => {
+        return [ headerRow({ title: 'pods' }) ].concat(flatten(rows))
+      })
   } else {
     return []
   }
@@ -558,12 +563,14 @@ export const status = (command: string) => async (args: EvaluatorArgs): Promise<
     if (args.execOptions.raw) {
       return direct
     } else {
-      const formattedEntities = directEntities.map(formatEntity(args.parsedOptions))
-      if (direct.headerRow) {
-        return statusTable([ direct.headerRow ].concat(...formattedEntities))
-      } else {
-        return formattedEntities
-      }
+      return Promise.all(directEntities.map(formatEntity(args.parsedOptions)))
+        .then(rows => {
+          if (direct.headerRow) {
+            return statusTable([ direct.headerRow ].concat(...rows))
+          } else {
+            return rows
+          }
+        })
     }
   } else {
     if (args.execOptions.raw) {
@@ -577,7 +584,10 @@ export const status = (command: string) => async (args: EvaluatorArgs): Promise<
         return [ directTable, controlledTable ]
       } else {
         console.error('internal error: expected headerRow for direct')
-        return directRows.concat(controlled)
+        return Promise.all(directRows)
+          .then(rows => {
+            return rows.concat(controlled)
+          })
       }
     }
   }
