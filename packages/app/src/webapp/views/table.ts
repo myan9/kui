@@ -21,6 +21,7 @@ import { pexec, qexec } from '../../core/repl'
 import drilldown from '../picture-in-picture'
 import {
   Table,
+  MultiTable,
   Row,
   Cell,
   Icon,
@@ -28,6 +29,9 @@ import {
   WatchableTable,
   diffTableRows,
   isWatchableTable,
+  WatchableMultiTable,
+  isWatchableMultiTable,
+  isMultiTable,
   isTable
 } from '../models/table'
 import { applyDiffTable } from '../views/diffTable'
@@ -347,6 +351,7 @@ export const formatOneRowResult = (
 
     if (watch) {
       cell.classList.add(pulse)
+
       // we'll ping the watcher at most watchLimit times
       let count = watchLimit
 
@@ -607,12 +612,20 @@ function setStyle(tableDom: HTMLElement, table: Table) {
   }
 }
 
+// This helps multi-table view handler to use the the processed data from single-table view handler
+interface TableViewInfo {
+  renderedRows: HTMLElement[]
+  rowsModel: Row[]
+  renderedTable: HTMLElement
+  tableModel: Table | WatchableTable
+}
+
 export const formatTable = (
   tab: Tab,
   table: Table | WatchableTable,
   resultDom: HTMLElement,
   options: TableFormatOptions = {}
-): void => {
+): TableViewInfo => {
   const tableDom = document.createElement('div')
   tableDom.classList.add('result-table')
 
@@ -717,12 +730,23 @@ export const formatTable = (
           const response = await qexec(table.refreshCommand)
           if (isTable(response)) {
             newPrepareRows = prepareTable(tab, response)
+
+            if (!response.body.some(row => !row.done)) {
+              // stop watching if all resources have reached to the finial state
+              stopWatching()
+            }
           } else {
             console.error('refresh result is not a table', response)
             rows.map(row => tableDom.removeChild(row))
           }
         } catch (err) {
           if (err.code === 404) {
+            if (table.refreshCommand.includes('--final-state 2')) {
+              debug(
+                'resource not found after status check, but that is ok because that is what we wanted'
+              )
+              stopWatching()
+            }
             newPrepareRows = []
           } else {
             while (resultDom.firstChild) {
@@ -756,6 +780,12 @@ export const formatTable = (
       // establish the initial watch interval
       interval = setInterval(watchIt, 1000 + ~~(1000 * Math.random()))
     }
+  }
+  return {
+    renderedRows: rows,
+    renderedTable: tableDom,
+    rowsModel: prepareRows,
+    tableModel: table
   }
 }
 
@@ -1304,6 +1334,101 @@ export const formatListResult = (tab: Tab, response) => {
   }
 
   return sort().map(formatOneListResult(tab))
+}
+
+export const formatMultiTableResult = (
+  tab: Tab,
+  response: MultiTable,
+  resultDom: HTMLElement
+) => {
+  const tables = response.tables
+
+  const tableViewInfo =
+    tables && tables.map(table => formatTable(tab, table, resultDom))
+
+  if (isWatchableMultiTable(response) && response.watchByDefault) {
+    let count = response.watchLimit ? response.watchLimit : 100000
+
+    // the current watch interval; used for clear/reset/stop
+    let interval: NodeJS.Timeout // eslint-disable-line prefer-const
+
+    const stopWatching = () => {
+      debug('stopWatching')
+      clearInterval(interval)
+    }
+
+    const refreshTables = async () => {
+      debug(`refresh with ${response.refreshCommand}`)
+
+      let newPrepareRows: Row[][]
+
+      try {
+        const refreshResult = await qexec(response.refreshCommand)
+
+        if (isMultiTable(refreshResult)) {
+          let allDone = true // allDone is used to indicate if all resources have reached to the final state
+
+          newPrepareRows = refreshResult.tables.map(table => {
+            if (table.body.some(row => !row.done)) {
+              allDone = false
+            }
+            return prepareTable(tab, table)
+          })
+
+          // stop watching if all rows have done the jobs
+          if (allDone) {
+            stopWatching()
+          }
+        }
+      } catch (err) {
+        if (err.code === 404) {
+          if (response.refreshCommand.includes('--final-state 2')) {
+            debug(
+              'resource not found after status check, but that is ok because that is what we wanted'
+            )
+            stopWatching()
+          }
+          newPrepareRows = []
+        } else {
+          while (resultDom.firstChild) {
+            resultDom.removeChild(resultDom.firstChild)
+          }
+          stopWatching()
+          throw err
+        }
+      }
+
+      newPrepareRows.forEach((newRows, index) => {
+        const diffs = diffTableRows(tableViewInfo[index].rowsModel, newRows)
+        // debug('diff table rows', diffs)
+        applyDiffTable(
+          diffs,
+          tab,
+          tableViewInfo[index].renderedTable,
+          tableViewInfo[index].renderedRows,
+          tableViewInfo[index].rowsModel
+        )
+      })
+    }
+
+    const watchIt = () => {
+      if (--count < 0) {
+        debug('watchLimit exceeded')
+        stopWatching()
+        return
+      }
+
+      try {
+        Promise.resolve(refreshTables())
+      } catch (err) {
+        console.error('Error refreshing table', err)
+        clearInterval(interval)
+      }
+    }
+
+    // establish the initial watch interval
+    interval = setInterval(watchIt, 1000 + ~~(1000 * Math.random()))
+  }
 }
 
 /**

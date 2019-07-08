@@ -18,6 +18,7 @@
 
 import { Watchable } from './basicModels'
 import { sortBody } from '../views/table'
+import { Entity } from '@kui-shell/core/models/entity'
 
 export class Row {
   attributes?: Cell[]
@@ -25,12 +26,11 @@ export class Row {
   type?: string
   packageName?: string
   prettyType?: string
-  watch?: any // eslint-disable-line @typescript-eslint/no-explicit-any
   fontawesome?: string
   fontawesomeCSS?: string
   setSelected?: () => void
   setUnselected?: () => void
-  nameCss?: any // eslint-disable-line @typescript-eslint/no-explicit-any
+  nameCss?: string
   key?: string
   prettyName?: string
   fullName?: string
@@ -44,6 +44,7 @@ export class Row {
   onclick?: any // eslint-disable-line @typescript-eslint/no-explicit-any
   css?: string
   outerCSS?: string
+  done?: boolean
 
   constructor(row: Row) {
     Object.assign(this, row)
@@ -110,21 +111,38 @@ export class Table {
 
 export interface WatchableTable extends Table, Watchable {}
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isTable(model: any): model is Table {
+export interface MultiTable {
+  tables: Table[]
+}
+
+export type WatchableMultiTable = MultiTable & Watchable
+
+export function isTable(model: Entity): model is Table {
   return (
     model !== undefined &&
     (model instanceof Table || (model as Table).body !== undefined)
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isMultiTable(model: any): model is Table[] {
+export function isMultiTable(model: Entity): model is MultiTable {
   return (
     model !== undefined &&
-    Array.isArray(model) &&
-    model.length > 0 &&
-    model.filter(m => !isTable(m)).length === 0
+    (model as MultiTable).tables !== undefined &&
+    Array.isArray((model as MultiTable).tables) &&
+    (model as MultiTable).tables.length > 1 &&
+    (model as MultiTable).tables.filter(table => !isTable(table)).length === 0
+  )
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isWatchableMultiTable(
+  model: any
+): model is WatchableMultiTable {
+  return (
+    model &&
+    isMultiTable(model.tables) &&
+    (model as Watchable).refreshCommand &&
+    (model as Watchable).watchByDefault !== undefined
   )
 }
 
@@ -139,11 +157,14 @@ export function isWatchableTable(
   )
 }
 
-export function formatWatchableTable(model: Table | Table[], watch: Watchable) {
+export function formatWatchableTable(
+  model: Table | MultiTable,
+  watch: Watchable
+) {
   if (isTable(model)) {
     return Object.assign(model, watch)
   } else if (isMultiTable(model)) {
-    model.forEach(table => Object.assign(table, watch))
+    return Object.assign(model, watch)
   } else {
     // TODO: we might need to consider the variance of model, throw error for now
     throw new Error(
