@@ -16,14 +16,15 @@
 
 import * as Debug from 'debug'
 
-import { lstat, readdir, readFile, stat } from 'fs'
+import { lstat, readdir, readFile, stat, constants as fsConstants } from 'fs'
 import { dirname, isAbsolute, join } from 'path'
+import * as glob from 'glob'
 
 import expandHomeDir from '@kui-shell/core/util/home'
 import { flatten } from '@kui-shell/core/core/utility'
 import * as repl from '@kui-shell/core/core/repl'
 import { CommandRegistrar, EvaluatorArgs, ParsedOptions } from '@kui-shell/core/models/command'
-import { Row, Table, TableStyle } from '@kui-shell/core/webapp/models/table'
+import { Row, Table, MultiTable, TableStyle, isTable } from '@kui-shell/core/webapp/models/table'
 import { findFile, findFileWithViewer, isSpecialDirectory } from '@kui-shell/core/core/find-file'
 import { CodedError } from '@kui-shell/core/models/errors'
 
@@ -35,31 +36,7 @@ const strings = i18n('plugin-bash-like')
 
 const debug = Debug('plugins/bash-like/cmds/ls')
 
-/**
- * From the end of the given string, scan for the idx that marks the
- * start of some filename in the given fileMap
- *
- */
-const scanForFilename = (str: string, fileMap: Record<string, boolean>, endIdx = str.length - 1) => {
-  let candidate: string
-  let candidateIdx: number
-
-  for (let idx = endIdx; idx >= 0; idx--) {
-    const maybe = str.slice(idx, endIdx + 1)
-    if (fileMap[maybe]) {
-      // find the longest candidate
-      if (!candidate || candidate.length < maybe.length) {
-        candidate = maybe
-        candidateIdx = idx - 1
-      }
-    }
-  }
-
-  if (candidate) {
-    fileMap[candidate] = false // we already matched this!
-    return candidateIdx
-  }
-}
+const octalPermission = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx']
 
 /**
  * Return the contents of the given directory
@@ -167,119 +144,75 @@ const fstat = ({ argvNoOptions, parsedOptions }: EvaluatorArgs) => {
   })
 }
 
+/** promise version of glob */
+const globp = (pattern: string): Promise<string[]> =>
+  new Promise((resolve, reject) => {
+    glob(pattern, (err, files) => {
+      if (err) {
+        reject(err)
+      } else {
+        debug('globbing', files)
+        resolve(files)
+      }
+    })
+  })
+
 /**
- * Turn ls output into a REPL table
- *
+ * Checks whether a path starts with or contains a hidden file or a folder.
+ * @param {string} source - The path of the file that needs to be validated.
+ * returns {boolean} - `true` if the source is blacklisted and otherwise `false`.
+ * source: https://stackoverflow.com/questions/8905680/nodejs-check-for-hidden-files
  */
-const tabularize = (cmd: string, parsedOptions: ParsedOptions, parent = '', parentAsGiven = '') => async (
-  output: string
-): Promise<true | Table> => {
-  if (output.length === 0) {
-    debug('tabularize empty')
-    return true
-  }
+const isUnixHiddenPath = path => {
+  return /(^|\/)\.[^\/\.]/g.test(path) // eslint-disable-line no-useless-escape
+}
 
-  const fileMap = await myreaddir((parent || process.cwd()).replace(/['"]/g, ''))
+// see source: https://stackoverflow.com/questions/15900485/correct-way-to-convert-size-in-bytes-to-kb-mb-gb-in-javascript
+const formatBytes = (bytes: number, decimals = 1) => {
+  if (bytes === 0) return '0 B'
 
-  // ls -l on directories has a line at the top "total nnnn"
-  // we will strip this off
-  const startIdx = output.match(/^total [\d]+/) ? 1 : 0
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
-  const columnGap = process.platform === 'darwin' ? 15 : 1
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-  const rows = output
-    .split(/[\n\r]/)
-    .slice(startIdx) // maybe strip off "total nnn"
-    .map(line =>
-      line
-        .split(new RegExp(`[\\s]{${columnGap}}`))
-        .map(col => col.trim())
-        .filter(x => x)
-        .map((col, idx, A) => {
-          if (idx === 1) {
-            // the "num links" and "user" columns are adjoined
-            // e.g. "1 nickm"
-            const spaceIdx = col.indexOf(' ')
-            return [col.substring(0, spaceIdx), col.substring(spaceIdx + 1)].filter(x => x) // the first entry might be blank, e.g. on linux
-          } else if (process.platform !== 'darwin' && idx >= 5 && idx <= 7) {
-            // the date column is split across three cols in our split
-            if (idx === 5) {
-              return `${A[idx]} ${A[idx + 1]} ${A[idx + 2]}`
-            }
-          } else if (process.platform === 'darwin' && idx === 3) {
-            // the size, date, and filename columns are adjoined
-            // e.g. "12K Jul 26 12:58 CHANGELOG.md"
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+}
 
-            const spaceIdx1 = col.indexOf(' ') // space after 12k
+interface FileMeta {
+  name: string
+  expandName: string
+  isDirectory: boolean
+  isFile: boolean
+  isLink: boolean
+  isExecutable: boolean
+  isSpecial: boolean
+  size: string
+  rawSize: number
+  blocks: string
+  lastModified: string
+  mtimeMs: number
+  permission: string
+  owner: string
+  group: string
+}
 
-            const stats = A[0]
-            const isLink = stats.charAt(0) === 'l'
-
-            if (isLink) {
-              // links are a bit funky, e.g.
-              // "115B Sep  4 21:04 yo.js -> /path/to/yo.js"
-              const arrow = '->'
-              const arrowIdx = col.lastIndexOf(arrow)
-              const endOfLinkIdx = arrowIdx - arrow.length + 1
-              const startOfFilename = scanForFilename(col, fileMap, endOfLinkIdx - 1)
-
-              return [
-                col.substring(0, spaceIdx1), // size
-                col.substring(spaceIdx1 + 1, startOfFilename), // date
-                col.substring(startOfFilename + 1, endOfLinkIdx) // link name
-              ]
-            } else {
-              const startOfFilename = scanForFilename(col, fileMap) // e.g. space after :58 in the comment under idx === 3
-
-              return [
-                col.substring(0, spaceIdx1), // size
-                col.substring(spaceIdx1 + 1, startOfFilename), // date
-                col.substring(startOfFilename + 1) // filename
-              ]
-            }
-          } else if (process.platform !== 'darwin' && idx >= 8) {
-            // here is where we handle the name column(s) on
-            // non-darwin platforms; these usually span 3-N columns,
-            // depending on how many spaces the base filename and
-            // linked filename contain
-            if (idx === 8) {
-              // idx 8 marks the start of the name -> link columns
-              const stats = A[0]
-              const isLink = stats.charAt(0) === 'l'
-              const rest = A.slice(idx).join(' ')
-
-              if (isLink) {
-                // if this row represents a link, the format will be name -> linkedFile
-                // we want the "name" part
-                const arrow = '->'
-                const arrowIdx = rest.lastIndexOf(arrow)
-                return rest.slice(0, arrowIdx).trim()
-              } else {
-                // otherwise, this isn't a link, so peel off the remaining columns
-                return rest
-              }
-            }
-          } else {
-            return col
-          }
-        })
-    )
-    .map(flatten)
-    .map(row => row.filter(x => x))
-    .filter(x => x.length > 0)
-    .filter(row => !row[row.length - 1].match(/~$/)) // hack for now: remove emacs ~ temporary files
-
+/**
+ * Deroate a header for the table
+ */
+const formHeader = (options: ParsedOptions): Row => {
   const outerCSS = 'header-cell'
   const outerCSSSecondary = `${outerCSS} hide-with-sidecar`
 
-  const ownerAttrs = !parsedOptions.l
+  const ownerAttrs = !options.l
     ? []
     : [
         { key: 'owner', value: 'OWNER', outerCSS: outerCSSSecondary },
         { key: 'group', value: 'GROUP', outerCSS: outerCSSSecondary }
       ]
 
-  const permissionAttrs = !parsedOptions.l
+  const permissionAttrs = !options.l
     ? []
     : [
         {
@@ -300,95 +233,231 @@ const tabularize = (cmd: string, parsedOptions: ParsedOptions, parent = '', pare
 
   const headerAttributes = permissionAttrs.concat(ownerAttrs).concat(normalAttrs)
 
-  const headerRow: Row = {
+  return {
     name: 'NAME',
     type: 'file',
     onclick: false,
     outerCSS,
     attributes: headerAttributes
   }
+}
 
-  const body: Row[] = rows.map(
-    (columns): Row => {
-      const stats = columns[0]
-      const isDirectory = stats.charAt(0) === 'd'
-      const isLink = stats.charAt(0) === 'l'
-      const isExecutable = stats.indexOf('x') > 0
-      const isSpecial = stats.charAt(0) !== '-'
+interface DirectoryOrFile {
+  isDirectory: boolean
+  isFile: boolean
+}
 
-      const name = columns[columns.length - 1]
-      const nameForDisplay = `${name}${isDirectory ? '/' : isLink ? '@' : isExecutable ? '*' : ''}`
-
-      const css = isDirectory
-        ? 'dir-listing-is-directory'
-        : isLink
-        ? 'dir-listing-is-link' // note that links are also x; we choose l first
-        : isExecutable
-        ? 'dir-listing-is-executable'
-        : isSpecial
-        ? 'dir-listing-is-other-special'
-        : ''
-
-      const startTrim = 2
-      const endTrim = 0
-      const allTrim = startTrim + endTrim + 1
-
-      // idx into the attributes; minus 1 because we slice off the name
-      const ownerIdx = 1 - 1
-      const groupIdx = 2 - 1
-      const sizeIdx = 3 - 1
-      const dateIdx = columns.length - allTrim - 1
-
-      // user asked to sort by time?
-      const sortByTime = parsedOptions.t
-
-      const permissionAttrs = !parsedOptions.l
-        ? []
-        : [
-            {
-              value: columns[0],
-              css: 'slightly-deemphasize'
-            }
-          ]
-
-      const normalAttributes = columns
-        .slice(startTrim, columns.length - endTrim - 1)
-        .map((col, idx) => {
-          if (parsedOptions.l || (idx !== ownerIdx && idx !== groupIdx)) {
-            return {
-              value: col,
-              outerCSS: idx !== dateIdx ? 'hide-with-sidecar' : 'badge-width',
-              css:
-                idx === ownerIdx ||
-                idx === groupIdx ||
-                (idx === dateIdx && !sortByTime) ||
-                (idx === sizeIdx && sortByTime)
-                  ? 'slightly-deemphasize'
-                  : ''
-            }
-          }
-        })
-        .filter(x => x)
-
-      return new Row({
-        type: cmd,
-        name: nameForDisplay,
-        onclickExec: 'qexec',
-        onclick: `lsOrOpen ${repl.encodeComponent(isAbsolute(name) ? name : join(parentAsGiven, name))}`, // note: ls -l file results in an absolute path
-        css,
-        attributes: permissionAttrs.concat(normalAttributes)
+const isDirectoryOrFile = (path: string): Promise<DirectoryOrFile> => {
+  return new Promise((resolve, reject) => {
+    return lstat(path, async (err, stats) => {
+      if (err) reject(err)
+      resolve({
+        isDirectory: stats.isDirectory(),
+        isFile: stats.isFile()
       })
+    })
+  })
+}
+
+/** get stats from file */
+const getStats = async (dir: string, name: string): Promise<FileMeta> => {
+  const fullName = findFile(expandHomeDir(join(dir, name)))
+
+  return new Promise((resolve, reject) => {
+    return lstat(fullName, async (err, stats) => {
+      if (err) reject(err)
+
+      const mode = (stats.mode & parseInt('777', 8)).toString(8)
+      const permission = mode
+        .split('')
+        .map(group => octalPermission[group])
+        .join('')
+
+      resolve({
+        name: name || dir,
+        expandName: `${repl.encodeComponent(isAbsolute(name) ? name : join(dir, name))}`,
+        isDirectory: stats.isDirectory(),
+        isFile: stats.isFile(),
+        isLink: stats.isSymbolicLink(),
+        size: formatBytes(stats.size),
+        rawSize: stats.size,
+        blocks: stats.blocks.toString(),
+        lastModified: stats.mtime.toLocaleString(), // NOTE: different with what I saw on mac
+        mtimeMs: stats.mtimeMs, // original time
+        owner: stats.uid.toString(),
+        group: stats.gid.toString(),
+        permission,
+        isExecutable: permission.includes('x'),
+        isSpecial: permission.charAt(0) !== '-'
+      })
+    })
+  })
+}
+
+/** iterate the directory and return the file stats */
+const listDirectory = async (dir: string, options: ParsedOptions): Promise<DirOrFile> => {
+  /** iterate the directory */
+  const getAllFiles = async (dir: string): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+      return readdir(dir, async (err, files) => {
+        if (err) reject(err)
+        if (options.A) {
+          resolve(files)
+        } else if (options.a) {
+          resolve(['.', '..'].concat(files))
+        } else {
+          resolve(files.filter(path => !isUnixHiddenPath(path)))
+        }
+      })
+    })
+  }
+
+  /** sort files by the last modified time */
+  const sort = (files: FileMeta[], options: ParsedOptions) => {
+    if (options.S) {
+      files.sort((highIndex, lowIndex) =>
+        !options.r ? -(highIndex.rawSize - lowIndex.rawSize) : highIndex.rawSize - lowIndex.rawSize
+      )
+    } else if (options.t) {
+      files.sort((highIndex, lowIndex) =>
+        !options.r ? -(highIndex.mtimeMs - lowIndex.mtimeMs) : highIndex.mtimeMs - lowIndex.mtimeMs
+      )
     }
-  )
+    return files
+  }
+
+  return getAllFiles(dir) // get file names of the directory
+    .then(fileName => Promise.all(fileName.map(name => getStats(dir, name)))) // get metadata of each file
+    .then(fileMeta => (options.t || options.S ? sort(fileMeta, options) : fileMeta)) // user asked to sort by time or size?
+    .then(fileMeta => {
+      return { isDirectory: true, content: fileMeta, directoryName: dir }
+    })
+}
+
+/** list a directory or a file status */
+const listDirectoryOrFile = async (path: string, options: ParsedOptions) => {
+  const { isDirectory } = await repl.qexec(`fstat ${repl.encodeComponent(path)}`)
+
+  if (isDirectory) {
+    return listDirectory(path, options)
+  } else {
+    return { isFile: true, content: [await getStats(path, '')] }
+  }
+}
+
+interface DirOrFile {
+  isDirectory?: boolean
+  isFile?: boolean
+  directoryName?: string
+  content: FileMeta[]
+}
+
+const formatTable = async (dirOrFile: DirOrFile, options: ParsedOptions, showTitle = false) => {
+  console.error('format', dirOrFile)
+  const body = dirOrFile.content.map(_metadata => {
+    // NOTE: this should not be full name ; it should be nameForDisplay
+    const nameForDisplay = `${_metadata.name}${
+      _metadata.isDirectory ? '/' : _metadata.isLink ? '@' : _metadata.isExecutable ? '*' : ''
+    }`
+
+    const ownerAttrs = !options.l
+      ? []
+      : [
+          { value: _metadata.owner, css: 'slightly-deemphasize' },
+          { value: _metadata.group, css: 'slightly-deemphasize' }
+        ]
+
+    const permissionForDispaly = _metadata.isDirectory ? `d${_metadata.permission}` : `-${_metadata.permission}`
+
+    const permissionAttrs = !options.l
+      ? []
+      : [
+          {
+            value: permissionForDispaly,
+            css: 'slightly-deemphasize'
+          }
+        ]
+
+    const normalAttrs = [
+      { value: !options.s ? _metadata.size : _metadata.blocks, outerCSS: 'hide-with-sidecar', css: '' },
+      { value: _metadata.lastModified, outerCSS: 'badge-width', css: 'slightly-deemphasize' }
+    ]
+
+    const attributes = permissionAttrs.concat(ownerAttrs).concat(normalAttrs)
+
+    const css = _metadata.isDirectory
+      ? 'dir-listing-is-directory'
+      : _metadata.isLink
+      ? 'dir-listing-is-link' // note that links are also x; we choose l first
+      : _metadata.isExecutable
+      ? 'dir-listing-is-executable'
+      : _metadata.isSpecial
+      ? 'dir-listing-is-other-special'
+      : ''
+
+    // NOTE: metadata should contain an fullName or Path
+    return new Row({
+      type: 'ls',
+      name: nameForDisplay,
+      onclickExec: 'qexec',
+      onclick: `lsOrOpen ${_metadata.expandName}`, // note: ls -l file results in an absolute path
+      css,
+      attributes
+    })
+  })
 
   return new Table({
-    type: cmd,
+    title: showTitle && dirOrFile.directoryName,
+    type: 'ls',
     style: TableStyle.Light,
     noEntityColors: true,
     noSort: true,
-    header: headerRow,
+    header: formHeader(options),
     body
   })
+}
+
+/** combine multile file lists into 1 */
+const formatList = (mixedListResult: DirOrFile[]) => {
+  const files = flatten(
+    mixedListResult.map(result => {
+      if (result.isFile) {
+        return result.content
+      }
+    })
+  ).filter(x => x)
+
+  const combinedFiles: DirOrFile[] = [{ isDirectory: true, content: files }]
+  console.error('???', combinedFiles)
+
+  const directories = mixedListResult
+    .map(result => {
+      if (result.isDirectory) {
+        return result
+      }
+    })
+    .filter(x => x)
+
+  return combinedFiles.concat(directories)
+}
+
+const listFromPath = async (path: string, options: ParsedOptions) => {
+  const findAndExpandPath = await globp(path) // TODO: add file name expansion
+
+  if (!findAndExpandPath[0]) {
+    const err = new Error(`ls: ${path}: No such file or directory`)
+    err['code'] = 404
+    throw err
+  } else if (findAndExpandPath.length === 1) {
+    // globbing and resulting with 1 single result
+    return listDirectoryOrFile(findAndExpandPath[0], options)
+  } else {
+    // globbing and resulting with multiple results
+    const listResult = await Promise.all(
+      findAndExpandPath.map(_findAndExpandPath => listDirectoryOrFile(_findAndExpandPath, options))
+    )
+    return formatList(listResult)
+  }
 }
 
 /**
@@ -402,30 +471,45 @@ const doLs = (cmd: string) => async (opts: EvaluatorArgs) => {
     return semi
   }
 
-  const { command, execOptions, argvNoOptions: argv, parsedOptions: options } = opts
+  const { argvNoOptions: argv, parsedOptions: options } = opts
 
-  const filepathAsGiven = argv[argv.indexOf(cmd) + 1]
-  const filepath = findFile(expandHomeDir(filepathAsGiven), {
-    safe: true,
-    keepRelative: true
-  })
+  const filepathsAsGiven = argv.filter(_argv => _argv !== cmd)
 
-  if (filepath.match(/app.asar/) && isSpecialDirectory(filepathAsGiven)) {
-    // for now, we don't support ls of @ directories
-    throw new Error('File not found')
+  /** 1. ls
+   *  2. ls file
+   *  3. ls directory
+   *  4. ls globbing
+   *  5. ls files
+   *  6. ls directories
+   *  7. ls files and directories
+   */
+  const getListContent = async (filepathsAsGiven: string[]) => {
+    if (!filepathsAsGiven[0]) {
+      // 1. ls the current directory
+      return listDirectory(process.cwd(), options)
+    } else if (filepathsAsGiven.length === 1) {
+      return listFromPath(filepathsAsGiven[0], options)
+    } else {
+      return Promise.all(filepathsAsGiven.map(_filepathsAsGiven => listFromPath(_filepathsAsGiven, options)))
+    }
   }
 
-  const rest = command.replace(/^\s*(l)?ls/, '').replace(filepathAsGiven, filepath)
-  return doExec(
-    `ls -lh ${rest}`,
-    Object.assign({}, execOptions, {
-      nested: true,
-      raw: true,
-      env: {
-        LS_COLWIDTHS: '100:100:100:100:100:100:100:100'
-      }
-    })
-  ).then(tabularize(command, options, filepath, filepathAsGiven))
+  const content = await getListContent(filepathsAsGiven)
+  console.error('content', content)
+
+  if (!Array.isArray(content)) {
+    // return single table containing all the files
+    return formatTable(content, options)
+  } else {
+    // return multiple table with appropriate seperator
+    const tables = await Promise.all(
+      content.map(_content => {
+        return formatTable(_content, options, true)
+      })
+    )
+
+    return { tables } // we want title separator
+  }
 }
 
 const usage = (command: string) => ({
