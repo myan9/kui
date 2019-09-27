@@ -17,7 +17,7 @@
 //
 // test the edit actionName command for compositions
 //
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -40,9 +40,9 @@ const setValue = (client, text) => {
   }, text)
 }
 
-describe('edit compositions', function(this: common.ISuite) {
+describe('edit compositions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** deploy the changes */
   const deploy = (app, action) => () => {
@@ -89,7 +89,7 @@ describe('edit compositions', function(this: common.ISuite) {
       .then(verifyEdgeExists('A', 'B'))
       .then(verifyEdgeExists('B', 'Exit'))
       .then(() => this.app.client.waitForExist('.wskflow-undeployed-action-warning'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // deploy composition with undeployed actions
   it('should compose and successfully deploy the composition with undeloyed actions by clicking the deploy button', () =>
@@ -107,7 +107,7 @@ describe('edit compositions', function(this: common.ISuite) {
             .catch(() => false)
         )
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // test parse error decoration
   it(`should open the editor to a new composition and expect error handling`, () =>
@@ -122,11 +122,11 @@ describe('edit compositions', function(this: common.ISuite) {
       .then(() => this.app.client.waitForExist('.editor.parse-error-decoration'))
       .then(() => setValue(this.app.client, 'module.exports = require("openwhisk-composer").sequence(x=>x, y=>y)'))
       .then(() => this.app.client.waitForExist('.editor.parse-error-decoration', 2000, true))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   /* it('should initialize composer', () => cli.do(`wsk app init --url ${sharedURL} --cleanse`, this.app) // cleanse important here for counting sessions in `sessions`
        .then(cli.expectOKWithCustom({expect: 'Successfully initialized and reset the required services. You may now create compositions.'}))
-       .catch(common.oops(this))) */
+       .catch(Common.oops(this))) */
 
   it('should create an app from FSM', () =>
     cli
@@ -134,13 +134,13 @@ describe('edit compositions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('compFromFSM'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fail to edit the fsm-based app', () =>
     cli
       .do('edit compFromFSM', this.app)
       .then(cli.expectError(406))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an app from source', () =>
     cli
@@ -149,7 +149,7 @@ describe('edit compositions', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('compFromSrc'))
       // .then(sidecar.expectBadge(badges.composerLib))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // do this in a loop, to make sure we don't have any event listener leaks
   // Disable the test for now since we don't have soure annotation in composition
@@ -161,14 +161,14 @@ describe('edit compositions', function(this: common.ISuite) {
   //     .then(sidecar.expectBadge('v0.0.1'))
   //     .then(deploy(this.app, 'comp2'))
   //     .then(sidecar.expectBadge('v0.0.2'))
-  //     .catch(common.oops(this)))
+  //     .catch(Common.oops(this)))
   // }
 
   it(`should fail to open the editor for compose against existing composition`, () =>
     cli
       .do('compose compFromSrc', this.app)
       .then(cli.expectError(409))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should open the editor to a new composition from a template file`, () =>
     cli
@@ -189,5 +189,5 @@ describe('edit compositions', function(this: common.ISuite) {
             .catch(() => false)
         )
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

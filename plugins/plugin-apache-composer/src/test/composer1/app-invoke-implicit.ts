@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -25,9 +25,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 
 const seqName1 = 'seq1'
 
-describe('app invoke with implicit entity', function(this: common.ISuite) {
+describe('app invoke with implicit entity', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   for (let idx = 1; idx <= 3; idx++) {
     const name = `foo${idx}`
@@ -37,7 +37,7 @@ describe('app invoke with implicit entity', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(name))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   it('should create a composer sequence', () =>
@@ -46,7 +46,7 @@ describe('app invoke with implicit entity', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let idx = 0; idx < 5; idx++) {
     it(`should invoke ${seqName1} with implicit entity idx=${idx}`, () =>
@@ -57,6 +57,6 @@ describe('app invoke with implicit entity', function(this: common.ISuite) {
         .then(sidecar.expectShowing(seqName1))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct({ name: `grumble${idx}` }))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 })

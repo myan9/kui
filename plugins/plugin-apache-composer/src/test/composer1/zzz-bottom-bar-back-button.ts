@@ -21,7 +21,7 @@
 
 import { v4 as uuid } from 'uuid'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -38,15 +38,15 @@ const seqName1 = 'seq1'
 const cell1 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .grid:first-child .grid-cell:first-child`
 const cell2 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .grid:first-child .grid-cell:last-child`
 
-describe('Bottom bar back button functionality', function(this: common.ISuite) {
+describe('Bottom bar back button functionality', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /* {
         const cmd = `app init --reset --url ${sharedURL}`
         it(`should ${cmd}`, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     } */
 
   it('should create an echo action', () =>
@@ -55,7 +55,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('echo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a composer sequence', () =>
     cli
@@ -63,7 +63,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const node1 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .node.action[data-deployed="deployed"]:nth-of-type(3)`
   const node2 = `${ui.selectors.SIDECAR_CUSTOM_CONTENT} .node.action[data-deployed="deployed"]:nth-of-type(4)`
@@ -86,7 +86,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
       .then(() => this.app.client.click(ui.selectors.SIDECAR_BACK_BUTTON))
       .then(() => this.app)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it('should click on the second node', () => {
@@ -103,14 +103,14 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
       .then(() => this.app.client.click(ui.selectors.SIDECAR_BACK_BUTTON))
       .then(() => this.app)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   /* it(`should create an action ${actionName1}`, () => cli.do(`let ${actionName1} = x=>x`, this.app)
         .then(cli.expectOK)
        .then(sidecar.expectOpen)
        .then(sidecar.expectShowing(actionName1))
-       .catch(common.oops(this)))
+       .catch(Common.oops(this)))
 
     it(`should invoke ${actionName1}`, () => cli.do(`invoke ${actionName1} -p x 3`, this.app)
         .then(cli.expectOK)
@@ -118,13 +118,13 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
        .then(sidecar.expectShowing(actionName1))
        .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
        .then(ui.expectStruct({x:3}))
-       .catch(common.oops(this)))
+       .catch(Common.oops(this)))
 
     it(`should create an action ${actionName2}`, () => cli.do(`let ${actionName2} = x=>x`, this.app)
         .then(cli.expectOK)
        .then(sidecar.expectOpen)
        .then(sidecar.expectShowing(actionName2))
-       .catch(common.oops(this)))
+       .catch(Common.oops(this)))
 
     it(`should invoke ${actionName2}`, () => cli.do(`invoke ${actionName2} -p y 9`, this.app)
         .then(cli.expectOK)
@@ -132,7 +132,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
        .then(sidecar.expectShowing(actionName2))
        .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
        .then(ui.expectStruct({y:9}))
-       .catch(common.oops(this))) */
+       .catch(Common.oops(this))) */
 
   it(`should open grid, click on some cell, and come back`, () => {
     const once = iter =>
@@ -156,7 +156,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
           if (iter < 20) {
             return once(iter + 1)
           } else {
-            return common.oops(this)(err)
+            return Common.oops(this)(err)
           }
         })
 
@@ -196,7 +196,7 @@ describe('Bottom bar back button functionality', function(this: common.ISuite) {
           if (iter < 20) {
             return once(iter + 1)
           } else {
-            return common.oops(this)(err)
+            return Common.oops(this)(err)
           }
         })
 

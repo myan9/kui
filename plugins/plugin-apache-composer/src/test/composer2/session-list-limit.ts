@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as Debug from 'debug'
@@ -24,9 +24,9 @@ const cli = ui.cli
 const sidecar = ui.sidecar
 const debug = Debug('tests/apache-composer/session-list-limit')
 
-describe('session list --limit --skip', function(this: common.ISuite) {
+describe('session list --limit --skip', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const getUniqueName = () => {
     const nums = new Date().getTime().toString()
@@ -43,7 +43,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(appName))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const createSessionArray = (name, count) => {
@@ -82,7 +82,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeApp(appName)
 
@@ -90,7 +90,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
     cli
       .do(`wsk session list --limit 0`, this.app)
       .then(cli.expectJustOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session ${appName} in session list --limit 1`, () =>
     cli
@@ -103,7 +103,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session ${appName} in session list ${appName} --limit 1`, () =>
     cli
@@ -116,7 +116,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session ${appName} in session list ${appName} --limit 2`, () =>
     cli
@@ -129,7 +129,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let round = 0; round < 5; round++) {
     invokeApp(appName)
@@ -146,7 +146,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 5)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show 5 ${appName} in session list ${appName} --limit 5`, () =>
     cli
@@ -159,7 +159,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 5)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show 6 ${appName} in session list ${appName} --limit 20`, () =>
     cli
@@ -172,7 +172,7 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 6)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show 1 ${appName} in session list ${appName} --skip 5 --limit 20`, () =>
     cli
@@ -185,11 +185,11 @@ describe('session list --limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show 1 in session list ${appName} --skip 5 --limit 20 --count`, () =>
     cli
       .do(`wsk session list ${appName} --skip 5 --limit 20 --count`, this.app)
       .then(cli.expectOKWithString('1'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

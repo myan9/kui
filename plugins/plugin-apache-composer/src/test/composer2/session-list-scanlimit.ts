@@ -15,7 +15,7 @@
  */
 
 import * as assert from 'assert'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as Debug from 'debug'
@@ -23,9 +23,9 @@ const cli = ui.cli
 const sidecar = ui.sidecar
 const debug = Debug('tests/apache-composer/session-list-scan-limit')
 
-describe('session list --scan-limit --skip', function(this: common.ISuite) {
+describe('session list --scan-limit --skip', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const getUniqueName = () => {
     const nums = new Date().getTime().toString()
@@ -42,7 +42,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(appName))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const verifySessionList = async ({ commandIndex, expectedLength = 0, expectedSessions = [] }) => {
@@ -81,7 +81,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeApp(appName)
 
@@ -89,7 +89,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
     cli
       .do(`wsk session list --scan-limit 0`, this.app)
       .then(cli.expectJustOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session ${appName} in session list --scan-limit 1`, () =>
     cli
@@ -102,7 +102,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should create app if`, () =>
     cli
@@ -110,7 +110,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('if'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeApp('if')
 
@@ -125,7 +125,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: ['if']
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session ${appName} in session list ${appName} --scan-limit 1`, () =>
     cli
@@ -138,7 +138,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let round = 0; round < 10; round++) {
     invokeApp(appName)
@@ -155,13 +155,13 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 11)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session 11 in session list ${appName} --scan-limit 11 --count`, () =>
     cli
       .do(`wsk session list ${appName} --scan-limit 11 --count`, this.app)
       .then(cli.expectOKWithString('11'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session 10 ${appName} in session list ${appName} --skip 1 --scan-limit 10`, () =>
     cli
@@ -174,7 +174,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 10)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show session 10 ${appName} in session list ${appName} --skip 1 --scan-limit 11`, () =>
     cli
@@ -187,7 +187,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 10)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let round = 0; round < 10; round++) {
     invokeApp(appName)
@@ -204,7 +204,7 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 21)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // Note: this test may take longer than expected, since it's trying to find 21 sessions in all activations
   it(`should show session 21 ${appName} in session list ${appName} --scan-limit 30`, () =>
@@ -218,5 +218,5 @@ describe('session list --scan-limit --skip', function(this: common.ISuite) {
           expectedSessions: createSessionArray(appName, 21)
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

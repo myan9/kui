@@ -16,7 +16,7 @@
 import * as fs from 'fs'
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -37,36 +37,36 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
  *
  */
 // test if the graph is by default zoom to fit
-describe('wskflow test bring up the composer visualization when the sidecar is minimized', function(this: common.ISuite) {
+describe('wskflow test bring up the composer visualization when the sidecar is minimized', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should show the if composition graph', () =>
     cli
       .do(`preview ${ROOT}/data/composer/composer-source/if.js`, this.app)
       .then(verifyTheBasicStuff('if.js')) // verify basic things
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should minimize the sidecar', () =>
     this.app.client
       .keys(keys.ESCAPE)
       .then(() => sidecar.expectClosed(this.app))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should show the if composition graph again', () =>
     cli
       .do(`wsk app preview ${ROOT}/data/composer/composer-source/if.js`, this.app)
       .then(() => sidecar.expectOpen(this.app))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should use viewBox to let the graph fit the container', () =>
     this.app.client.waitForExist('#wskflowSVG[viewBox]', 3000))
 })
 
 // test if app preview update a graph when the watched file gets updated
-describe('wskflow test app preview should actively watching an external file', function(this: common.ISuite) {
+describe('wskflow test app preview should actively watching an external file', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const tempFileName = 'testtemp.js'
 
@@ -88,7 +88,7 @@ describe('wskflow test app preview should actively watching an external file', f
       .then(verifyTheBasicStuff(tempFileName)) // verify basic things
       .then(verifyNodeExists('a'))
       .then(verifyNodeExists('b'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should update the temp file to composer.sequence("a", "c")asdfasdf', () => {
     return new Promise((resolve, reject) => {
@@ -122,12 +122,12 @@ describe('wskflow test app preview should actively watching an external file', f
     try {
       await this.app.client.waitForVisible(ui.selectors.SIDECAR_CUSTOM_CONTENT)
     } catch (err) {
-      return common.oops(this)(err)
+      return Common.oops(this)(err)
     }
     return Promise.resolve(this.app)
       .then(verifyNodeExists('a'))
       .then(verifyNodeExists('c'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   // should be able to switch JSON tab and switch back
@@ -136,13 +136,13 @@ describe('wskflow test app preview should actively watching an external file', f
       await this.app.client.click(ui.selectors.SIDECAR_MODE_BUTTON('ast'))
       await this.app.client.click(ui.selectors.SIDECAR_MODE_BUTTON('visualization'))
     } catch (err) {
-      return common.oops(this)(err)
+      return Common.oops(this)(err)
     }
 
     return Promise.resolve(this.app)
       .then(verifyNodeExists('a'))
       .then(verifyNodeExists('c'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   // update file again, and verify that preview updates too
@@ -163,9 +163,9 @@ describe('wskflow test app preview should actively watching an external file', f
       return Promise.resolve(this.app)
         .then(verifyNodeExists('a'))
         .then(verifyNodeExists('b'))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     } catch (err) {
-      return common.oops(this)(err)
+      return Common.oops(this)(err)
     }
   })
 
@@ -185,13 +185,13 @@ describe('wskflow test app preview should actively watching an external file', f
     cli
       .do(`preview ${tempFileName}`, this.app)
       .then(cli.expectError(404, 'The specified file does not exist'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })
 
 // test if session flow highlighting is correct
-describe('wskflow test create a if composition, invoke, verify session flow is shown correctly', function(this: common.ISuite) {
+describe('wskflow test create a if composition, invoke, verify session flow is shown correctly', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
   const appName = 'test-if'
   const appFile = `${ROOT}/data/composer/composer-source/if-session.js`
 
@@ -201,14 +201,14 @@ describe('wskflow test create a if composition, invoke, verify session flow is s
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${appName} with condition equals true`, () =>
     cli
       .do(`wsk app invoke ${appName} -p condition true`, this.app)
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should be able to click on the mode button to switch to session flow, and see the true path highlighted`, async () => {
     await this.app.client.click(ui.selectors.SIDECAR_MODE_BUTTON('visualization'))
@@ -219,7 +219,7 @@ describe('wskflow test create a if composition, invoke, verify session flow is s
       .then(() => this.app)
       .then(verifyNodeStatusExists('() => ({ path: true })', 'success'))
       .then(verifyNodeStatusExists('() => ({ path: false })', 'not-run'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should invoke ${appName} with condition equals false`, () =>
@@ -227,7 +227,7 @@ describe('wskflow test create a if composition, invoke, verify session flow is s
       .do(`wsk app invoke ${appName} -p condition false`, this.app)
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should be able to click on the mode button to switch to session flow, and see the false path highlighted`, async () => {
     await this.app.client.click(ui.selectors.SIDECAR_MODE_BUTTON('visualization'))
@@ -238,14 +238,14 @@ describe('wskflow test create a if composition, invoke, verify session flow is s
       .then(() => this.app)
       .then(verifyNodeStatusExists('() => ({ path: true })', 'not-run'))
       .then(verifyNodeStatusExists('() => ({ path: false })', 'success'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 })
 
 // click on node in wskflow and show action
-describe('wskflow test drilldown to action from wskflow', function(this: common.ISuite) {
+describe('wskflow test drilldown to action from wskflow', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const appName = 'test-if'
   const appFile = '@demos/if.js'
@@ -258,7 +258,7 @@ describe('wskflow test drilldown to action from wskflow', function(this: common.
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should create an app with ${appFile}`, () =>
     cli
@@ -266,7 +266,7 @@ describe('wskflow test drilldown to action from wskflow', function(this: common.
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should click on the authenticate node and go to the action`, () =>
     this.app.client
@@ -277,13 +277,13 @@ describe('wskflow test drilldown to action from wskflow', function(this: common.
         })
       )
       .then(() => this.app.client.waitForVisible('#qtip', 2000, true)) // qtip better not be visible
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })
 
 // test if mousedown on a node, drag and release triggers the clicking behavior of the node (it shouldn't)
-describe('wskflow test test if pressing a node, dragging and releasing triggers the clicking behavior of the node it should not', function(this: common.ISuite) {
+describe('wskflow test test if pressing a node, dragging and releasing triggers the clicking behavior of the node it should not', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const appName = 'test-if'
   const appFile = `${ROOT}/data/composer/composer-source/if-session.js`
@@ -294,14 +294,14 @@ describe('wskflow test test if pressing a node, dragging and releasing triggers 
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${appName} with condition equals true`, () =>
     cli
       .do(`wsk app invoke ${appName} -p condition true`, this.app)
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should be able to click on the mode button to switch to session flow`, async () => {
     await this.app.client.click(ui.selectors.SIDECAR_MODE_BUTTON('visualization'))
@@ -311,7 +311,7 @@ describe('wskflow test test if pressing a node, dragging and releasing triggers 
       .then(() => this.app.client.waitForExist('#wskflowSVG', 5000))
       .then(() => this.app)
       .then(verifyNodeStatusExists('Exit', 'success'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should press, drag and release exist node and still stay at session flow`, () =>
@@ -322,12 +322,12 @@ describe('wskflow test test if pressing a node, dragging and releasing triggers 
       .then(() => this.app.client.buttonUp())
       .then(() => this.app.client.getText('.sidecar-header-icon'))
       .then(text => assert.strictEqual(text, 'SESSION'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should click on the exit node and go to the activation`, () =>
     this.app.client
       .click('#Exit')
       .then(() => this.app.client.getText('.sidecar-header-icon'))
       .then(text => assert.strictEqual(text, 'ACTIVATION'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

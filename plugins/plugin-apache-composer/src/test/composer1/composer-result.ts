@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -28,9 +28,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 
 const seqName1 = 'seq1'
 
-describe('kill composer invocation', function(this: common.ISuite) {
+describe('kill composer invocation', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** expected return value */
   const expect = (key, value, extraExpect, expectIsIt) => {
@@ -72,14 +72,14 @@ describe('kill composer invocation', function(this: common.ISuite) {
             .then(selector => this.app.client.getText(selector))
             .then(ui.expectStruct(expectedOutput))
         )
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   /* {
         const cmd = `app init --reset --url ${sharedURL}`
         it(`should ${cmd}`, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     } */
 
   it('should create a composer sequence', () =>
@@ -89,7 +89,7 @@ describe('kill composer invocation', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
       // .then(sidecar.expectBadge(badges.sequence))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeThenResult(seqName1, 'x', 3) // async, then use `app result` to fetch the rsult
 })

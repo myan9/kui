@@ -15,7 +15,7 @@
  */
 
 import * as assert from 'assert'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as Debug from 'debug'
@@ -23,9 +23,9 @@ const cli = ui.cli
 const sidecar = ui.sidecar
 const debug = Debug('tests/apache-composer/session-list')
 
-describe('session list and name filter', function(this: common.ISuite) {
+describe('session list and name filter', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const getUniqueName = () => {
     // create a unique app name for based on the date and time
@@ -43,7 +43,7 @@ describe('session list and name filter', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(appName))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const verifySessionList = async ({ commandIndex, expectedLength = 0, expectedSessions = [] }) => {
@@ -74,13 +74,13 @@ describe('session list and name filter', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(appName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show just ok in session list ${appName}`, () =>
     cli
       .do(`wsk session list ${appName}`, this.app)
       .then(cli.expectJustOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeApp(appName)
 
@@ -89,7 +89,7 @@ describe('session list and name filter', function(this: common.ISuite) {
       .do(`wsk session list`, this.app)
       .then(cli.expectOKWithCustom({ passthrough: true }))
       .then(async commandIndex => verifySessionList({ commandIndex, expectedSessions: [appName] }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${appName} in session list ${appName}`, () =>
     cli
@@ -102,7 +102,7 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${appName} in session list --name ${appName}`, () =>
     cli
@@ -115,7 +115,7 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   invokeApp(appName)
 
@@ -129,7 +129,7 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName, appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${appName} in session list ${appName}`, () =>
     cli
@@ -142,7 +142,7 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName, appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${appName} in session list --name ${appName}`, () =>
     cli
@@ -155,7 +155,7 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName, appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${appName} in session list --name ${appName} --skip 1`, () =>
     cli
@@ -168,13 +168,13 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: [appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show 1 in session list --name ${appName} --skip 1 --count`, () =>
     cli
       .do(`wsk session list --name ${appName} --skip 1 --count`, this.app)
       .then(cli.expectOKWithString('1'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should create if`, () =>
     cli
@@ -182,7 +182,7 @@ describe('session list and name filter', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('if'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let round = 0; round < 3; round++) {
     invokeApp('if')
@@ -198,5 +198,5 @@ describe('session list and name filter', function(this: common.ISuite) {
           expectedSessions: ['if', 'if', 'if', appName, appName]
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })
