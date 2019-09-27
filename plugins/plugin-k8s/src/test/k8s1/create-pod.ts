@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -31,9 +31,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json')
 const synonyms = ['kubectl', 'k']
 const dashFs = ['-f', '--filename']
 
-describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // repeat the tests for kubectl, k, etc. i.e. any built-in
   // synonyms/aliases we have for "kubectl"
@@ -63,7 +63,7 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
             .then(sidecar.expectMode(defaultModeForGet))
             .then(sidecar.expectShowing('nginx'))
         } catch (err) {
-          await common.oops(this, true)(err)
+          await Common.oops(this, true)(err)
         }
       })
 
@@ -75,7 +75,7 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           )
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
 
       it(`should create sample pod from local file via ${kubectl}`, () => {
@@ -83,7 +83,7 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} create ${dashF} "${ROOT}/data/k8s/headless/pod.yaml" ${inNamespace}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
 
       it(`should delete the sample pod by name via ${kubectl}`, () => {
@@ -91,7 +91,7 @@ describe(`kubectl create pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} delete pod nginx ${inNamespace}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
 
       deleteNS(this, ns)

@@ -17,7 +17,7 @@
 const uuid = require('uuid/v4')
 const assert = require('assert')
 
-const common = require('@kui-shell/core/tests/lib/common')
+const { Common } = require('@kui-shell/test')
 const ui = require('@kui-shell/core/tests/lib/ui')
 const { cli, selectors } = ui
 
@@ -97,7 +97,7 @@ exports.allocateNS = (ctx, ns, theCli = cli) => {
       .do(`kubectl create namespace ${ns}`, ctx.app)
       .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(ns) }))
       .then(selector => exports.waitForGreen(ctx.app, selector))
-      .catch(common.oops(ctx, true))
+      .catch(Common.oops(ctx, true))
   })
 }
 
@@ -109,7 +109,7 @@ exports.deleteNS = (ctx, ns, theCli = cli) => {
         .do(`kubectl delete namespace ${ns}`, ctx.app)
         .then(cli.expectOKWithCustom({ selector: ui.selectors.BY_NAME(ns) }))
         .then(selector => exports.waitForRed(ctx.app, selector))
-        .catch(common.oops(ctx, true))
+        .catch(Common.oops(ctx, true))
     })
   }
 }

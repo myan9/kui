@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -29,9 +29,9 @@ const packageName3 = 'ppp3'
 const key1 = 'foo'
 const value1 = 'bar'
 
-describe('Rename actions', function(this: common.ISuite) {
+describe('Rename actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const mv = (task, a, b, aPackage?, bPackage?) => {
     // pass this key-value pair to the invocation
@@ -55,7 +55,7 @@ describe('Rename actions', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(b, undefined, undefined, bPackage))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     // verify that annotations survived the rename
     it('should switch to annotations mode', () =>
@@ -84,7 +84,7 @@ describe('Rename actions', function(this: common.ISuite) {
         .then(cli.expectError(404, 'The requested resource does not exist.'))
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(b))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // RENAME ACTION
@@ -94,7 +94,7 @@ describe('Rename actions', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   mv('non-package to non-package', actionName1, actionName1b)
 
   // RENAME PACKAGED ACTION TO NON-PACKAGED ACTION
@@ -104,7 +104,7 @@ describe('Rename actions', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2, undefined, undefined, packageName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   mv('package to non-package', actionName2, actionName2b, packageName1)
 
   // RENAME non-packaged ACTION TO PACKAGED ACTION, existing package
@@ -114,7 +114,7 @@ describe('Rename actions', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(packageName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   mv('non-package to existing package', actionName1b, actionName2b, undefined, packageName2)
 
   // RENAME PACKAGED ACTION TO PACKAGED ACTION, new package

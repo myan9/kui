@@ -17,13 +17,13 @@
 import * as assert from 'assert'
 import { Application } from 'spectron'
 
-import { ISuite, before as commonBefore, after as commonAfter, oops, localIt } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, selectors } = ui
 
-describe(`Cancel via Ctrl+C ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe(`Cancel via Ctrl+C ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const cancel = (app: Application, cmd = '') =>
     app.client
@@ -39,13 +39,13 @@ describe(`Cancel via Ctrl+C ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
           .then(() => app.client.getValue(ui.selectors.PROMPT_N(count))) // make sure the cancelled command text is still there, in the previous block
           .then(input => assert.strictEqual(input, cmd))
       )
-      .catch(oops(this))
+      .catch(Common.oops(this))
 
   it('should hit ctrl+c', () => cancel(this.app))
   it('should type foo and hit ctrl+c', () => cancel(this.app, 'foo'))
 
   const echoThisString = 'hi'
-  localIt('should initiate a command that completes with some delay', async () => {
+  Common.localIt('should initiate a command that completes with some delay', async () => {
     try {
       const res = await cli.do(`/bin/sleep 10 && echo ${echoThisString}`, this.app)
 
@@ -61,7 +61,7 @@ describe(`Cancel via Ctrl+C ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
         return /\^C/.test(actualText)
       })
     } catch (err) {
-      oops(this)(err)
+      Common.oops(this)(err)
     }
   })
 })

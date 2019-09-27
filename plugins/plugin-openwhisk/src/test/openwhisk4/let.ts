@@ -17,13 +17,13 @@
 import { readFile } from 'fs'
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { rp } = common
+const { rp } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const CSS_INPUT = `${ROOT}/data/openwhisk/style.css`
@@ -57,9 +57,9 @@ const packageName1 = 'ppp1'
 const packageName2 = 'ppp2'
 const packageName3 = 'ppp3'
 
-describe('Create an action via let core tests', function(this: common.ISuite) {
+describe('Create an action via let core tests', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create a sequence via let with annotations', () =>
     cli

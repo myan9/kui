@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { createNS, allocateNS, deleteNS } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -34,9 +34,9 @@ function sleep(N: number) {
   it(`should sleep for ${N} seconds`, () => new Promise(resolve => setTimeout(resolve, N * 1000)))
 }
 
-describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     const ns: string = createNS()
@@ -47,7 +47,7 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
       cli
         .do(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
         .then(cli.expectOKWithString(podName))
-        .catch(common.oops(this, true)))
+        .catch(Common.oops(this, true)))
 
     it('should open pod in sidecar', () =>
       cli
@@ -55,7 +55,7 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(podName))
-        .catch(common.oops(this, true)))
+        .catch(Common.oops(this, true)))
 
     sleep(sleepTime)
 
@@ -77,7 +77,7 @@ describe(`kubectl get events ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           `${selectors.SIDECAR_CUSTOM_CONTENT} .result-table badge[data-key="REASON"].yellow-background`
         )
       } catch (err) {
-        return common.oops(this, true)
+        return Common.oops(this, true)
       }
     })
 

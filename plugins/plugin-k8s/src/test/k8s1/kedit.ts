@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar, expectYAML, getValueFromMonaco, waitTimeout } from '@kui-shell/core/tests/lib/ui'
 
 import { Application } from 'spectron'
@@ -83,16 +83,16 @@ const verifyYAML = (expected: object) => async (app: Application): Promise<void>
 }
 // done with clone
 
-common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+Common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const makeACopy = (filepath = initialFilepath, tmp = tmpFilepath) => {
     it('should copy the edit input', () =>
       cli
         .do(`cp "${filepath}" "${tmp}"`, this.app)
         .then(cli.expectJustOK)
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   /** switch to a given tab */
@@ -130,7 +130,7 @@ common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
             return actualText === 'should not be saved'
           }, waitTimeout)
         )
-        .catch(common.oops(this, true)))
+        .catch(Common.oops(this, true)))
   }
 
   const reopenWith = (cmd: string, tmp = tmpFilepath) => ({
@@ -143,7 +143,7 @@ common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
           .then(sidecar.expectShowing(displayedName))
           .then(switchToRaw(cmd))
           .then(verifyYAML(expected))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
     }
   })
 
@@ -158,7 +158,7 @@ common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
         .then(() => setValue(this.app, safeDump(updatedContent)))
         .then(save(this.app))
         .then(() => cmd === 'kedit' && sidecar.expectShowing(updatedResourceName)(this.app))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const updateViaForm = (tmp = tmpFilepath) => {
@@ -184,7 +184,7 @@ common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
         .then(() => setValue(this.app, safeDump(updatedContent)))
         .then(save(this.app))
         //        .then(() => sidecar.expectShowing(updatedResourceName)(this.app))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   //
@@ -198,21 +198,21 @@ common.localDescribe(`kedit ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('reviews'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // trailing empty paragraph
   it('should kedit a multi-paragraph yaml with trailing empty paragraph', () =>
     cli
       .do(`kedit "${trailingEmptyFilepath}"`, this.app)
       .then(cli.expectOKWith('details-v1'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // multi-paragraph yaml where one paragraph has no metadata
   it('should kedit a multi-paragraph yaml with no metadata', () =>
     cli
       .do(`kedit "${noMetadataFilepath}"`, this.app)
       .then(cli.expectOKWith('test-release-mysql-test'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // make sure editing without saving works
   makeACopy()

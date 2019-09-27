@@ -17,7 +17,7 @@
 import * as assert from 'assert'
 import { Application } from 'spectron'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, ctrlC, selectors } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -41,9 +41,9 @@ function sleep(N: number) {
   return new Promise(resolve => setTimeout(resolve, N * 1000))
 }
 
-describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   allocateNS(this, ns)
@@ -54,7 +54,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
     return cli
       .do(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
       .then(cli.expectOKWithString(podName))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it(`should wait for the pod to come up`, () => {
@@ -62,7 +62,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
       .do(`kubectl get pod ${podName} -n ${ns} -w`, this.app)
       .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(podName) }))
       .then(selector => waitForGreen(this.app, selector))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it(`should follow the logs`, async () => {
@@ -102,7 +102,7 @@ describe(`kubectl logs follow ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
       console.log('nRows5', nRows5)
       assert.strictEqual(nRows5, nRows4)
     } catch (err) {
-      await common.oops(this, true)(err)
+      await Common.oops(this, true)(err)
     }
   })
 

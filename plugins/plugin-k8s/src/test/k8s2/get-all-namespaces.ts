@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -26,9 +26,9 @@ import {
 
 const synonyms = ['kubectl']
 
-describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     /** create the given namespace */
@@ -38,7 +38,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
           .do(`${kubectl} create namespace ${name}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -52,7 +52,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
           )
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -77,7 +77,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
             .then(sidecar.expectMode(defaultModeForGet))
             .then(sidecar.expectShowing('nginx', undefined, undefined, ns))
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }
@@ -90,7 +90,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForRed(this.app, selector))
           .then(() => waitTillNone('namespace', undefined, name))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -101,7 +101,7 @@ describe(`electron get all-namespaces ${process.env.MOCHA_RUN_TARGET || ''}`, fu
           .do(`${kubectl} delete pod nginx -n ${ns}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 

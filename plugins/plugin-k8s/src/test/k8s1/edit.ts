@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, keys, selectors, getTextContent } from '@kui-shell/core/tests/lib/ui'
-import {
-  waitForGreen,
-  createNS,
-  allocateNS,
-  deleteNS,
-  typeSlowly} from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
+import { waitForGreen, createNS, allocateNS, deleteNS, typeSlowly } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
 const kubectl = 'kubectl'
 
-describe(`kubectl edit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl edit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   const inNamespace = `-n ${ns}`
@@ -45,7 +40,7 @@ describe(`kubectl edit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: co
         // wait for the badge to become green
         await waitForGreen(this.app, selector)
       } catch (err) {
-        await common.oops(this, true)(err)
+        await Common.oops(this, true)(err)
       }
     })
   }
@@ -87,7 +82,7 @@ describe(`kubectl edit ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: co
             .catch(() => false)
         })
       } catch (err) {
-        await common.oops(this, true)(err)
+        await Common.oops(this, true)(err)
       }
     })
   }

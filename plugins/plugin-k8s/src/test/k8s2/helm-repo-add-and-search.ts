@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli } from '@kui-shell/core/tests/lib/ui'
 
 const synonyms = ['helm']
 
 // TODO: enable this once proxy can find $HOME on travis
-describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(helm => {
     const addRepo = () => {
@@ -30,7 +30,7 @@ describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISui
         return cli
           .do(`${helm} repo add bitnami https://charts.bitnami.com/bitnami`, this.app)
           .then(cli.expectOKWithAny)
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -39,7 +39,7 @@ describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISui
         return cli
           .do(`${helm} repo list`, this.app)
           .then(cli.expectOKWith('bitnami')) // the repo we just added
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -48,7 +48,7 @@ describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISui
         return cli
           .do(`${helm} search ${desiredImage}`, this.app)
           .then(cli.expectOKWith(desiredImage))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -57,7 +57,7 @@ describe(`helm repo ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISui
         return cli
           .do(`${helm} repo remove bitnami`, this.app)
           .then(cli.expectOKWithAny)
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 

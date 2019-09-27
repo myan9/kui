@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { ISuite, before as commonBefore, after as commonAfter, oops, proxyIt } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
 const { cli } = ui
 
-describe('command history', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe('command history', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
-  proxyIt('should cd to the test dir', () =>
+  Common.proxyIt('should cd to the test dir', () =>
     cli
       .do(`cd ${process.env.TEST_ROOT}`, this.app)
       .then(cli.expectOKWithString('packages/test'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   const listCommand = 'ls ../..'
@@ -35,27 +35,27 @@ describe('command history', function(this: ISuite) {
     cli
       .do(listCommand, this.app)
       .then(cli.expectOKWith('README.md'))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   // 1 says it better be the last command we executed
   it(`should list history with filter 1`, () =>
     cli
       .do(`history 1 ls`, this.app)
       .then(cli.expectOKWithOnly(listCommand))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history 2 and show the list command`, () =>
     cli
       .do(`history 2`, this.app)
       .then(cli.expectOKWith(listCommand))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   // get something on the screen
   it(`should list local files again`, () =>
     cli
       .do(listCommand, this.app)
       .then(cli.expectOKWith('README.md'))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it('should re-execte from history via mouse click', async () => {
     try {
@@ -65,7 +65,7 @@ describe('command history', function(this: ISuite) {
       await this.app.client.click(selector)
       return cli.expectOKWith('README.md')({ app: this.app, count: N + 1 })
     } catch (err) {
-      oops(this)(err)
+      Common.oops(this)(err)
     }
   })
 
@@ -76,35 +76,35 @@ describe('command history', function(this: ISuite) {
     cli
       .do(`history gumbogumbo`, this.app)
       .then(cli.expectJustOK) // some random string that won't be in the command history
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should delete command history`, () =>
     cli
       .do(`history -c`, this.app)
       .then(cli.expectJustOK)
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history with no args after delete and expect nothing`, () =>
     cli
       .do(`history`, this.app)
       .then(cli.expectJustOK)
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history with idx arg after delete and expect only the previous`, () =>
     cli
       .do(`history 10`, this.app)
       .then(cli.expectOKWithOnly('history'))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should delete command history again`, () =>
     cli
       .do(`history -c`, this.app)
       .then(cli.expectJustOK)
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history with idx and filter args after delete and expect nothing`, () =>
     cli
       .do(`history 10 ls`, this.app)
       .then(cli.expectJustOK) // some random string that won't be in the command history
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 })

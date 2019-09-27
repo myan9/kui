@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli } = ui
 
 // see https://github.com/ibm-functions/shell/issues/284
-describe('Confirm proper handling of all-numeric uuids', function(this: common.ISuite) {
+describe('Confirm proper handling of all-numeric uuids', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should present 404-type error with activation get on all-numeric uuid', () =>
     cli
       .do(`activation get 00000000000000000000000000000000`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should present 404-type error with activation get on a different all-numeric uuid', () =>
     cli
       .do(`activation get 00000000000000000000000000000001`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

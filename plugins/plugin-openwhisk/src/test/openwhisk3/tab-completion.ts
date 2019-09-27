@@ -16,7 +16,7 @@
 
 import { Application } from 'spectron'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, keys, sidecar } = ui
@@ -38,9 +38,9 @@ const waitForValue = (app: Application, selector: string, expected: string) => {
   })
 }
 
-describe('Tab completion openwhisk', function(this: common.ISuite) {
+describe('Tab completion openwhisk', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const tabby = (app: Application, partial: string, full: string, expectOK = true) =>
     app.client
@@ -64,7 +64,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
           return Promise.resolve(app)
         }
       })
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
 
   const tabbyWithOptions = (
     app: Application,
@@ -145,7 +145,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
       .catch(async err => {
         await this.app.client.keys(ui.ctrlC) // clear the line
         if (!err['failedAsExpected']) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
   }
@@ -154,25 +154,25 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
     cli
       .do('let foo = x=>x', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action foo2', () =>
     cli
       .do('let foo2 = x=>x', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action bar', () =>
     cli
       .do('let bar = x=>x', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action foofoo/yum', () =>
     cli
       .do('let foofoo/yum = x=>x', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // expect b to autocomplete with only tab, since we only have one action starting with b
   it('should tab complete action get bar', () => tabby(this.app, 'wsk action get b', 'wsk action get bar'))
@@ -189,7 +189,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
     return Promise.resolve(this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo2'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it('should tab complete action foo with options (no prefix)', async () => {
@@ -200,7 +200,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
     return Promise.resolve(this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it('should not tab complete action without trailing whitespace', async () => {
@@ -219,7 +219,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
     cli
       .do('wsk trigger create ttt', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fire trigger with autocomplete', () => tabby(this.app, 'wsk trigger fire t', 'wsk trigger fire ttt'))
 
@@ -229,7 +229,7 @@ describe('Tab completion openwhisk', function(this: common.ISuite) {
     return Promise.resolve(this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foofoo'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it('should auto complete wsk command', () => tabby(this.app, 'ws', 'wsk', false))

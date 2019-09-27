@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -34,9 +34,9 @@ const synonyms = ['kubectl']
  *
  */
 describe(`kubectl apply deployment against redirecting URL ${process.env.MOCHA_RUN_TARGET ||
-  ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+  ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // repeat the tests for kubectl, k, etc. i.e. any built-in
   // synonyms/aliases we have for "kubectl"
@@ -66,7 +66,7 @@ describe(`kubectl apply deployment against redirecting URL ${process.env.MOCHA_R
           .then(sidecar.expectMode(defaultModeForGet))
           .then(sidecar.expectShowing('nginx-deployment'))
       } catch (err) {
-        await common.oops(this, true)(err)
+        await Common.oops(this, true)(err)
       }
     })
 
@@ -79,7 +79,7 @@ describe(`kubectl apply deployment against redirecting URL ${process.env.MOCHA_R
           })
         )
         .then(selector => waitForRed(this.app, selector))
-        .catch(common.oops(this, true))
+        .catch(Common.oops(this, true))
     })
 
     deleteNS(this, ns)

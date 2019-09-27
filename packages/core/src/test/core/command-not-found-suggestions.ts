@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 
-import { ISuite, before as commonBefore, after as commonAfter, oops } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, sidecar } = ui
 
@@ -87,12 +87,12 @@ export const expectSuggestionsFor = function(
           }
         })
     })
-    .catch(oops(this))
+    .catch(Common.oops(this))
 }
 
-describe('Suggestions for command not found', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe('Suggestions for command not found', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it('should present suggestions for "ne" -> new', () => {
     return expectSuggestionsFor.call(

@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -26,9 +26,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.
 
 const actionName1 = 'foo1'
 
-describe('Create jar actions', function(this: common.ISuite) {
+describe('Create jar actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create a jar action', () =>
     cli
@@ -39,7 +39,7 @@ describe('Create jar actions', function(this: common.ISuite) {
       .then(sidecar.expectBadge('jar'))
       .then(app => app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .hook-for-third-party-content`))
       .then(code => assert.strictEqual(code, 'This is machine-generated code, wrapping around your original code.'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should invoke the jar action', () =>
     cli
@@ -48,5 +48,5 @@ describe('Create jar actions', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
       .then(sidecar.expectResult({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

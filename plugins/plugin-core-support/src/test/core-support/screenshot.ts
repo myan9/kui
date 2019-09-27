@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  ISuite,
-  before as commonBefore,
-  after as commonAfter,
-  oops,
-  localDescribe
-} from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, sidecar } = ui
 
@@ -45,12 +39,12 @@ const takeScreenshot = function(ctx, which = '') {
           })
         )
     )
-    .catch(oops(ctx))
+    .catch(Common.oops(ctx))
 }
 
-localDescribe('screenshot', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+Common.localDescribe('screenshot', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it('should fail take screenshot last as the first command', () =>
     cli
@@ -79,7 +73,7 @@ localDescribe('screenshot', function(this: ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('Kui Shell', undefined, undefined, 'README.md'))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   // now screenshot sidecar should work
   it('should take screenshot sidecar', () => takeScreenshot(this, 'sidecar'))

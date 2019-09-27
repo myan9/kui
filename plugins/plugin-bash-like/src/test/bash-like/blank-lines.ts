@@ -19,14 +19,14 @@
  *
  */
 
-import { ISuite, before as commonBefore, after as commonAfter, oops, proxyIt } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, sidecar } = ui
 
-describe('Comments and blank line handling', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe('Comments and blank line handling', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it('should handle blank lines', () => cli.do('', this.app).then(cli.expectBlank))
 
@@ -37,11 +37,11 @@ describe('Comments and blank line handling', function(this: ISuite) {
   it('should handle comment-only lines with surrounding whitespace', () =>
     cli.do('  #hello  ', this.app).then(cli.expectBlank))
 
-  proxyIt('should cd to the test dir', () =>
+  Common.proxyIt('should cd to the test dir', () =>
     cli
       .do(`cd ${process.env.TEST_ROOT}`, this.app)
       .then(cli.expectOKWithString('packages/test'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   it('should handle a command with suffix comment', () =>

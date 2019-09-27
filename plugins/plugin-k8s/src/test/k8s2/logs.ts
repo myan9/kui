@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -24,9 +24,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json')
 const inputBuffer = readFileSync(join(ROOT, 'data/k8s/kubectl-exec.yaml'))
 const inputEncoded = inputBuffer.toString('base64')
 
-describe(`kubectl logs ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl logs ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
 
@@ -48,7 +48,7 @@ describe(`kubectl logs ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: co
       return cli
         .do(cmdline, this.app)
         .then(cli.expectOKWithString(podName))
-        .catch(common.oops(this, true))
+        .catch(Common.oops(this, true))
     })
   }
 
@@ -58,7 +58,7 @@ describe(`kubectl logs ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: co
         .do(`kubectl get pod ${podName} -n ${ns} -w`, this.app)
         .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(podName) }))
         .then(selector => waitForGreen(this.app, selector))
-        .catch(common.oops(this, true))
+        .catch(Common.oops(this, true))
     })
   }
 
@@ -69,7 +69,7 @@ describe(`kubectl logs ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: co
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(containerName))
-        .catch(common.oops(this, true))
+        .catch(Common.oops(this, true))
     })
   }
 

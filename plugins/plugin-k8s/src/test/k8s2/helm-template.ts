@@ -16,14 +16,14 @@
 
 import { dirname, join } from 'path'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 
 const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json'))
 
-common.localDescribe(`edit helm template ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+Common.localDescribe(`edit helm template ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it(`open helm-template.yaml`, () => {
     return cli
@@ -31,7 +31,7 @@ common.localDescribe(`edit helm template ${process.env.MOCHA_RUN_TARGET}`, funct
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('helm-template.yaml'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it('should close sidecar', async () => {
@@ -45,6 +45,6 @@ common.localDescribe(`edit helm template ${process.env.MOCHA_RUN_TARGET}`, funct
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('helm-template.yaml'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 })

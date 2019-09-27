@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
 import { v4 as uuid } from 'uuid'
@@ -24,9 +24,9 @@ const { cli, keys, selectors } = ui
 /** helpful selectors */
 const rows = (N: number) => selectors.xtermRows(N)
 
-describe('xterm focus', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe('xterm focus', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const tmpFile = `/tmp/kui-${uuid()}`
 
@@ -34,7 +34,7 @@ describe('xterm focus', function(this: common.ISuite) {
     cli
       .do(`touch ${tmpFile}`, this.app)
       .then(cli.expectJustOK)
-      .catch(common.oops(this, true)))
+      .catch(Common.oops(this, true)))
 
   it(`should rm -i ${tmpFile}`, async () => {
     try {
@@ -49,7 +49,7 @@ describe('xterm focus', function(this: common.ISuite) {
       // wait for the command to finish with blank output
       await cli.expectBlank(res)
     } catch (err) {
-      return common.oops(this, true)(err)
+      return Common.oops(this, true)(err)
     }
   })
 
@@ -57,5 +57,5 @@ describe('xterm focus', function(this: common.ISuite) {
     cli
       .do(`cat ${tmpFile}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this, true)))
+      .catch(Common.oops(this, true)))
 })

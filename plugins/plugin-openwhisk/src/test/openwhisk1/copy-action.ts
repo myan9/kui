@@ -19,13 +19,13 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const actionName = 'foo'
@@ -33,9 +33,9 @@ const actionName2 = 'foo2'
 const actionName3 = 'foo3'
 
 // TODO: webpack test
-localDescribe('Copy actions using the wsk syntax', function(this: common.ISuite) {
+localDescribe('Copy actions using the wsk syntax', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create an action', () =>

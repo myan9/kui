@@ -16,13 +16,13 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const goodSeqName = '59E47471-F64B-4235-8FF0-00896DDB3AFB'
@@ -42,9 +42,9 @@ const filter = (L, f) => {
 }
 
 // TODO: webpack test
-localDescribe('List root-most non-erroring activations with $$!', function(this: common.ISuite) {
+localDescribe('List root-most non-erroring activations with $$!', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create the component actions
   it('should create an good action', () =>
@@ -53,14 +53,14 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(goodActionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should create an erroring action', () =>
     cli
       .do(`wsk action update ${errorActionName} ${ROOT}/data/openwhisk/error.js`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(errorActionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create the sequences (intentional whitespace differences in the -> portion etc., to test syntactic flexibility)
   it('should create an erroring sequence with let', () =>
@@ -69,21 +69,21 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(errorSeqName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should create a non-erroring sequence with let', () =>
     cli
       .do(`let ${goodSeqName} = ${goodActionName} -> ${goodActionName}`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(goodSeqName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // invoke the sequences
   it('should do an async of the non-erroring sequence', () =>
     cli
       .do(`wsk action async ${goodSeqName} -p name nnn`, this.app)
       .then(cli.expectOKWithString(goodSeqName)) // e.g. "invoked `goodSeqName` with id:"
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // call await
   it('should await successful completion of the activation', () =>
@@ -94,13 +94,13 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(sidecar.expectShowing(goodSeqName))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ name: 'Step1 Step1 nnn' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should do an async of the erroring sequence', () =>
     cli
       .do(`wsk action async ${errorSeqName} -p name nnn`, this.app)
       .then(cli.expectOKWithString(errorSeqName)) // e.g. "invoked `errorSeqName` with id:"
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // call await
   it('should await not-successful completion of the activation', () =>
@@ -111,14 +111,14 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(sidecar.expectShowing(errorSeqName))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ error: 'oops' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // call $ roots
   it('should call $$! successfully', () =>
     cli
       .do(`wsk $$!`, this.app)
       .then(cli.expectOKWithAny)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should list the erroring sequence activation', () =>
     cli
@@ -127,7 +127,7 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(N => this.app.client.elements(ui.selectors.LIST_RESULTS_BY_NAME_N(N)))
       .then(namesInList => filter(namesInList, name => name === errorSeqName))
       .then(expectToBeEmpty => assert.strictEqual(expectToBeEmpty.length, 0))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should not list the non-erroring sequence activation', () =>
     cli
@@ -136,5 +136,5 @@ localDescribe('List root-most non-erroring activations with $$!', function(this:
       .then(N => this.app.client.elements(ui.selectors.LIST_RESULTS_BY_NAME_N(N)))
       .then(namesInList => filter(namesInList, name => name === goodSeqName))
       .then(expectToBeEmpty => assert.strictEqual(expectToBeEmpty.length, 0))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

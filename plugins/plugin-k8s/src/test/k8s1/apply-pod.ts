@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar, getValueFromMonaco, expectYAMLSubset } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForRed,
@@ -28,9 +28,9 @@ import {
 const synonyms = ['kubectl', 'k']
 const dashFs = ['-f', '--filename']
 
-describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   const inNamespace = `-n ${ns}`
@@ -50,7 +50,7 @@ describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
               this.app
             )
             .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
-            .catch(common.oops(this))
+            .catch(Common.oops(this))
 
           // wait for the badge to become green
           console.log(`kubectl apply pod 2 ${this.title}`)
@@ -64,7 +64,7 @@ describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
             .then(sidecar.expectMode(defaultModeForGet))
             .then(sidecar.expectShowing('nginx'))
         } catch (err) {
-          return common.oops(this, true)(err)
+          return Common.oops(this, true)(err)
         }
       })
 
@@ -100,7 +100,7 @@ describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
 
           console.log(`kubectl apply pod 6 ${this.title}`)
         } catch (err) {
-          return common.oops(this, true)(err)
+          return Common.oops(this, true)(err)
         }
       })
 
@@ -112,7 +112,7 @@ describe(`kubectl apply pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
           )
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForRed(this.app, selector))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
     })
   })

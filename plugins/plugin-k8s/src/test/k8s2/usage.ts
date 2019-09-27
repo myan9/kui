@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors } from '@kui-shell/core/tests/lib/ui'
 
-describe('k8s usage', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe('k8s usage', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it('should give help for known outer command: kubectl', () =>
     cli
@@ -33,7 +33,7 @@ describe('k8s usage', function(this: common.ISuite) {
           )
         ])
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should give help for known outer command: kubectl get -h', () =>
     cli
@@ -46,7 +46,7 @@ describe('k8s usage', function(this: common.ISuite) {
           this.app.client.waitForExist(`${selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="kubectl"]`)
         ])
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should give help for known outer command: kubectl logs -h', () =>
     cli
@@ -60,5 +60,5 @@ describe('k8s usage', function(this: common.ISuite) {
           this.app.client.waitForExist(`${selectors.OUTPUT_N(N)} .bx--breadcrumb-item .bx--link[data-label="kubectl"]`)
         ])
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

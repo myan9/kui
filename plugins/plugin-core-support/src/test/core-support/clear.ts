@@ -16,13 +16,13 @@
 
 import * as assert from 'assert'
 
-import { ISuite, before as commonBefore, after as commonAfter, oops } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, selectors, keys } = ui
 
-describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   interface PromptOptions {
     enteredString?: string
@@ -47,7 +47,7 @@ describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
         return cli.expectOKWithString(enteredString)(res)
       }
     } catch (err) {
-      await oops(this, true)(err)
+      await Common.oops(this, true)(err)
     }
   }
   const enteredString = 'does this work?'
@@ -71,16 +71,16 @@ describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
   )
 
   // get something on the screen
-  it(`should sleep`, () => cli.do('sleep 1', this.app).catch(oops(this, true)))
+  it(`should sleep`, () => cli.do('sleep 1', this.app).catch(Common.oops(this, true)))
 
   it('should clear the console', () =>
     cli
       .do('clear', this.app)
       .then(() => cli.expectConsoleToBeClear(this.app))
-      .catch(oops(this, true)))
+      .catch(Common.oops(this, true)))
 
   // get something on the screen
-  it(`should sleep again`, () => cli.do('sleep 1', this.app).catch(oops(this, true)))
+  it(`should sleep again`, () => cli.do('sleep 1', this.app).catch(Common.oops(this, true)))
 
   const JUNK = 'junk text that should stay'
   it('should clear the console with ctrl+l', () =>
@@ -92,18 +92,18 @@ describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       })
       .then(() => this.app.client.getValue(selectors.CURRENT_PROMPT))
       .then(text => assert.strictEqual(text, JUNK))
-      .catch(oops(this, true)))
+      .catch(Common.oops(this, true)))
 
   // hit enter, and expect that JUNK to fail
   it(`should fail with command not found`, () => {
     return cli
       .do('nope', this.app)
       .then(cli.expectError(404))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   // get something on the screen
-  it(`should sleep yet again`, () => cli.do('sleep 1', this.app).catch(oops(this, true)))
+  it(`should sleep yet again`, () => cli.do('sleep 1', this.app).catch(Common.oops(this, true)))
 
   // FIXME prompt does not work in webpack+proxy
   it('should clear properly despite existing prompt', () =>
@@ -113,5 +113,5 @@ describe(`clear the console ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
         await this.app.client.keys([ui.keys.CONTROL, 'l', 'NULL']) // use control-l to clear
         return cli.expectConsoleToBeClear(this.app)
       })
-      .catch(oops(this, true)))
+      .catch(Common.oops(this, true)))
 })

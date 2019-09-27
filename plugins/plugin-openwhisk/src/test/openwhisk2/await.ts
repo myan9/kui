@@ -19,7 +19,7 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,9 +29,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.
 
 const actionName = 'long'
 
-describe('Invoke asynchronously and await', function(this: common.ISuite) {
+describe('Invoke asynchronously and await', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create an action', () =>

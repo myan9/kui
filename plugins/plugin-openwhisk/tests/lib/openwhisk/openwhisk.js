@@ -15,7 +15,8 @@
  */
 
 const ui = require('@kui-shell/core/tests/lib/ui')
-const common = require('@kui-shell/core/tests/lib/common')
+const testSupport = require('@kui-shell/test')
+const Common = testSupport.Common
 const expandHomeDir = require('@kui-shell/core/util/home').default
 
 // read and cache local ~/.wskprops
@@ -188,7 +189,7 @@ exports.before = (ctx, opts) => {
               .then(cli.expectOK)
               .catch(err => {
                 console.log(`Failed at command: wsk host set ${apihost}`)
-                return common.oops(ctx)(err)
+                return Common.oops(ctx)(err)
               })
 
     const addWskAuth =
@@ -200,7 +201,7 @@ exports.before = (ctx, opts) => {
               .then(cli.expectOK)
               .catch(err => {
                 console.log(`Failed at command: wsk auth add ${process.env.__OW_API_KEY || process.env.AUTH}`)
-                return common.oops(ctx)(err)
+                return Common.oops(ctx)(err)
               })
 
     // clean openwhisk assets from previous runs, then start the app
@@ -208,7 +209,7 @@ exports.before = (ctx, opts) => {
       cleanAll(false, process.env.__OW_API_KEY || process.env.AUTH),
       cleanAll(true, process.env.AUTH2)
     ])
-      .then(common.before(ctx, opts))
+      .then(Common.before(ctx, opts))
       .then(setApiHost)
       .then(addWskAuth)
   }

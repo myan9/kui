@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ISuite, before as commonBefore, after as commonAfter, oops } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors } from '@kui-shell/core/tests/lib/ui'
 import { tabby, tabbyWithOptions } from '@kui-shell/plugin-core-support/tests/lib/core-support/tab-completion-util'
 import { dirname } from 'path'
@@ -23,9 +23,9 @@ import { waitForGreen, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-
 const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json'))
 const synonyms = ['kubectl']
 
-describe(`kubectl get tab completion ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe(`kubectl get tab completion ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     // use a common prefix, so that we can test tab completion of
@@ -60,7 +60,7 @@ describe(`kubectl get tab completion ${process.env.MOCHA_RUN_TARGET || ''}`, fun
         )
         .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
         .then(selector => waitForGreen(this.app, selector))
-        .catch(oops(this, true))
+        .catch(Common.oops(this, true))
     })
 
     it(`should create tab-completion pod via ${kubectl}`, async () => {
@@ -72,7 +72,7 @@ describe(`kubectl get tab completion ${process.env.MOCHA_RUN_TARGET || ''}`, fun
           })
         )
         .then(selector => waitForGreen(this.app, selector))
-        .catch(oops(this, true))
+        .catch(Common.oops(this, true))
     })
 
     it(`should create tab-completion2 pod via ${kubectl}`, async () => {
@@ -84,7 +84,7 @@ describe(`kubectl get tab completion ${process.env.MOCHA_RUN_TARGET || ''}`, fun
           })
         )
         .then(selector => waitForGreen(this.app, selector))
-        .catch(oops(this, true))
+        .catch(Common.oops(this, true))
     })
 
     it(`should tab complete pods`, () => {

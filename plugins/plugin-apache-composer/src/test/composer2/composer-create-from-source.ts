@@ -15,7 +15,7 @@
  */
 
 import { readdirSync } from 'fs'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -26,9 +26,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 
 const srcDir = `${ROOT}/data/composer/composer-source` // inputs for create-from-source
 
-describe('composer create from source', function(this: common.ISuite) {
+describe('composer create from source', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create from source
   readdirSync(srcDir).forEach((file, idx) => {
@@ -43,7 +43,7 @@ describe('composer create from source', function(this: common.ISuite) {
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing(name))
           // .then(sidecar.expectBadge(badges.composerLib))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
     }
   })
 })

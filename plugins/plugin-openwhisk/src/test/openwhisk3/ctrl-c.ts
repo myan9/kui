@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -22,9 +22,9 @@ const { cli, sidecar } = ui
 const delay = 3000
 const actionName = 'foo'
 
-describe('Cancel via Ctrl+C', function(this: common.ISuite) {
+describe('Cancel via Ctrl+C', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // note that this action resolves with its input parameter; we'll check this in the await step below
   it('should create an action that completes with some delay', () =>
@@ -40,7 +40,7 @@ describe('Cancel via Ctrl+C', function(this: common.ISuite) {
       .then(res => new Promise(resolve => setTimeout(() => resolve(res), delay / 3)))
       .then(appAndCount => this.app.client.keys(ui.ctrlC).then(() => appAndCount))
       .then(cli.expectBlank)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // checking the resolve(x)
   it('should await the long-running action', () =>
@@ -55,5 +55,5 @@ describe('Cancel via Ctrl+C', function(this: common.ISuite) {
           name: 'openwhisk'
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  ISuite,
-  before as commonBefore,
-  after as commonAfter,
-  oops,
-  pit,
-  waitForSession
-} from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, selectors } = ui
 
@@ -39,79 +32,79 @@ const value1 = 'nnnnnn'
 const value2 = 'bar baz'
 const value3 = 'mmmmmm'
 
-describe('export command', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe('export command', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
-  pit(`should export foo=${value1}`, () =>
+  Common.pit(`should export foo=${value1}`, () =>
     cli
       .do(`export foo=${value1}`, this.app)
       .then(cli.expectJustOK)
       .then(() => cli.do('printenv foo', this.app).then(cli.expectOKWithString(value1)))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should export foo bar baz with space in string', () =>
+  Common.pit('should export foo bar baz with space in string', () =>
     cli
       .do(`export foo="${value2}"`, this.app)
       .then(cli.expectJustOK)
       .then(() => cli.do('printenv foo', this.app).then(cli.expectOKWithString(value2)))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should open new tab', () =>
+  Common.pit('should open new tab', () =>
     cli
       .do('tab new', this.app)
-      .then(() => waitForSession(this))
-      .catch(oops(this))
+      .then(() => Common.waitForSession(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should show no value for foo in the new tab', () =>
+  Common.pit('should show no value for foo in the new tab', () =>
     cli
       .do('printenv foo', this.app)
       .then(cli.expectBlank)
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit(`should export foo ${value3}`, () =>
+  Common.pit(`should export foo ${value3}`, () =>
     cli
       .do(`export foo=${value3}`, this.app)
       .then(cli.expectJustOK)
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should printenv the new value for foo in the second tab', () =>
+  Common.pit('should printenv the new value for foo in the second tab', () =>
     cli
       .do('printenv foo', this.app)
       .then(cli.expectOKWithString(value3))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should switch back to the first tab', () =>
+  Common.pit('should switch back to the first tab', () =>
     cli
       .do('tab switch 1', this.app)
       .then(() => this.app.client.waitForVisible(selectors.TAB_SELECTED_N(1)))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should show the first-tab value for foo in the first tab', () =>
+  Common.pit('should show the first-tab value for foo in the first tab', () =>
     cli
       .do('printenv foo', this.app)
       .then(cli.expectOKWithString(value2))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should switch back to the second tab', () =>
+  Common.pit('should switch back to the second tab', () =>
     cli
       .do('tab switch 2', this.app)
       .then(() => this.app.client.waitForVisible(selectors.TAB_SELECTED_N(2)))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
-  pit('should show the second-tab value for foo in the second tab', () =>
+  Common.pit('should show the second-tab value for foo in the second tab', () =>
     cli
       .do('printenv foo', this.app)
       .then(cli.expectOKWithString(value3))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 })

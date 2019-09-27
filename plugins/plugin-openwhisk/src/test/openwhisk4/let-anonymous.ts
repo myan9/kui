@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -24,9 +24,9 @@ const actionName2 = 'foo2'
 const seqName1 = 's1'
 const seqName2 = 's2'
 
-describe('Create anonymous actions via let', function(this: common.ISuite) {
+describe('Create anonymous actions via let', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an anonymous function with () param', () =>
     cli

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { selectors, sidecar, expectSubset, getValueFromMonaco } from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { verifyNodeExists, verifyEdgeExists } from '@kui-shell/plugin-apache-composer/tests/lib/composer-viz-util'
-const { localDescribe } = common
 
 /** shorthands for commands */
 const preview = (file: string) => ['preview', file]
 
 /** wait for the creation to finish, then navigate a bit */
-const waitForPreview = function(this: common.ISuite, name: string) {
+const waitForPreview = function(this: Common.ISuite, name: string) {
   it(`should wait for wskflow visualization for ${name}`, async () => {
     const waitForIcon = () => {
       return this.app.client.waitUntil(async () => {
@@ -59,9 +58,9 @@ const waitForPreview = function(this: common.ISuite, name: string) {
 // from here on are the tests...
 //
 
-localDescribe('popup preview', function(this: common.ISuite) {
+Common.localDescribe('popup preview', function(this: Common.ISuite) {
   before(openwhisk.before(this, { popup: preview('@demos/if.js') }))
-  after(common.after(this))
+  after(Common.after(this))
 
   waitForPreview.bind(this)({ name: 'if.js' })
 })

@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
 const actionName = 'foo'
 
-describe('Check error handling for invoking a non-existent action', function(this: common.ISuite) {
+describe('Check error handling for invoking a non-existent action', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('invoke a non-existent action', () =>
     cli
       .do(`wsk action invoke xxxxxx`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('async a non-existent action', () =>
     cli
       .do(`wsk action async xxxxxx`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('create an action', () =>
     cli
@@ -43,29 +43,29 @@ describe('Check error handling for invoking a non-existent action', function(thi
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('invoke with a non-existent package, but existing action name', () =>
     cli
       .do(`wsk action invoke xxxxxx/${actionName}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('invoke with a non-existent package, but existing action name, via kui action invoke', () =>
     cli
       .do(`kui action invoke xxxxxx/${actionName}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('invoke with a non-existent package, but existing action name, via wsk action invoke', () =>
     cli
       .do(`wsk action invoke xxxxxx/${actionName}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('async with a non-existent package, but existing action name', () =>
     cli
       .do(`wsk action async xxxxxx/${actionName}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

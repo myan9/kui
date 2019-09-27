@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
-describe('parameter parsing with quotes', function(this: common.ISuite) {
+describe('parameter parsing with quotes', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const createWith = params => {
     return it(`should create package with -p creds ${params}`, () =>
@@ -30,7 +30,7 @@ describe('parameter parsing with quotes', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing('ppp'))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const expectParams = params => {
@@ -42,7 +42,7 @@ describe('parameter parsing with quotes', function(this: common.ISuite) {
         .then(sidecar.expectShowing('ppp'))
         .then(app => app.client.getText(`${ui.selectors.SIDECAR_PACKAGE_PARAMETERS}`))
         .then(ui.expectStruct(params))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   createWith(`'"foo" "bar"'`)

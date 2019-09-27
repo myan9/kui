@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli } = ui
 
 const actionName = 'foo'
 
-describe('Load tester', function(this: common.ISuite) {
+describe('Load tester', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('create an action', () =>
     cli
       .do(`let ${actionName} = x=>x`, this.app)
       .then(cli.expectJustOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const key = 'y'
   const value = 1
@@ -40,7 +40,7 @@ describe('Load tester', function(this: common.ISuite) {
         this.app
       )
       .then(cli.expectOKWithCustom({ expect: 'Run was valid' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('load test it with lt', () =>
     cli
@@ -49,11 +49,11 @@ describe('Load tester', function(this: common.ISuite) {
         this.app
       )
       .then(cli.expectOKWithCustom({ expect: 'Run was valid' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('load test it with lt with no params', () =>
     cli
       .do(`lt ${actionName} --numIters 20 --numThreads 2 --thinkTime 0`, this.app)
       .then(cli.expectOKWithCustom({ expect: 'Run was valid' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

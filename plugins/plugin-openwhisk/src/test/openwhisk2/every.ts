@@ -37,7 +37,7 @@ describe('Create a rule using every', function() {
   // alarms tests disabled
   /*
   before(openwhisk.before(this))
-  after(common.after(this), () => cli.do(`wsk rule delete ${ruleName}`))
+  after(Common.after(this), () => cli.do(`wsk rule delete ${ruleName}`))
 
 */
   /** keep track of activations, and whether new activations show up */

@@ -21,7 +21,7 @@ import * as path from 'path'
 import * as assert from 'assert'
 
 import { Util } from '@kui-shell/core'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -32,10 +32,10 @@ const initialContext = execSync('kubectl config current-context')
   .trim()
 
 // TODO: enable this once proxy can find $HOME on travis
-common.localDescribe('electron context switching', function(this: common.ISuite) {
-  before(common.before(this))
+Common.localDescribe('electron context switching', function(this: Common.ISuite) {
+  before(Common.before(this))
   after(
-    common.after(this, () => {
+    Common.after(this, () => {
       console.log(`switching back to initial context ${initialContext}`)
       execSync(`kubectl config use-context ${initialContext}`)
       console.log(`switched to ${execSync('kubectl config current-context')}`)
@@ -53,7 +53,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           .then(() => waitTillNone('namespace', undefined, name))
           .catch(err => {
             if (!errOk) {
-              return common.oops(this)(err)
+              return Common.oops(this)(err)
             }
           })
       })
@@ -66,7 +66,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           .do(`${kubectl} create namespace ${name}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -80,7 +80,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           )
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
 
       it(`should show the sample pod in namespace ${ns} in sidecar via ${kubectl}`, () => {
@@ -89,7 +89,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           .then(cli.expectJustOK)
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing('nginx', undefined, undefined, ns))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -129,7 +129,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
             newOnesFilepath
           )
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }
@@ -154,7 +154,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
 
           assert.strictEqual(currentContextAsIndicatedByContextsTable, currentContext)
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }
@@ -173,7 +173,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
 
           assert.ok(allContextNames.find(_ => _ === contextName))
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }
@@ -192,7 +192,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           .do(`${kubectl} get pods ${ns ? '-n ' + ns : ''}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -219,7 +219,7 @@ common.localDescribe('electron context switching', function(this: common.ISuite)
           )
           await this.app.client.waitForExist(`${selector2} .selected-row`)
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }

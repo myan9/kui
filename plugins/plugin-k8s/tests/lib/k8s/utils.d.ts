@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ISuite } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { Application } from 'spectron'
 import { CLI as headless } from '@kui-shell/core/tests/lib/headless'
 import { CLI as ui } from '@kui-shell/core/tests/lib/ui'
@@ -43,13 +43,13 @@ declare function createNS (prefix?: string): string
  * Install a mocha test to allocate the given namespace `ns`
  *
  */
-declare function allocateNS (ctx: ISuite, ns: string, theCli?: headless | ui): string
+declare function allocateNS (ctx: Common.ISuite, ns: string, theCli?: headless | ui): string
 
 /**
  * Install a mocha test to delete the given namespace `ns`
  *
  */
-declare function deleteNS (ctx: ISuite, ns: string, theCli?: headless | ui): void
+declare function deleteNS (ctx: Common.ISuite, ns: string, theCli?: headless | ui): void
 
 /**
  * Keep poking the given kind till no more such entities exist
@@ -79,7 +79,7 @@ declare function waitForRed (app: Application, selector: string): Promise<string
  * Confirm that the table title matches
  *
  */
-declare function assertTableTitleMatches(self: ISuite, tableSelector: string, expectedTitle: string): Promise<never>
+declare function assertTableTitleMatches(self: Common.ISuite, tableSelector: string, expectedTitle: string): Promise<never>
 
 /**
  * Type slowly, this helps with some odd webpack+proxy issues

@@ -19,14 +19,14 @@
  *
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
-describe('wsk package bind tests', function(this: common.ISuite) {
+describe('wsk package bind tests', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action in a package', () =>
     cli
@@ -34,7 +34,7 @@ describe('wsk package bind tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('action', undefined, undefined, 'package'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should bind that package', () =>
     cli
@@ -42,7 +42,7 @@ describe('wsk package bind tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('binder'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should invoke binder/action', () =>
     cli
@@ -52,7 +52,7 @@ describe('wsk package bind tests', function(this: common.ISuite) {
       .then(sidecar.expectShowing('action'))
       .then(app => app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ name: 'hassle' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should bind that package with namespace', () =>
     cli
@@ -60,7 +60,7 @@ describe('wsk package bind tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('minder'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should invoke binder/action', () =>
     cli
@@ -70,5 +70,5 @@ describe('wsk package bind tests', function(this: common.ISuite) {
       .then(sidecar.expectShowing('action'))
       .then(app => app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ name: 'hoffer' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

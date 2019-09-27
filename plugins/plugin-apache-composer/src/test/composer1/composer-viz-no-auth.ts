@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import {
@@ -39,9 +39,9 @@ const fuzz = {
  * Here starts the test
  *
  */
-describe('show the composer visualization with no wskauth', function(this: common.ISuite) {
+describe('show the composer visualization with no wskauth', function(this: Common.ISuite) {
   before(openwhisk.before(this, fuzz)) // fuzz testing: eliminate authentication bits
-  after(common.after(this))
+  after(Common.after(this))
 
   const cmd = 'wsk app preview'
   const hello = { file: 'hello.js', path: '@demos/hello.js' }
@@ -54,7 +54,7 @@ describe('show the composer visualization with no wskauth', function(this: commo
       .do(`${cmd} ${hello.path}`, this.app)
       .then(verifyTheBasicStuff(hello.file))
       .then(() => this.app.client.element('body.no-auth')) // make sure we have this indicator
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   /** test: load an if.js */
   it(`show visualization via ${cmd} from FSM file ${If.file}`, () =>
@@ -74,7 +74,7 @@ describe('show the composer visualization with no wskauth', function(this: commo
       .then(verifyEdgeExists('seq5', 'dummy_0'))
       .then(verifyEdgeExists('dummy_0', 'Exit'))
       .then(() => this.app.client.element('body.no-auth')) // make sure we have this indicator
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   /** test: while with nested sequence, from js file */
   it(`show visualization from javascript source ${whileSeq.path}`, () =>
@@ -95,5 +95,5 @@ describe('show the composer visualization with no wskauth', function(this: commo
       .then(verifyEdgeExists('action4', 'cond3'))
       .then(verifyEdgeExists('cond3', 'Exit'))
       .then(() => this.app.client.element('body.no-auth')) // make sure we have this indicator
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

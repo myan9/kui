@@ -15,12 +15,12 @@
  */
 
 import * as ui from '@kui-shell/core/tests/lib/ui'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 const { cli, selectors } = ui
 
-describe('Confirm dialog', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe('Confirm dialog', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   it('should fail to exec if the command is missing', () => cli.do(`confirm`, this.app).then(cli.expectError(497)))
 
@@ -43,6 +43,6 @@ describe('Confirm dialog', function(this: common.ISuite) {
       .then(() => this.app.client.click('#confirm-dialog .bx--btn--danger'))
       .then(() => this.app.client.waitForExist(`${selectors.OUTPUT_LAST}`))
       .then(() => cli.expectOKWithCustom({ selector: selectors.BY_NAME('hello') }))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 })

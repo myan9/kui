@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, waitForRed, createNS, waitTillNone } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -22,9 +22,9 @@ const ns1: string = createNS()
 const ns2: string = createNS()
 const synonyms = ['kubectl']
 
-describe('electron namespace', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe('electron namespace', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     /** return the editor text */
@@ -54,7 +54,7 @@ describe('electron namespace', function(this: common.ISuite) {
           .then(() => waitTillNone('namespace', undefined, name))
           .catch(err => {
             if (!errOk) {
-              return common.oops(this)(err)
+              return Common.oops(this)(err)
             }
           })
       })
@@ -67,7 +67,7 @@ describe('electron namespace', function(this: common.ISuite) {
           .do(`${kubectl} create namespace ${name}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -81,7 +81,7 @@ describe('electron namespace', function(this: common.ISuite) {
           .then(sidecar.expectShowing(name))
           .then(sidecar.expectMode('result'))
           .then(expectDescribeText(name))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -95,7 +95,7 @@ describe('electron namespace', function(this: common.ISuite) {
           )
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
 
       it(`should show the sample pod in namespace ${ns} in sidecar via ${kubectl}`, () => {
@@ -104,7 +104,7 @@ describe('electron namespace', function(this: common.ISuite) {
           .then(cli.expectJustOK)
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing('nginx', undefined, undefined, ns))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -130,7 +130,7 @@ describe('electron namespace', function(this: common.ISuite) {
 
             return waitForRed(this.app, deletionEntitySelector)
           })
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 

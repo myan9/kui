@@ -22,7 +22,7 @@ import * as fs from 'fs'
 import * as assert from 'assert'
 import { Application } from 'spectron'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -272,16 +272,16 @@ const composer = {
   }
 }
 
-describe('Intro demo scenario', function(this: common.ISuite) {
+describe('Intro demo scenario', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // app init
   /* {
         const cmd = `wsk app init --url ${sharedURL}`
         it(cmd, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     }
 
     // app init --cleanse
@@ -289,7 +289,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         const cmd = `wsk app init --cleanse --url ${sharedURL}`
         it(cmd, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized and reset the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     } */
 
   // session list, expect empty
@@ -300,7 +300,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
               nDone = 0
         it(`should list sessions via ${cmd} nLive=${nLive} nDone=${nDone}`, () => {
             return composer.getSessions(this.app, nLive, nDone, { cmd })
-                .catch(common.oops(this))
+                .catch(Common.oops(this))
         })
     } */
 
@@ -335,7 +335,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
            .then(() => this.app.client.getText('#sidecar .sidecar-content .action-content code'))
            .then(ui.expectSubset({"_actions": v => util.isArray(v) && v.length>0})) // expect some list value */
 
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -346,7 +346,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
     cli
       .do(cmd, this.app)
       .then(cli.expectError(409))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // app invoke hello -p name composer
   const invokeHello = (): Promise<string> => {
@@ -366,7 +366,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         })
       )
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_ID)) // return the activationId
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   }
 
   // cleanse redis after the invoke, and double-check we have no sessions
@@ -381,7 +381,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
     it('should invoke hello and show one more session than before', () =>
       invokeHello()
         .then(activationId => ui.waitForSession(this.app, activationId, { name: appName1 }))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // session result
@@ -398,7 +398,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(cli.expectOKWithCustom({ selector: 'code' }))
         .then(selector => this.app.client.getText(selector))
         .then(ui.expectStruct(expectedStruct1))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // app preview hello.js
@@ -424,7 +424,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => ui.getValueFromMonaco(this.app))
         .then(code => assert.strictEqual(code.replace(/\s+/g, ''), src(appName1).replace(/\s+/g, '')))
 
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -450,7 +450,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // app preview if.js
@@ -476,7 +476,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => ui.getValueFromMonaco(this.app))
         .then(code => assert.strictEqual(code.replace(/\s+/g, ''), src(appName2).replace(/\s+/g, '')))
 
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -491,7 +491,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
           .then(cli.expectOK)
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing(action))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       )
     })
   }
@@ -511,7 +511,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => this.app.client.click('#sidecar .sidecar-bottom-stripe-button[data-mode="ast"]'))
         .then(() => ui.getValueFromMonaco(this.app))
         .then(ui.expectStruct(ast[appName2]))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -533,7 +533,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -555,7 +555,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -567,7 +567,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
     const expected = [appName1, appName2] // appName1 and appName2 had both better be in the list
     const nDone = 3
     it(`should list sessions via ${cmd} nDone=${nDone}`, () => {
-      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(common.oops(this))
+      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(Common.oops(this))
     })
   }
 
@@ -579,7 +579,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
     const expected = [appName1] // appName1 had better be in the list
     const nDone = 1
     it(`should list sessions via ${cmd} nDone=${nDone}`, () => {
-      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(common.oops(this))
+      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(Common.oops(this))
     })
   }
 
@@ -591,7 +591,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
     const expected = [appName2] // appName2 had better be in the list
     const nDone = 2
     it(`should list sessions via ${cmd} nDone=${nDone}`, () => {
-      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(common.oops(this))
+      return composer.getSessions(this.app, nDone, { cmd, expect: expected }).catch(Common.oops(this))
     })
   }
 
@@ -618,7 +618,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => ui.getValueFromMonaco(this.app))
         .then(code => assert.strictEqual(code.replace(/\s+/g, ''), src(appName3).replace(/\s+/g, '')))
 
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -633,7 +633,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
           .then(cli.expectOK)
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing(action))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       )
     })
   }
@@ -653,7 +653,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => this.app.client.click('#sidecar .sidecar-bottom-stripe-button[data-mode="ast"]'))
         .then(() => ui.getValueFromMonaco(this.app))
         .then(ui.expectStruct(ast[appName3]))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -675,7 +675,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -697,7 +697,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -723,7 +723,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => this.app.client.click('#sidecar .sidecar-bottom-stripe-button[data-mode="visualization"]'))
         .then(() => this.app)
         .then(graph.hasNodes({ tasks: 2, total: 4 })) /*, deployed: 2 */
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -742,7 +742,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => this.app.client.click('#sidecar .sidecar-bottom-stripe-button[data-mode="ast"]'))
         .then(() => ui.getValueFromMonaco(this.app))
         .then(ui.expectStruct(ast[appName4]))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -764,7 +764,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -786,7 +786,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -805,7 +805,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
         .then(() => this.app.client.click('#sidecar .sidecar-bottom-stripe-button[data-mode="ast"]'))
         .then(() => ui.getValueFromMonaco(this.app))
         .then(ui.expectStruct(ast[appName5]))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -827,7 +827,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -845,7 +845,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
                    .then(sidecar.expectOpen)
                    .then(sidecar.expectShowing(appName))
                    .then(() => Promise.all(actions.map(_ => this.app.client.waitForExist(gridForAction(_)))))
-                   .catch(common.oops(this)))
+                   .catch(Common.oops(this)))
             }
 
             // grid -a should also include the app itself
@@ -855,7 +855,7 @@ describe('Intro demo scenario', function(this: common.ISuite) {
                .then(sidecar.expectShowing(appName))
                .then(() => Promise.all(actions.map(_ => this.app.client.waitForExist(gridForAction(_)))))
                .then(() => this.app.client.waitForExist(gridForAction(appName)))
-               .catch(common.oops(this)))
+               .catch(Common.oops(this)))
         })
     } */
 })

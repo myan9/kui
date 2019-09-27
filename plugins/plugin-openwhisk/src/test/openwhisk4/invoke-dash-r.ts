@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -22,9 +22,9 @@ const { cli, sidecar } = ui
 const actionName = 'foo'
 const actionName2 = 'foo2'
 
-describe('wsk action invoke -r', function(this: common.ISuite) {
+describe('wsk action invoke -r', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action', () =>
     cli
@@ -32,7 +32,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create another action', () =>
     cli
@@ -40,7 +40,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with -r`, () =>
     cli
@@ -48,7 +48,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ selector: '.json' }))
       .then(selector => this.app.client.getText(selector))
       .then(ui.expectStruct({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with --result`, () =>
     cli
@@ -56,7 +56,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ selector: '.json' }))
       .then(selector => this.app.client.getText(selector))
       .then(ui.expectStruct({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with -br`, () =>
     cli
@@ -64,7 +64,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ selector: '.json' }))
       .then(selector => this.app.client.getText(selector))
       .then(ui.expectStruct({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with -rb`, () =>
     cli
@@ -72,7 +72,7 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ selector: '.json' }))
       .then(selector => this.app.client.getText(selector))
       .then(ui.expectStruct({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with --blocking --result`, () =>
     cli
@@ -80,5 +80,5 @@ describe('wsk action invoke -r', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ selector: '.json' }))
       .then(selector => this.app.client.getText(selector))
       .then(ui.expectStruct({ x: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

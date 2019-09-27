@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -31,9 +31,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json')
 const synonyms = ['kubectl']
 
 describe(`kubectl create hpa HorizontalPodAutoscaler ${process.env.MOCHA_RUN_TARGET ||
-  ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+  ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // repeat the tests for kubectl, k, etc. i.e. any built-in
   // synonyms/aliases we have for "kubectl"
@@ -63,7 +63,7 @@ describe(`kubectl create hpa HorizontalPodAutoscaler ${process.env.MOCHA_RUN_TAR
           .then(sidecar.expectMode(defaultModeForGet))
           .then(sidecar.expectShowing('travelapp-hpa'))
       } catch (err) {
-        return common.oops(this)(err)
+        return Common.oops(this)(err)
       }
     })
 
@@ -76,7 +76,7 @@ describe(`kubectl create hpa HorizontalPodAutoscaler ${process.env.MOCHA_RUN_TAR
           })
         )
         .then(selector => waitForRed(this.app, selector))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     deleteNS(this, ns)

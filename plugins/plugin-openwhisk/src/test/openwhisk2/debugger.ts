@@ -23,7 +23,7 @@ const actionName = 'foo' */
 if (false) {
   describe('Debugger', function () {
     before(openwhisk.before(this))
-    after(common.after(this))
+    after(Common.after(this))
 
     it('should create an action', () => cli.do(`wsk action update ${actionName} ./data/openwhisk/foo.js`, this.app)
       .then(cli.expectJustOK)

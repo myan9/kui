@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors } from '@kui-shell/core/tests/lib/ui'
 import { createNS, waitForGreen, waitForRed } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
-describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const testResourceNotFound = (watchCmd: string, resourceType: string, resourceName: string) => {
     const errorMessage = `Error from server (NotFound): ${resourceType} "${resourceName}" not found`
@@ -29,7 +29,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
       return cli
         .do(watchCmd, this.app)
         .then(cli.expectError(404, errorMessage))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   }
 
@@ -38,7 +38,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
       return cli
         .do(watchCmd, this.app)
         .then(errMessage ? cli.expectError(code, errMessage) : cli.expectError(code))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   }
 
@@ -106,7 +106,7 @@ describe(`kubectl watch error handler ${process.env.MOCHA_RUN_TARGET}`, function
         .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(ns) }))
         .then(nsStatus => waitForRed(this.app, nsStatus))
     } catch (err) {
-      await common.oops(this, true)(err)
+      await Common.oops(this, true)(err)
     }
   })
 })

@@ -19,7 +19,7 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -27,9 +27,9 @@ import { dirname } from 'path'
 const { cli, sidecar } = ui
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-describe('Click on action part of activation sidecar', function(this: common.ISuite) {
+describe('Click on action part of activation sidecar', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create an action', () =>
@@ -38,7 +38,7 @@ describe('Click on action part of activation sidecar', function(this: common.ISu
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // packaged action
   it('should create a package', () =>
@@ -47,14 +47,14 @@ describe('Click on action part of activation sidecar', function(this: common.ISu
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should create a package action', () =>
     cli
       .do(`wsk action create ppp/foo ${ROOT}/data/openwhisk/foo.js`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo', undefined, false, 'ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // invoke it asynchronously with no params
   it('should async that action', () =>
@@ -66,14 +66,14 @@ describe('Click on action part of activation sidecar', function(this: common.ISu
         await this.app.client.click(selector)
         return sidecar.expectOpen(this.app).then(sidecar.expectShowing('foo', activationId))
       })
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should click on name part of activation', () =>
     this.app.client
       .click(ui.selectors.SIDECAR_TITLE)
       .then(() => this.app)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // invoke it asynchronously with no params
   it('should async the packaged action', () =>
@@ -85,7 +85,7 @@ describe('Click on action part of activation sidecar', function(this: common.ISu
         await this.app.client.click(selector)
         return sidecar.expectOpen(this.app).then(sidecar.expectShowing('foo', activationId))
       })
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // a bit of a race here
 
@@ -94,5 +94,5 @@ describe('Click on action part of activation sidecar', function(this: common.ISu
       .click(ui.selectors.SIDECAR_TITLE)
       .then(() => this.app)
       .then(sidecar.expectShowing('foo', undefined, false, 'ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

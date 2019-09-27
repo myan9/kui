@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, AppAndCount, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -32,7 +32,7 @@ enum Status {
 
 /** after a cli.do (res), wait for a table row with the given status */
 const waitForStatus = async function(
-  this: common.ISuite,
+  this: Common.ISuite,
   status: Status,
   nsName: string,
   res: AppAndCount
@@ -48,20 +48,20 @@ const waitForStatus = async function(
 }
 
 /** create namespace, and expect status eventually to be green */
-const createNS = async function(this: common.ISuite, kubectl: string) {
+const createNS = async function(this: Common.ISuite, kubectl: string) {
   it(`should create namespace from URL via ${kubectl}`, async () => {
     const waitForOnline: (res: AppAndCount) => Promise<string> = waitForStatus.bind(this, Status.Online, nsName)
 
     try {
       await waitForOnline(await cli.do(`${kubectl} create ns ${nsName}`, this.app))
     } catch (err) {
-      await common.oops(this, false)(err)
+      await Common.oops(this, false)(err)
     }
   })
 }
 
 /** delete namespace, and expect status eventually to be red; */
-const deleteNS = function(this: common.ISuite, kubectl: string) {
+const deleteNS = function(this: Common.ISuite, kubectl: string) {
   it(`should delete the namespace ${nsName} from URL via ${kubectl}`, async () => {
     try {
       const waitForOffline: (res: AppAndCount) => Promise<string> = waitForStatus.bind(this, Status.Offline, nsName)
@@ -70,7 +70,7 @@ const deleteNS = function(this: common.ISuite, kubectl: string) {
 
       await waitForOffline(res)
     } catch (err) {
-      await common.oops(this, false)(err)
+      await Common.oops(this, false)(err)
     }
   })
 }
@@ -96,7 +96,7 @@ const testDrilldown = async (nsName: string, res: AppAndCount) => {
 }
 
 /** k get ns -w */
-const watchNS = function(this: common.ISuite, kubectl: string) {
+const watchNS = function(this: Common.ISuite, kubectl: string) {
   const watchCmds = [
     `${kubectl} get ns -w`,
     `${kubectl} get ns ${nsName} -w`,
@@ -107,7 +107,7 @@ const watchNS = function(this: common.ISuite, kubectl: string) {
     const nsNameForIter = `${nsName}-${idx}`
     const watchCmd = _watchCmd.replace(nsName, nsNameForIter)
 
-    it('should reload', () => common.refresh(this))
+    it('should reload', () => Common.refresh(this))
 
     it(`should watch namespaces via ${watchCmd}`, async () => {
       try {
@@ -154,7 +154,7 @@ const watchNS = function(this: common.ISuite, kubectl: string) {
         // and, conversely, that watch had better eventually show Offline
         await this.app.client.waitForExist(watchBadgeButOffline)
       } catch (err) {
-        await common.oops(this, false)(err)
+        await Common.oops(this, false)(err)
       }
     })
   })
@@ -162,9 +162,9 @@ const watchNS = function(this: common.ISuite, kubectl: string) {
 
 const synonyms = ['kubectl']
 
-describe(`kubectl watch namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl watch namespace ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     const createIt: () => Promise<void> = createNS.bind(this, kubectl)

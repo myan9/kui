@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -26,15 +26,15 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 const seqName1 = 'seq1'
 const seqName2 = 'seq2'
 
-describe('Use the app list command to list the invokeable compositions', function(this: common.ISuite) {
+describe('Use the app list command to list the invokeable compositions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /* {
         const cmd = `app init --reset --url ${sharedURL}`
         it(`should ${cmd}`, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     } */
 
   // make an app
@@ -44,7 +44,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // list it
   it(`should list ${seqName1} via app list`, () =>
@@ -53,7 +53,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOKWithOnly(seqName1))
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // make a second app
   it('should create a second composer sequence', () =>
@@ -62,7 +62,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // list it
   it(`should list ${seqName1} via app list`, () =>
@@ -71,7 +71,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOKWith(seqName1)) // seqName1 had better still be in the list
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName2)) // but the sidecar should be showing seqName2
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list ${seqName1} via wsk app list`, () =>
     cli
@@ -79,13 +79,13 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOKWith(seqName2)) // seqName2 had better also be in the list
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should create package ppp`, () =>
     cli
       .do(`wsk package create ppp`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // make a packaged app
   it('should create a second composer sequence', () =>
@@ -94,7 +94,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName2, undefined, undefined, 'ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // get the first app, so that the sidecar shows it (so we can test switching back to the packaged app)
   it(`should get ${seqName1}`, () =>
@@ -103,7 +103,7 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list ppp/${seqName2} via wsk app list`, () =>
     cli
@@ -118,5 +118,5 @@ describe('Use the app list command to list the invokeable compositions', functio
       .then(() => this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName2, undefined, undefined, 'ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

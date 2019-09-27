@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -29,9 +29,9 @@ const dashFs = ['-f']
 
 const echoString = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
-describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // repeat the tests for kubectl, k, etc. i.e. any built-in
   // synonyms/aliases we have for "kubectl"
@@ -61,7 +61,7 @@ describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
             .then(sidecar.expectMode(defaultModeForGet))
             .then(sidecar.expectShowing('nginx'))
         } catch (err) {
-          await common.oops(this, true)(err)
+          await Common.oops(this, true)(err)
         }
       })
 
@@ -70,7 +70,7 @@ describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} get pods -n ${ns}; echo ${echoString}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
 
       it(`should get with semicolon 2`, () => {
@@ -78,7 +78,7 @@ describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} get pods -n ${ns} ; echo ${echoString}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
 
       it(`should get with semicolon 3`, () => {
@@ -86,7 +86,7 @@ describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} get pods -n ${ns} ;echo ${echoString};`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
 
       it(`should get with semicolon 4`, () => {
@@ -94,14 +94,14 @@ describe(`kubectl semicolons ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .do(`${kubectl} get pods -n ${ns} ;echo ${echoString}; ; ; ;;;`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
 
       it(`should get with semicolon 5`, () => {
         return cli
           .do(`${kubectl} get pods -n ${ns} ;echo ${echoString}; ; ; ;;;`, this.app)
           .then(cli.expectOKWithString(echoString))
-          .catch(common.oops(this, true))
+          .catch(Common.oops(this, true))
       })
 
       deleteNS(this, ns)

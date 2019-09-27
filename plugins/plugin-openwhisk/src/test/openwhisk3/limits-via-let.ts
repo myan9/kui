@@ -19,13 +19,13 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const actionName1 = 'foo1'
@@ -39,9 +39,9 @@ const actionName8 = 'foo8'
 const actionName9 = 'foo9'
 
 // TODO: webpack test
-localDescribe('Create an action with limits, using let', function(this: common.ISuite) {
+localDescribe('Create an action with limits, using let', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action with -m 129', () =>
     cli
@@ -50,7 +50,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
       .then(sidecar.expectLimit('memory', 129)) // '129 MB'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with --memory 131', () =>
     cli
@@ -59,7 +59,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
       .then(sidecar.expectLimit('memory', 131)) // '131 MB'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with -t 1000', () =>
     cli
@@ -68,7 +68,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName3))
       .then(sidecar.expectLimit('timeout', 1000)) // '1 sec'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with --timeout 2000', () =>
     cli
@@ -77,7 +77,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName4))
       .then(sidecar.expectLimit('timeout', 2000)) // '2 sec'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with --timeout 3s', () =>
     cli
@@ -86,7 +86,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName5))
       .then(sidecar.expectLimit('timeout', 3000)) // '3 sec'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with --timeout 5m', () =>
     cli
@@ -95,7 +95,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName6))
       .then(sidecar.expectLimit('timeout', 300000)) // '300 sec'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with -l 1', () =>
     cli
@@ -104,11 +104,11 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName7))
       .then(sidecar.expectLimit('logs', 1)) // '1 MB of logs'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   /* it('should fail to create an action with --logs 2', () => cli.do(`let ${actionName8} = ${ROOT}/data/openwhisk/foo.js --logs 2`, this.app)
        .then(cli.expectError(499)) // unsupported optional parameter
-       .catch(common.oops(this))) */
+       .catch(Common.oops(this))) */
 
   it('should create an action with --logsize 2', () =>
     cli
@@ -117,7 +117,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName8))
       .then(sidecar.expectLimit('logs', 2)) // '2 MB of logs'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // updating the action8 this time
   it('should create an action with --logsize 3', () =>
@@ -127,7 +127,7 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName8))
       .then(sidecar.expectLimit('logs', 3)) // '3 MB of logs'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action with --logsize 3', () =>
     cli
@@ -136,5 +136,5 @@ localDescribe('Create an action with limits, using let', function(this: common.I
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName9))
       .then(sidecar.expectLimit('logs', 3)) // '3 MB of logs'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

@@ -16,37 +16,30 @@
 
 import * as assert from 'assert'
 
-import {
-  ISuite,
-  before as commonBefore,
-  after as commonAfter,
-  oops,
-  refresh,
-  localDescribe
-} from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, keys } = ui
 
-localDescribe('Text search', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+Common.localDescribe('Text search', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // 2 matches test
   it('should add grumble to the repl', () =>
     cli
       .do('grumble', this.app)
       .then(cli.expectError(404))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
   it('should add another grumble to the repl', () =>
     cli
       .do('grumble', this.app)
       .then(cli.expectError(404))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
   it('should add bojangles to the repl', () =>
     cli
       .do('bojangles', this.app)
       .then(cli.expectError(404))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   it('should open the search bar when cmd+f is pressed', async () => {
     await this.app.client.keys([ui.ctrlOrMeta, 'f'])
@@ -103,7 +96,7 @@ localDescribe('Text search', function(this: ISuite) {
         return txt === '4 matches' // two executions plus two 'Command not found: grumble' matches, and no tab title match!
       })
     } catch (err) {
-      oops(this)(err)
+      await Common.oops(this)(err)
     }
   })
 
@@ -112,7 +105,7 @@ localDescribe('Text search', function(this: ISuite) {
     this.app.client
       .click('#search-close-button')
       .then(() => this.app.client.waitForVisible('#search-bar', 2000, true)) // reverse: true
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
   it('should find 3 matches for bojangles', () =>
     this.app.client
       .keys([ui.ctrlOrMeta, 'f'])
@@ -125,14 +118,14 @@ localDescribe('Text search', function(this: ISuite) {
           return txt === '3 matches' // one execution, plus one "Command not found: bojangles" match, plus one tab title match
         })
       )
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   // no matches test
   it('should close the search bar if clicking the close button', () =>
     this.app.client
       .click('#search-close-button')
       .then(() => this.app.client.waitForVisible('#search-bar', 2000, true)) // reverse: true
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
   // re-open, so that we can test entering text and hitting enter
   it('should find nothing when searching for waldo', () =>
     this.app.client
@@ -146,10 +139,10 @@ localDescribe('Text search', function(this: ISuite) {
           return txt === 'no matches'
         })
       )
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 
   // paste test; reload first to start with a clean slate in the text search box
-  it('should reload the app', () => refresh(this))
+  it('should reload the app', () => Common.refresh(this))
   it('should paste into the text search box', () =>
     this.app.client
       .keys([ui.ctrlOrMeta, 'f'])
@@ -159,5 +152,5 @@ localDescribe('Text search', function(this: ISuite) {
       .then(() => this.app.client.execute(() => document.execCommand('paste')))
       .then(() => this.app.client.getValue('#search-input'))
       .then(actual => assert.strictEqual(actual, 'grumble')) // paste made it to #search-input?
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 })

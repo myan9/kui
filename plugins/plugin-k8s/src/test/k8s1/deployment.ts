@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -33,9 +33,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-k8s/tests/package.json')
 const ns: string = createNS()
 const inNamespace = `-n ${ns}`
 
-describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const createIt = () => {
     it('should create deployment from local file', async () => {
@@ -59,7 +59,7 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
           .then(sidecar.expectMode(defaultModeForGet))
           .then(sidecar.expectShowing('myapp', undefined, undefined, ns))
       } catch (err) {
-        return common.oops(this)(err)
+        return Common.oops(this)(err)
       }
     })
   }
@@ -97,7 +97,7 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
             }
           })
       } catch (err) {
-        return common.oops(this)(err)
+        return Common.oops(this)(err)
       }
     })
   }
@@ -108,7 +108,7 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         .do(`kubectl delete deployment myapp ${inNamespace}`, this.app)
         .then(cli.expectOKWithAny)
         .then(() => waitTillNone('deployment', undefined, 'myapp', undefined, inNamespace))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   }
 
@@ -120,7 +120,7 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         await this.app.client.click('#confirm-dialog .bx--btn--danger')
         await waitTillNone('deployment', undefined, 'myapp', undefined, inNamespace)
       } catch (err) {
-        return common.oops(this)(err)
+        return Common.oops(this)(err)
       }
     })
   }

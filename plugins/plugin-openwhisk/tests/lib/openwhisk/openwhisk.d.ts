@@ -16,9 +16,9 @@
 
 import { HookFunction, Suite } from 'mocha'
 
-import { IBeforeOptions } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 
-interface IOpenWhiskBeforeOptions extends IBeforeOptions {
+interface IOpenWhiskBeforeOptions extends Common.IBeforeOptions {
   fuzz?: Record<string, any>
 }
 

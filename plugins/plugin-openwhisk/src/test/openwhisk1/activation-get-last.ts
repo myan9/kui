@@ -19,7 +19,7 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,12 +29,12 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.
 
 const actionName1 = `foo1-${new Date().getTime()}`
 const actionName2 = `foo2-${new Date().getTime()}`
-const { localDescribe } = common
+const { localDescribe } = Common
 
 // TODO: webpack test
-localDescribe('wsk activation get --last', function(this: common.ISuite) {
+localDescribe('wsk activation get --last', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action
   it(`should create an action ${actionName1}`, () =>
@@ -43,7 +43,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke it ${actionName1}`, () =>
     cli
@@ -51,7 +51,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create another action
   it(`should create an action ${actionName2}`, () =>
@@ -60,7 +60,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${actionName1} with wsk activation get --last`, () =>
     this.app.client
@@ -75,7 +75,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
           .then(() => true)
           .catch(() => false)
       })
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke it ${actionName2}`, () =>
     cli
@@ -83,7 +83,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // this test is too flakey against IBM Cloud Functions, as activation records may only become visible way in the future
   /*
@@ -94,7 +94,7 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(sidecar.expectShowing(actionName1, undefined, undefined, undefined, undefined, 500))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({name: 'Step1 lastTestIPromise'}))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   }))
 
   it(`should show ${actionName2} with wsk activation get --last ${actionName2}`, () => this.app.client.waitUntil(() => {
@@ -104,6 +104,6 @@ localDescribe('wsk activation get --last', function(this: common.ISuite) {
       .then(sidecar.expectShowing(actionName2, undefined, undefined, undefined, undefined, 500))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({name: 'Step1 lastTestIPromise'}))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })) */
 })

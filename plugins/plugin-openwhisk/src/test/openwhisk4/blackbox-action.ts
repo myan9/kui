@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -24,9 +24,9 @@ import { dirname } from 'path'
 const { cli, sidecar } = ui
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-describe('blackbox actions', function(this: common.ISuite) {
+describe('blackbox actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create a blackbox action variant 1', () =>
     cli
@@ -36,7 +36,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(sidecar.expectShowing('bb1'))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTION_SOURCE))
       .then(txt => assert.strictEqual(txt, 'dockerhub image: openwhisk/example'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a blackbox action variant 2', () =>
     cli
@@ -44,7 +44,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('bb2'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a blackbox action variant 3', () =>
     cli
@@ -52,7 +52,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('bb3'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a blackbox action variant 4', () =>
     cli
@@ -61,7 +61,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('bb4'))
       .then(sidecar.expectSource('// eslint-disable-next-line @typescript-eslint/no-unused-vars\nconst main = x => x'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a package', () =>
     cli
@@ -69,7 +69,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('ppp'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a blackbox action variant 5', () =>
     cli
@@ -78,7 +78,7 @@ describe('blackbox actions', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('bb4', undefined, undefined, 'ppp'))
       .then(sidecar.expectSource('// eslint-disable-next-line @typescript-eslint/no-unused-vars\nconst main = x => x'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke bb2`, () =>
     cli
@@ -93,5 +93,5 @@ describe('blackbox actions', function(this: common.ISuite) {
           msg: 'Hello from arbitrary C program!'
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

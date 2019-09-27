@@ -17,7 +17,7 @@
 import { v4 as uuid } from 'uuid'
 import { dirname, join, normalize } from 'path'
 
-import { ISuite, before as commonBefore, after as commonAfter, oops } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { Util } from '@kui-shell/core/'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -25,13 +25,12 @@ const { cli, selectors } = ui
 const ROOT = dirname(require.resolve('@kui-shell/core/tests/package.json'))
 const rootRelative = (dir: string) => join(ROOT, dir)
 
-/** skip the tests if we aren't doing a webpack+proxy test run */
 const runTheTests = process.env.MOCHA_RUN_TARGET !== 'webpack' || process.env.KUI_USE_PROXY === 'true'
 const pit = runTheTests ? it : xit
 
-describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   let initialDirectory: string
   pit('should echo current directory', () =>
@@ -41,7 +40,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
       .then(async () => {
         initialDirectory = await this.app.client.getText(selectors.OUTPUT_LAST)
       })
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   const previous = () => {
@@ -49,7 +48,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
       cli
         .do(`cd -`, this.app)
         .then(cli.expectOKWithString(normalize(initialDirectory)))
-        .catch(oops(this, true)))
+        .catch(Common.oops(this, true)))
   }
 
   const bar = `bar${uuid()}`
@@ -57,14 +56,14 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`mkdir /tmp/"kui ${bar}"`, this.app)
       .then(cli.expectJustOK)
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should execute 'cd /tmp/"kui ${bar}"'`, () =>
     cli
       .do(`cd /tmp/"kui ${bar}"`, this.app)
       .then(cli.expectOKWithString('kui bar'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   previous()
@@ -73,7 +72,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`cd "/tmp/kui ${bar}"`, this.app)
       .then(cli.expectOKWithString('kui bar'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   previous()
@@ -82,7 +81,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`cd /tmp/kui\\ ${bar}`, this.app)
       .then(cli.expectOKWithString('kui bar'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   // ls with space and trailing slash; see https://github.com/IBM/kui/issues/1389
@@ -90,13 +89,13 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`ls /tmp/kui\\ ${bar}/`, this.app)
       .then(cli.expectOKWithAny)
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
   pit(`should execute 'ls /tmp/"kui ${bar}"/'`, () =>
     cli
       .do(`ls /tmp/"kui ${bar}"/`, this.app)
       .then(cli.expectOKWithAny)
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   previous()
@@ -105,7 +104,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`cd ${ROOT}/data`, this.app)
       .then(cli.expectOKWithString(rootRelative('data')))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   previous()
@@ -114,7 +113,7 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`cd -`, this.app)
       .then(cli.expectOKWithString(rootRelative('data')))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   previous()
@@ -124,41 +123,41 @@ describe(`bash-like cd ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: IS
     cli
       .do(`cd ${ROOT}/data`, this.app)
       .then(cli.expectOKWithString(rootRelative('data')))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should handle cd error`, () =>
     cli
       .do(`cd notexist`, this.app)
       .then(cli.expectError(500, 'cd: no such file or directory: notexist'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should handle cd error`, () =>
     cli
       .do(`cd ../notexist`, this.app)
       .then(cli.expectError(500, 'cd: no such file or directory: ../notexist'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should handle cd error`, () =>
     cli
       .do(`cd -/..`, this.app)
       .then(cli.expectError(499, 'Unsupported optional parameter /'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should execute cd without arguments`, () =>
     cli
       .do('cd', this.app)
       .then(cli.expectOKWithString(Util.expandHomeDir('~')))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit(`should execute cd ${ROOT}`, () =>
     cli
       .do(`cd ${ROOT}`, this.app)
       .then(cli.expectOKWithString(ROOT))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 })

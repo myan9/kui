@@ -19,14 +19,14 @@
  *
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli } = ui
 
-describe('Namespaces list', function(this: common.ISuite) {
+describe('Namespaces list', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // implicit entity type
   ui.aliases.list.forEach(cmd => {

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const cli = ui.cli
 
-describe('composer config', function(this: common.ISuite) {
+describe('composer config', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** app config */
   const getConfig = cmd =>
@@ -29,7 +29,7 @@ describe('composer config', function(this: common.ISuite) {
       cli
         .do(cmd, this.app)
         .then(cli.expectOKWithCustom({ expect: 'Composer version' }))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
   getConfig('wsk app properties')
   getConfig('wsk app props')

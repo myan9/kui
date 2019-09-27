@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, keys, selectors } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, createNS, allocateNS, deleteNS, typeSlowly } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
@@ -27,9 +27,9 @@ const inputEncoded = inputBuffer.toString('base64')
 /** we have a custom vimrc, to make sure INSERT shows up */
 // const vimrc = join(dirname(require.resolve('@kui-shell/plugin-bash-like/tests/data/marker.json')), 'vimrc')
 
-describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   allocateNS(this, ns)
@@ -39,7 +39,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     return cli
       .do(`echo ${inputEncoded} | base64 --decode | kubectl create -f - -n ${ns}`, this.app)
       .then(cli.expectOKWithString(podName))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should wait for the pod to come up`, () => {
@@ -47,14 +47,14 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
       .do(`kubectl get pod ${podName} -n ${ns} -w`, this.app)
       .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(podName) }))
       .then(selector => waitForGreen(this.app, selector))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   /* it(`should copy the vimrc to the current container`, () => {
     return cli
       .do(`kubectl cp ${vimrc} -n ${ns} ${ns}/${podName}:/root/.vimrc`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   }) */
 
   const filename = '/tmp/foo.txt'
@@ -117,7 +117,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
         }
       })
     } catch (err) {
-      await common.oops(this, true)(err)
+      await Common.oops(this, true)(err)
     }
   })
 
@@ -125,7 +125,7 @@ describe(`kubectl exec vi ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     return cli
       .do(`kubectl exec ${podName} -n ${ns} -- cat ${filename}`, this.app)
       .then(cli.expectOKWithString(typeThisText))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   deleteNS(this, ns)

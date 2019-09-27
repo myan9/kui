@@ -18,21 +18,21 @@
  * tests that create an action and test that it shows up in the list UI
  *    this test also covers toggling the sidecar
  */
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const actionName1 = `foo1-${new Date().getTime()}`
 
 // TODO: webpack test
-localDescribe('wsk activation result and wsk activation logs', function(this: common.ISuite) {
+localDescribe('wsk activation result and wsk activation logs', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action
   it(`should create an action ${actionName1}`, () =>
@@ -41,7 +41,7 @@ localDescribe('wsk activation result and wsk activation logs', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should async that action then show its logs and result`, () =>
     cli
@@ -56,12 +56,12 @@ localDescribe('wsk activation result and wsk activation logs', function(this: co
             .then(() => sidecar.expectOpen(this.app))
             .then(sidecar.expectShowing(actionName1, activationId))
             .then(sidecar.expectMode('logs'))
-            .then(() => common.refresh(this))
+            .then(() => Common.refresh(this))
             .then(() => cli.do(`wsk activation logs ${activationId}`, this.app))
             .then(() => sidecar.expectOpen(this.app))
             .then(sidecar.expectShowing(actionName1, activationId))
             .then(sidecar.expectMode('logs'))
-            .then(() => common.refresh(this))
+            .then(() => Common.refresh(this))
             .then(() => cli.do(`wsk activation result ${activationId}`, this.app))
             .then(() => sidecar.expectOpen(this.app))
             .then(sidecar.expectShowing(actionName1, activationId))
@@ -70,5 +70,5 @@ localDescribe('wsk activation result and wsk activation logs', function(this: co
             .catch(() => false)
         })
       })
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

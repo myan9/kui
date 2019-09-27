@@ -16,13 +16,13 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { rp } = common
+const { rp } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const actionName = 'foo'
@@ -34,9 +34,9 @@ const actionName6 = 'foo6'
 const actionName7 = 'foo7'
 const packageName = 'ppp'
 
-describe('Webbify actions', function(this: common.ISuite) {
+describe('Webbify actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action', () =>
     cli
@@ -180,5 +180,5 @@ describe('Webbify actions', function(this: common.ISuite) {
         })
       )
       .then(ui.expectStruct({ name: 'Step1 openwhisk' }, true))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

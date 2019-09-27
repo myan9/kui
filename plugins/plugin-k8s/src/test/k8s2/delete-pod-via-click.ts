@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import { waitForGreen, waitForRed, createNS, allocateNS, deleteNS } from '@kui-shell/plugin-k8s/tests/lib/k8s/utils'
 
 const kubectl = 'k'
 
-describe(`delete pod via click ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`delete pod via click ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   const inNamespace = `-n ${ns}`
@@ -36,7 +36,7 @@ describe(`delete pod via click ${process.env.MOCHA_RUN_TARGET}`, function(this: 
       )
       .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME('nginx') }))
       .then(selector => waitForGreen(this.app, selector))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should get sample pod via ${kubectl}`, () => {
@@ -45,7 +45,7 @@ describe(`delete pod via click ${process.env.MOCHA_RUN_TARGET}`, function(this: 
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('nginx', undefined, undefined, ns))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should delete the sample pod by clicking on the sidecar delete button`, async () => {
@@ -57,7 +57,7 @@ describe(`delete pod via click ${process.env.MOCHA_RUN_TARGET}`, function(this: 
 
       return waitForRed(this.app, selector)
     } catch (err) {
-      return common.oops(this)(err)
+      return Common.oops(this)(err)
     }
   })
 

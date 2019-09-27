@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, keys, selectors } = ui
 
-common.localDescribe('input queueing', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+Common.localDescribe('input queueing', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const queueUp = (textWhileQueued: string, N: number, sleepTime = 2) => {
     return {
-      thenType: (textAfterQueued: string, verify = cli.expectOKWithCustom({ expect: common.expectedVersion })) => {
+      thenType: (textAfterQueued: string, verify = cli.expectOKWithCustom({ expect: Common.expectedVersion })) => {
         xit(`should queue ${textWhileQueued} while we sleep, then ${textAfterQueued}`, async () => {
           try {
             // do something that takes a while
@@ -52,7 +52,7 @@ common.localDescribe('input queueing', function(this: common.ISuite) {
               }).then(verify)
             }
           } catch (err) {
-            return common.oops(this, true)(err)
+            return Common.oops(this, true)(err)
           }
         })
       }

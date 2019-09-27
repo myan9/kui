@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { cli, selectors, sidecar, AppAndCount, expectText } from '@kui-shell/core/tests/lib/ui'
 import * as assert from 'assert'
 
@@ -23,9 +23,9 @@ import { createNS, allocateNS, deleteNS } from '@kui-shell/plugin-k8s/tests/lib/
 const lists = ['list', 'ls']
 
 // TODO: enable this once proxy can find $HOME on travis
-describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const ns: string = createNS()
   const inNamespace = `--namespace ${ns}`
@@ -35,42 +35,42 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
     return cli
       .do('helm help --tls', this.app)
       .then(cli.expectError(500, 'Error: unknown flag: --tls'))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm get', () => {
     return cli
       .do('helm get', this.app)
       .then(cli.expectError(500, 'Error: release name is required'))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm get -h', () => {
     return cli
       .do('helm get -h', this.app)
       .then(cli.expectError(500))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm create', () => {
     return cli
       .do('helm create', this.app)
       .then(cli.expectError(500, 'Error: the name of the new chart is required'))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm install', () => {
     return cli
       .do('helm install', this.app)
       .then(cli.expectError(500, 'Error: This command needs 1 argument: chart name'))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   it('should show 500 error for helm delete', () => {
     return cli
       .do('helm delete', this.app)
       .then(cli.expectError(500, "Error: command 'delete' requires a release name"))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   allocateNS(this, ns)
@@ -80,7 +80,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
       return cli
         .do(`helm ${list} ${inNamespace}`, this.app)
         .then(cli.expectBlank)
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   })
 
@@ -102,7 +102,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
     return cli
       .do(`helm install --name ${name} stable/mysql ${inNamespace}`, this.app)
       .then(checkHelmStatus)
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should show history`, () => {
@@ -110,7 +110,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
       .do(`helm history ${name}`, this.app)
       .then(cli.expectOKWithCustom({ selector: selectors.TABLE_CELL('1', 'REVISION') }))
       .then(expectText(this.app, '1'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   // confirm that helm list shows a row for our release
@@ -118,7 +118,7 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
     return cli
       .do(`helm list ${inNamespace}`, this.app)
       .then(cli.expectOKWith(name))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   // also confirm that there is a REVISION column in that row
@@ -127,14 +127,14 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
       .do(`helm list ${inNamespace}`, this.app)
       .then(cli.expectOKWithCustom({ selector: selectors.TABLE_CELL(name, 'REVISION') }))
       .then(expectText(this.app, '1'))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should show the status of that new release`, () => {
     return cli
       .do(`helm status ${name}`, this.app)
       .then(checkHelmStatus)
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should show the release in sidecar via helm get`, () => {
@@ -159,21 +159,21 @@ describe(`helm commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: c
       .then(() => this.app.client.click(selectors.SIDECAR_MODE_BUTTON('manifest')))
       .then(() => this.app.client.click(selectors.SIDECAR_MODE_BUTTON('values')))
       .then(() => this.app.client.click(selectors.SIDECAR_MODE_BUTTON('notes')))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should delete sample helm chart`, () => {
     return cli
       .do(`helm delete --purge ${name}`, this.app)
       .then(cli.expectOKWithString(`release "${name}" deleted`))
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   it(`should list empty releases via helm list again`, () => {
     return cli
       .do(`helm list ${inNamespace}`, this.app)
       .then(cli.expectBlank)
-      .catch(common.oops(this))
+      .catch(Common.oops(this))
   })
 
   deleteNS(this, ns)

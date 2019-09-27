@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import { expectYAMLSubset, cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
 import {
   waitForGreen,
@@ -27,9 +27,9 @@ import {
 
 const synonyms = ['kubectl']
 
-describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   synonyms.forEach(kubectl => {
     const ns: string = createNS()
@@ -79,7 +79,7 @@ describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: co
             await expectContent(content)
           }
         } catch (err) {
-          return common.oops(this)(err)
+          return Common.oops(this)(err)
         }
       })
     }
@@ -93,7 +93,7 @@ describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: co
           .do(`${kubectl} delete cm ${name} ${inNamespace}`, this.app)
           .then(expectResult)
           .then(() => waitTillNone('configmap', undefined, name, undefined, inNamespace))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 
@@ -104,7 +104,7 @@ describe(`electron configmap ${process.env.MOCHA_RUN_TARGET}`, function(this: co
           .do(`${kubectl} create configmap ${name} ${literals} ${inNamespace}`, this.app)
           .then(cli.expectOKWithCustom({ selector: selectors.BY_NAME(name) }))
           .then(selector => waitForGreen(this.app, selector))
-          .catch(common.oops(this))
+          .catch(Common.oops(this))
       })
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -22,9 +22,9 @@ const { cli, sidecar } = ui
 const subset = ['foo', 'foo2']
 const actions = subset.concat(['goo'])
 
-describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
+describe('Delete using rimraf with wildcards', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /**
    * Create the actions named by the given listToCreate
@@ -38,7 +38,7 @@ describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
           .then(cli.expectJustOK)
           .then(sidecar.expectOpen)
           .then(sidecar.expectShowing(actionName))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
     })
   }
 
@@ -52,12 +52,12 @@ describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
         cli
           .do(`wsk action get ${actionName} --no-retry`, this.app)
           .then(cli.expectError(404))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
       it('should FAIL to delete a non-existent action', () =>
         cli
           .do(`wsk action rimraf ${actionName} --no-retry`, this.app)
           .then(cli.expectError(404))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
     })
 
   /**
@@ -78,7 +78,7 @@ describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
           })
         )
         .then(sidecar.expectClosed)
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     verifyDeleted(listToBeDeleted)
   }
@@ -91,7 +91,7 @@ describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ expect: 'deleted 0 elements', exact: true }))
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actions[2])) // since goo was the last one we created, and we didn't delete it, it should still be open in the sidecar
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should delete foo and foo2 with rimraf foo*', () =>
     cli
@@ -99,21 +99,21 @@ describe('Delete using rimraf with wildcards', function(this: common.ISuite) {
       .then(cli.expectOKWithCustom({ expect: 'deleted 2 elements', exact: true }))
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actions[2])) // since goo was the last one we created, and we didn't delete it, it should still be open in the sidecar
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // goo should still show up in the list and get views
   it('should list goo', () =>
     cli
       .do(`wsk action list`, this.app)
       .then(cli.expectOKWithOnly(actions[2]))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should find a not-deleted action', () =>
     cli
       .do(`wsk action get ${actions[2]}`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actions[2]))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // foo and foo2 should be gone
   verifyDeleted(subset)

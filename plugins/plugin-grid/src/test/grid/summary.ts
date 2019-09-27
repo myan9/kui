@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 import { v4 as uuid } from 'uuid'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -83,7 +83,7 @@ const _openTableExpectCountOf = function(ctx, expectedCount, expectedErrorRate, 
           }
           setTimeout(() => once(iter + 1, resolve, reject), 2000)
         } else {
-          return common.oops(ctx)(err)
+          return Common.oops(ctx)(err)
         }
       })
 
@@ -93,9 +93,9 @@ export const openTableExpectCountOf = function(ctx, expectedCount, expectedError
   it(`open activation table, with ${cmd}`, () => _openTableExpectCountOf(ctx, expectedCount, expectedErrorRate, cmd))
 }
 
-describe('summary visualization', function(this: common.ISuite) {
+describe('summary visualization', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const invoke = (inputValue = 1) => {
     // action bombs with negative numbers
@@ -109,7 +109,7 @@ describe('summary visualization', function(this: common.ISuite) {
         .then(sidecar.expectShowing(actionName))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct(expectedStruct))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
   const notbomb = () => invoke(+1)
   const bomb = () => invoke(-1)
@@ -130,7 +130,7 @@ describe('summary visualization', function(this: common.ISuite) {
            .then(actualCountB => assert.equal(actualCountB, expectedCountB))
            .then(() => this.app.client.getAttribute(`${ui.selectors.SIDECAR_CUSTOM_CONTENT} tr[data-action-name="${actionName} v0.0.2"] .cell-errorRate`, 'data-value'))
            .then(actualErrorRateB => assert.equal(actualErrorRateB, expectedErrorRateB))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
     } */
 
   it(`should create the action that bombs if the input value is negative ${actionName}`, () =>
@@ -139,7 +139,7 @@ describe('summary visualization', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // invoke with positive number, expect count of 1 in the table
   notbomb()
@@ -170,14 +170,14 @@ describe('summary visualization', function(this: common.ISuite) {
     .then(() => this.app)
     .then(sidecar.expectOpen)
     .then(sidecar.expectMode('grid'))
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   // force a version update
   it('should create the action that bombs if the input value is negative', () => cli.do(`let ${actionName} = ({x}) => x<0 ? {error:'bomb!'} : {x: x}`, this.app)
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName))
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   notbomb()
   notbomb()
@@ -192,7 +192,7 @@ describe('summary visualization', function(this: common.ISuite) {
                                  `summary -a --split --name ${actionName}`) */
   /*
   it(`should load test ${actionName}`, () => cli.do(`lt ${actionName}`, this.app)
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   openTableExpectCountOf(this, 46, 4, `summary ${actionName}`) // 46 successful activations, 4 of which failed
 
@@ -200,7 +200,7 @@ describe('summary visualization', function(this: common.ISuite) {
   // click on the action name, except the summary to still be there
   it(`should delete ${actionName}`, () => cli.do(`wsk action delete ${actionName}`, this.app)
     .then(cli.expectOK)
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   it('should open table, click on the deleted action, and still show table view', () => _openTableExpectCountOf(this, 46, 4, `summary ${actionName}`)
     .then(N => {
@@ -215,5 +215,5 @@ describe('summary visualization', function(this: common.ISuite) {
       return sidecar.expectOpen(this.app)
         .then(sidecar.expectMode('summary')) // and the summary had better still be open
     }))
-    .catch(common.oops(this))) */
+    .catch(Common.oops(this))) */
 })

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
@@ -25,9 +25,9 @@ const ROOT = dirname(require.resolve('@kui-shell/plugin-apache-composer/tests/pa
 
 const seqName1 = 'seq1'
 
-describe('Use the app delete command to delete an invokeable composition', function(this: common.ISuite) {
+describe('Use the app delete command to delete an invokeable composition', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** expected return value */
   const expect = (key, value, extraExpect, expectIsIt) => {
@@ -50,14 +50,14 @@ describe('Use the app delete command to delete an invokeable composition', funct
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct(expect(key, value, extraExpect, expectIsIt)))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   /* {
         const cmd = `app init --reset --url ${sharedURL}`
         it(`should ${cmd}`, () => cli.do(cmd, this.app)
             .then(cli.expectOKWithCustom({expect: 'Successfully initialized the required services. You may now create compositions.'}))
-           .catch(common.oops(this)))
+           .catch(Common.oops(this)))
 
     } */
 
@@ -69,7 +69,7 @@ describe('Use the app delete command to delete an invokeable composition', funct
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1))
       // .then(sidecar.expectBadge(badges.sequence))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   invoke(seqName1, 'x', 3, undefined, undefined)
 
   it(`should get ${seqName1} via app get`, () =>
@@ -79,7 +79,7 @@ describe('Use the app delete command to delete an invokeable composition', funct
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1)) // and sidecar should be showing it, too
       // .then(sidecar.expectBadge(badges.sequence))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // show up in the list prior to deletion
   it(`should list ${seqName1} via app list`, () =>
@@ -89,14 +89,14 @@ describe('Use the app delete command to delete an invokeable composition', funct
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(seqName1)) // and sidecar should be showing it, too
       // .then(sidecar.expectBadge(badges.sequence))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should delete a composer sequence`, () =>
     cli
       .do(`wsk app delete ${seqName1}`, this.app)
       .then(cli.expectOK)
       .then(sidecar.expectClosed)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // now the list should be empty
   it(`should list nothing via wsk app list`, () =>
@@ -104,18 +104,18 @@ describe('Use the app delete command to delete an invokeable composition', funct
       .do(`wsk app list`, this.app)
       .then(cli.expectBlank) // expect empty result from the list (other than 'OK')
       .then(sidecar.expectClosed)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should fail to delete an unexisting composer sequence`, () =>
     cli
       .do(`wsk app delete ${seqName1}`, this.app)
       .then(cli.expectError(404, 'The requested resource does not exist'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // now the package binding should NOT exist
   it('should fail to get the package binding', () =>
     cli
       .do(`wsk package get openwhisk-composer.${seqName1}`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })
