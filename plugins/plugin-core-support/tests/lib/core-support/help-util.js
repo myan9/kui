@@ -15,7 +15,7 @@
  */
 
 const { cli } = require('@kui-shell/core/tests/lib/ui')
-const { oops } = require('@kui-shell/core/tests/lib/common')
+const { Common } = require('@kui-shell/test')
 
 /** expect the given folder within the help tree */
 // NOTE: Mengting Yan: webdriverio getText in linux chromium seems to return all texts of a heading element in a single line, fix me if it's not true
@@ -31,5 +31,5 @@ exports.doHelp = function(cmd, { code = 500, expect = undefined } = {}) {
     cli
       .do(cmd, this.app)
       .then(cli.expectError(code, expect))
-      .catch(oops(this)))
+      .catch(Common.oops(this)))
 }

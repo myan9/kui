@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const common = require('@kui-shell/core/tests/lib/common')
+const { Common } = require('@kui-shell/test')
 const ui = require('@kui-shell/core/tests/lib/ui')
 const fs = require('fs')
 
@@ -56,7 +56,7 @@ exports.tabby = (app, partial, full, expectOK = true) =>
         return app
       }
     })
-    .catch(common.oops(app))
+    .catch(Common.oops(app))
 
 exports.tabbyWithOptions = (
   app,
@@ -133,7 +133,7 @@ exports.tabbyWithOptions = (
     .catch(err =>
       app.client
         .keys(ui.ctrlC) // clear the line
-        .then(() => common.oops(app)(err))
+        .then(() => Common.oops(app)(err))
     )
 }
 
@@ -158,4 +158,4 @@ exports.tabbyWithOptionsThenCancel = (app, partial, expected) =>
         )
     ) // wait for non-existence of the temporary
     .then(() => app.client.keys(ui.ctrlC)) // clear the line
-    .catch(common.oops(app))
+    .catch(Common.oops(app))

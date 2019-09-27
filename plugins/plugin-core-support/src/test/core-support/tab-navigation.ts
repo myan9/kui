@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli, selectors, keys } = ui
 
 import { tabButtonSelector } from '../../lib/new-tab'
 
-describe('tab navigation', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe('tab navigation', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const testPromptIsSelected = (hitTab = false, waitForSessionInit = false) => {
     it('should focus on repl input since we just hit Enter', async () => {
       try {
         if (waitForSessionInit) {
-          await common.waitForSession(this)
+          await Common.waitForSession(this)
         }
         if (hitTab) {
           await this.app.client.keys(keys.TAB)
         }
         await this.app.client.waitForEnabled(selectors.CURRENT_PROMPT_BLOCK)
       } catch (err) {
-        await common.oops(this)(err)
+        await Common.oops(this)(err)
       }
     })
   }
@@ -61,7 +61,7 @@ describe('tab navigation', function(this: common.ISuite) {
           await this.app.client.waitForEnabled(selectedSelector)
         }
       } catch (err) {
-        await common.oops(this)(err)
+        await Common.oops(this)(err)
       }
     })
   }
@@ -81,7 +81,7 @@ describe('tab navigation', function(this: common.ISuite) {
         await this.app.client.keys(keys.TAB)
         await this.app.client.waitForEnabled(selectors.PROMPT_N(count))
       } catch (err) {
-        await common.oops(this)(err)
+        await Common.oops(this)(err)
       }
     })
   }
