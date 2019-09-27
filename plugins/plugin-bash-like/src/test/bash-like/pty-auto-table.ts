@@ -16,16 +16,15 @@
 
 import { dirname, join } from 'path'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
 const ROOT = dirname(require.resolve('@kui-shell/plugin-bash-like/package.json'))
 const { cli } = ui
-const { dockerDescribe } = common
 
-dockerDescribe('xterm auto-table', function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+Common.dockerDescribe('xterm auto-table', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   // let's pull a very specific (and somehow older) version so that we
   // can recognize it as new in our docker images call
@@ -36,20 +35,20 @@ dockerDescribe('xterm auto-table', function(this: common.ISuite) {
     cli
       .do(`cat ${join(ROOT, 'tests/data/table-with-duplicate-columns.txt')}`, this.app)
       .then(cli.expectOKWith('reviews-v1v2-e2etestcase1-1'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should remove the previous alpine, from previous tests', () =>
-    cli.do(`docker rmi ${alpine}`, this.app).catch(common.oops(this)))
+    cli.do(`docker rmi ${alpine}`, this.app).catch(Common.oops(this)))
 
   it(`should pull alpine docker image ${alpine}`, () =>
     cli
       .do(`docker pull ${alpine}`, this.app)
       .then(cli.expectOKWithAny)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should list alpine image as a kui table', () =>
     cli
       .do(`docker images ${alpine}`, this.app)
       .then(cli.expectOKWith('alpine'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

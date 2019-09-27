@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
 import * as assert from 'assert'
@@ -23,16 +23,15 @@ import { fileSync as tmpFile } from 'tmp'
 import { promisify } from 'util'
 
 const { cli, keys, selectors, waitTimeout } = ui
-const { refresh } = common
 
 /** helpful selectors */
 const rows = (N: number) => selectors.xtermRows(N)
 const firstRow = (N: number) => `${rows(N)} > div:first-child`
 const lastRow = (N: number) => `${rows(N)} > div:last-child`
 
-describe(`xterm copy paste ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`xterm copy paste ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   const emittedText = 'roadhouse'
 
@@ -70,7 +69,7 @@ describe(`xterm copy paste ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
         return expectedValue === actualValue
       }, waitTimeout)
     } catch (err) {
-      return common.oops(this, true)(err)
+      return Common.oops(this, true)(err)
     }
   })
 
@@ -81,7 +80,7 @@ describe(`xterm copy paste ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
     try {
       // clear things out
       console.error('CP1')
-      await refresh(this)
+      await Common.refresh(this)
 
       // emit some characters to the current prompt
       console.error('CP2')
@@ -150,7 +149,7 @@ describe(`xterm copy paste ${process.env.MOCHA_RUN_TARGET || ''}`, function(this
       assert.strictEqual(contents.replace(/[\n\r]$/, ''), text)
       console.error('CP18')
     } catch (err) {
-      return common.oops(this, true)(err)
+      return Common.oops(this, true)(err)
     } finally {
       // DO NOT return a promise here; see https://github.com/mochajs/mocha/issues/3555
       promisify(unlink)(file.name)

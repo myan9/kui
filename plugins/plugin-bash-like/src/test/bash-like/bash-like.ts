@@ -20,11 +20,10 @@ import { exec } from 'child_process'
 import { fileSync as tmpFile } from 'tmp'
 import { writeFileSync } from 'fs'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 
 const { cli, selectors, sidecar } = ui
-const { localIt, pit } = common
 
 /** expect the given folder within the help tree */
 export const header = (folder: string) => folder
@@ -71,49 +70,49 @@ const hasExe = (exe: string): Promise<boolean> =>
     exec(exe, err => resolve(!err))
   })
 
-describe(`bash-like commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: common.ISuite) {
-  before(common.before(this))
-  after(common.after(this))
+describe(`bash-like commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
-  pit('should give 404 for unknown outer command', () =>
+  Common.pit('should give 404 for unknown outer command', () =>
     cli
       .do(`ibmcloudo target`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  pit('should cat a json file', () =>
+  Common.pit('should cat a json file', () =>
     cli
       .do(`cat ${jsonFile.name}`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(basename(jsonFile.name)))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should cat a yml file', () =>
+  Common.pit('should cat a yml file', () =>
     cli
       .do(`cat ${ymlFile.name}`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(basename(ymlFile.name)))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should cat a yaml file', () =>
+  Common.pit('should cat a yaml file', () =>
     cli
       .do(`cat ${yamlFile.name}`, this.app)
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(basename(yamlFile.name)))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   // these two are useful as a pair; git usage responds with exit code
   // 1, whereas ibmcloud responds with exit code 0
-  pit('should give usage for git', () =>
+  Common.pit('should give usage for git', () =>
     cli
       .do(`git`, this.app)
       .then(cli.expectError(1))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   // TODO: Disabled for now. See https://github.com/IBM/kui/issues/1977
@@ -121,14 +120,14 @@ describe(`bash-like commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
     cli
       .do(`ibmcloud`, this.app)
       .then(cli.expectError(500, header('ibmcloud')))
-      .catch(common.oops(this, true)))
+      .catch(Common.oops(this, true)))
 
   if (!process.env.LOCAL_OPENWHISK) {
-    pit('should give ok for known outer command: ibmcloud target', () =>
+    Common.pit('should give ok for known outer command: ibmcloud target', () =>
       cli
         .do(`ibmcloud target`, this.app)
         .then(cli.expectOK)
-        .catch(common.oops(this, true))
+        .catch(Common.oops(this, true))
     )
   }
 
@@ -138,7 +137,7 @@ describe(`bash-like commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
       cli
         .do(`ibmcloud config`, this.app)
         .then(cli.expectError(2, undefined))
-        .catch(common.oops(this, true)))
+        .catch(Common.oops(this, true)))
 
     // TODO: Disabled for now. See https://github.com/IBM/kui/issues/1977
     it.skip('should give usage for ibmcloud app', () =>
@@ -156,109 +155,109 @@ describe(`bash-like commands ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
             )
           ])
         )
-        .catch(common.oops(this, true)))
+        .catch(Common.oops(this, true)))
   }
 
-  pit('should answer which ls with /bin/ls', () =>
+  Common.pit('should answer which ls with /bin/ls', () =>
     cli
       .do(`which -a ls`, this.app) // For some customized bash, `which ls` could show: ls: aliased to ls -G
       .then(cli.expectOKWithCustom({ expect: '/bin/ls', exact: false }))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  pit('should echo hi', () =>
+  Common.pit('should echo hi', () =>
     cli
       .do(`echo hi`, this.app)
       .then(cli.expectOKWithCustom({ expect: 'hi' }))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  pit('should change working directory', () =>
+  Common.pit('should change working directory', () =>
     cli
       .do(`cd bin`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  localIt('should list core/', () =>
+  Common.localIt('should list core/', () =>
     cli
       .do(`ls`, this.app)
       .then(cli.expectOKWithCustom({ expect: 'runTest.sh' }))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   /* it('should list directory properly that contains prefix matches', () => cli.do(`ls @demos`, this.app)
     .then(cli.expectOKWithCustom({ expect: 'try-retain.js' }))
-    .catch(common.oops(this, true)))
+    .catch(Common.oops(this, true)))
   it('should list directory properly that contains prefix matches', () => cli.do(`ls @demos`, this.app)
     .then(cli.expectOKWithCustom({ expect: 'retain.js' }))
-    .catch(common.oops(this, true)))
+    .catch(Common.oops(this, true)))
   it('should list directory properly that contains prefix matches', () => cli.do(`ls @demos`, this.app)
     .then(cli.expectOKWithCustom({ expect: 'try.js' }))
-    .catch(common.oops(this, true))) */
+    .catch(Common.oops(this, true))) */
 
-  pit('should cd to /tmp', () =>
+  Common.pit('should cd to /tmp', () =>
     cli
       .do('cd /tmp', this.app)
       .then(cli.expectOKWithString('/tmp'))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   const dirname = `kui__${uuid()} bar`
-  pit('should mkdir with spaces', () =>
+  Common.pit('should mkdir with spaces', () =>
     cli
       .do(`mkdir "${dirname}"`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should fail to mkdir again', () =>
+  Common.pit('should fail to mkdir again', () =>
     cli
       .do(`mkdir "${dirname}"`, this.app)
       .then(cli.expectError(409))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  pit('should echo ho to a file', () =>
+  Common.pit('should echo ho to a file', () =>
     cli
       .do(`echo ho > "${dirname}"/testTmp`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should cat that file', () =>
+  Common.pit('should cat that file', () =>
     cli
       .do(`cat "${dirname}"/testTmp`, this.app)
       .then(cli.expectOKWithCustom({ expect: 'ho' }))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should rm that file', () =>
+  Common.pit('should rm that file', () =>
     cli
       .do(`rm "${dirname}"/testTmp`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
-  pit('should mkdir a subdir with spaces', () =>
+  Common.pit('should mkdir a subdir with spaces', () =>
     cli
       .do(`mkdir "${dirname}"/"foo2 bar2"`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should list the new directory with spaces', () =>
+  Common.pit('should list the new directory with spaces', () =>
     cli
       .do(`ls "${dirname}"`, this.app)
       .then(cli.expectOKWithCustom({ expect: 'foo2 bar2' }))
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should rmdir a subdir with spaces', () =>
+  Common.pit('should rmdir a subdir with spaces', () =>
     cli
       .do(`rmdir "${dirname}"/"foo2 bar2"`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
-  pit('should rmdir a dir with spaces', () =>
+  Common.pit('should rmdir a dir with spaces', () =>
     cli
       .do(`rmdir "${dirname}"`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this, true))
+      .catch(Common.oops(this, true))
   )
 })

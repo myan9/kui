@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ISuite, before as commonBefore, after as commonAfter, oops } from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 
 import * as ui from '@kui-shell/core/tests/lib/ui'
 const { cli } = ui
@@ -29,19 +29,21 @@ const pit = runTheTests ? it : xit
 /** the proxy should come back online within 10 seconds; add some slop */
 const timeItTakesForProxyToComeBack = 30000
 
-describe('pty session status offline after start', function(this: ISuite) {
-  before(commonBefore(this))
-  after(commonAfter(this))
+describe('pty session status offline after start', function(this: Common.ISuite) {
+  before(Common.before(this))
+  after(Common.after(this))
 
   pit('should echo hi', () =>
     cli
       .do('echo hi', this.app)
       .then(cli.expectOKWithString('hi'))
-      .catch(oops(this))
+      .catch(Common.oops(this))
   )
 
   pit('should not be showing an offline indicator', () => {
-    return this.app.client.waitForExist('.kui--plugin-bash-like--pty-offline-indicator', 5000, true).catch(oops(this))
+    return this.app.client
+      .waitForExist('.kui--plugin-bash-like--pty-offline-indicator', 5000, true)
+      .catch(Common.oops(this))
   })
 
   pit('should kill the proxy and show an offline indicator', async () => {
@@ -56,14 +58,14 @@ describe('pty session status offline after start', function(this: ISuite) {
         true
       )
     } catch (err) {
-      oops(this)(err)
+      Common.oops(this)(err)
     }
   })
 })
 
-describe('pty session status offline at start', function(this: ISuite) {
+describe('pty session status offline at start', function(this: Common.ISuite) {
   before(
-    commonBefore(this, {
+    Common.before(this, {
       noProxySessionWait: true, // because we expect it to be offline at startup
       beforeStart: async () => {
         if (runTheTests) {
@@ -76,11 +78,11 @@ describe('pty session status offline at start', function(this: ISuite) {
       }
     })
   )
-  after(commonAfter(this))
+  after(Common.after(this))
 
   // we expect the offline indicator initially
   pit('should be showing an offline indicator at startup because we killed the proxy', () => {
-    return this.app.client.waitForExist('.kui--plugin-bash-like--pty-offline-indicator').catch(oops(this, true))
+    return this.app.client.waitForExist('.kui--plugin-bash-like--pty-offline-indicator').catch(Common.oops(this, true))
   })
 
   // but we also expect it to go away eventually
@@ -90,7 +92,7 @@ describe('pty session status offline at start', function(this: ISuite) {
 
       await ui.cli.waitForRepl(this.app)
     } catch {
-      await oops(this, true)
+      await Common.oops(this, true)
     }
   })
 
@@ -98,27 +100,27 @@ describe('pty session status offline at start', function(this: ISuite) {
     // then it should come back online within 10 seconds; add a few seconds of slop
     return this.app.client
       .waitForExist('.kui--plugin-bash-like--pty-offline-indicator', timeItTakesForProxyToComeBack, true)
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   })
 
   pit('should cd to the test dir', () =>
     cli
       .do(`cd ${process.env.TEST_ROOT}`, this.app)
       .then(cli.expectOKWithString('packages/test'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit('should ls now that the proxy is online', () =>
     cli
       .do('ls ../..', this.app)
       .then(cli.expectOKWith('package.json'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 
   pit('should echo hi now that the proxy is online', () =>
     cli
       .do('echo hi', this.app)
       .then(cli.expectOKWithString('hi'))
-      .catch(oops(this, true))
+      .catch(Common.oops(this, true))
   )
 })

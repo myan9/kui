@@ -96,7 +96,7 @@ const prepareElectron = (popup: string[]) => {
  * Wait, if needed, for a proxy session
  *
  */
-const waitForSession = (ctx: ISuite, noProxySessionWait = false) => {
+export const waitForSession = (ctx: ISuite, noProxySessionWait = false) => {
   if (process.env.MOCHA_RUN_TARGET === 'webpack' && process.env.KUI_USE_PROXY === 'true' && !noProxySessionWait) {
     // wait for the proxy session to be established
     try {
