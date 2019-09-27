@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 import { v4 as uuid } from 'uuid'
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -27,9 +27,9 @@ const actionName = `activation-grid-${uuid()}` // some unique name
 const N = 1 // number of activation batches to fetch
 const randomGarbage = `activation-grid-garbage-${uuid()}` // some unique name
 
-describe('grid visualization', function(this: common.ISuite) {
+describe('grid visualization', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const invoke = (inputValue, name = actionName, packageName?) => {
     // action bombs with negative numbers
@@ -44,7 +44,7 @@ describe('grid visualization', function(this: common.ISuite) {
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct(expectedStruct))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
   const notbomb = (name?, packageName?) => invoke(+1, name, packageName)
   // const bomb = (name, packageName) => invoke(-1, name, packageName)
@@ -102,7 +102,7 @@ describe('grid visualization', function(this: common.ISuite) {
                 console.error('retry!')
                 setTimeout(() => once(iter + 1, resolve, reject), 1000)
               } else {
-                return common.oops(this)(err)
+                return Common.oops(this)(err)
               }
             })
         }
@@ -119,7 +119,7 @@ describe('grid visualization', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // invoke with positive number, expect count of 1 in the table
   notbomb()
@@ -132,13 +132,13 @@ describe('grid visualization', function(this: common.ISuite) {
     cli
       .do('grid --this', this.app)
       .then(cli.expectError(498))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fail with a bad last query', () =>
     cli
       .do('grid --last', this.app)
       .then(cli.expectError(498))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const icon = `${ui.selectors.SIDECAR} .sidecar-header-icon-wrapper .sidecar-header-icon`
 
@@ -155,7 +155,7 @@ describe('grid visualization', function(this: common.ISuite) {
         .then(cli.expectOK)
         .then(sidecar.expectOpen)
         .then(() => this.app.client.waitForText(icon))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   })
   whens.forEach(when => {
     intervals.forEach(interval => {
@@ -165,7 +165,7 @@ describe('grid visualization', function(this: common.ISuite) {
           .then(cli.expectOK)
           .then(sidecar.expectOpen)
           .then(() => this.app.client.waitForText(icon))
-          .catch(common.oops(this)))
+          .catch(Common.oops(this)))
     })
   })
 
@@ -205,7 +205,7 @@ describe('grid visualization', function(this: common.ISuite) {
             }
           })
         )
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
   const switcheroo = () => {
     switchTo('summary')
@@ -246,7 +246,7 @@ describe('grid visualization', function(this: common.ISuite) {
         .then(sidecar.expectShowing(actionName))
         .then(() => this.app.client.waitForText(icon))
     })
-     .catch(common.oops(this))) */
+     .catch(Common.oops(this))) */
 
   // invoke again with positive, and then look for a count of 2
   notbomb()
@@ -283,7 +283,7 @@ describe('grid visualization', function(this: common.ISuite) {
       .then(() => this.app)
       .then(sidecar.expectOpen)
       .then(verifyGrid(4, 2)))
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 */
   /* const tableTest = (iter, resolve, reject) => cli.do(`table ${actionName}`, this.app)
         .then(cli.expectOK)
@@ -298,7 +298,7 @@ describe('grid visualization', function(this: common.ISuite) {
                   console.error('retry in tableTest')
                   setTimeout(() => tableTest(iter + 1, resolve, reject), 1000)
               } else {
-                  return common.oops(this)(err)
+                  return Common.oops(this)(err)
               }
           });
     it(`should open table view, click on table row, and observe switch to grid view actionName=${actionName}`, () => new Promise((resolve, reject) => tableTest(0, resolve, reject))) */
@@ -307,7 +307,7 @@ describe('grid visualization', function(this: common.ISuite) {
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName2))
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   notbomb(actionName2)
   openGridExpectCountOf(1, 0, `grid --batches ${N}`, actionName2)
@@ -327,7 +327,7 @@ describe('grid visualization', function(this: common.ISuite) {
     .then(cli.expectOK)
     .then(sidecar.expectOpen)
     .then(sidecar.expectShowing(actionName2, undefined, undefined, packageName))
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   // invoke not-packed actionName2 again, and packaged
   // actionName2. open grid filtering just to packaged actionName2,
@@ -341,11 +341,11 @@ describe('grid visualization', function(this: common.ISuite) {
 
   it('should open grid as timeline with grid --timeline', () => cli.do('grid --timeline', this.app)
     .then(cli.expectOK)
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   it('should open grid as timeline with grid -t', () => cli.do('grid -t', this.app)
     .then(cli.expectOK)
-    .catch(common.oops(this)))
+    .catch(Common.oops(this)))
 
   it('should open grid as timeline with grid -t, then switch to summary', () => cli.do('grid -t', this.app)
     .then(cli.expectOK)
@@ -354,5 +354,5 @@ describe('grid visualization', function(this: common.ISuite) {
       return this.app.client.getText('.sidecar-header-icon')
         .then(txt => txt.toLowerCase() === 'summary')
     }))
-    .catch(common.oops(this))) */
+    .catch(Common.oops(this))) */
 })
