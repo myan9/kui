@@ -16,6 +16,7 @@
 
 import * as common from '@kui-shell/core/tests/lib/common'
 import { cli, selectors, sidecar } from '@kui-shell/core/tests/lib/ui'
+import { SidecarExpect } from '@kui-shell/test'
 import {
   waitForGreen,
   waitForRed,
@@ -62,7 +63,7 @@ describe(`kubectl get pod ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
     const testLogTabs = async () => {
       const container = `${selectors.SIDECAR} .bx--data-table .entity[data-name="nginx"] .entity-name`
       await this.app.client.click(container)
-      await sidecar.expectOpen(this.app)
+      await SidecarExpect.open(this.app)
 
       await this.app.client.waitForVisible(selectors.SIDECAR_BACK_BUTTON) // make sure the back button exists
       await this.app.client.waitForExist(selectors.SIDECAR_MODE_BUTTON('result')) // Latest Tab
