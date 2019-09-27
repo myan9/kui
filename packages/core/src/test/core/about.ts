@@ -16,6 +16,7 @@
 
 import { ISuite, before as commonBefore, after as commonAfter, oops, refresh } from '@kui-shell/core/tests/lib/common'
 import * as ui from '@kui-shell/core/tests/lib/ui'
+import { SidecarExpect } from '@kui-shell/test'
 import { theme as settings } from '../../core/settings'
 
 const { cli, sidecar } = ui
@@ -28,7 +29,7 @@ describe(`about command ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: I
     cli
       .do('about', this.app)
       .then(cli.expectJustOK)
-      .then(sidecar.expectOpen)
+      .then(SidecarExpect.open)
       .then(sidecar.expectShowing(settings.productName))
       .then(() => this.app.client.waitForVisible(`${ui.selectors.SIDECAR_MODE_BUTTON_SELECTED('about')}`))
       .catch(oops(this, true)))
