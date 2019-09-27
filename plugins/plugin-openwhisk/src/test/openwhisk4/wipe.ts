@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -22,33 +22,33 @@ import { dirname } from 'path'
 const { cli, keys } = ui
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-describe('wipe command', function(this: common.ISuite) {
+describe('wipe command', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create a package', () =>
     cli
       .do('wsk package create ppp', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a trigger', () =>
     cli
       .do('wsk trigger create ttt', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action', () =>
     cli
       .do(`wsk action create aaa ${ROOT}/data/openwhisk/foo.js`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a rule', () =>
     cli
       .do('wsk rule create rrr ttt aaa', this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should successfully execute the wipe command', () =>
     cli
@@ -58,13 +58,13 @@ describe('wipe command', function(this: common.ISuite) {
         return res
       })
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should find no entities with list all', () =>
     cli
       .do('wsk list', this.app)
       .then(cli.expectBlank)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should successfully cancel the wipe command', () =>
     cli
@@ -74,7 +74,7 @@ describe('wipe command', function(this: common.ISuite) {
         return res
       })
       .then(cli.expectError(0))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // make sure we can still execute repl commands after cancelling the wipe
   // here we intentionally reuse the aaa name we did before, with a CREATE
@@ -83,7 +83,7 @@ describe('wipe command', function(this: common.ISuite) {
     cli
       .do(`wsk action create aaa ${ROOT}/data/openwhisk/foo.js`, this.app)
       .then(cli.expectOK)
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should successfully cancel the wipe command again', () =>
     cli
@@ -94,7 +94,7 @@ describe('wipe command', function(this: common.ISuite) {
         return res
       })
       .then(cli.expectError(0))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // try to create action aaa one more time, this time expect 409,
   // i.e. conflict, because we didn't wipe anything
@@ -102,7 +102,7 @@ describe('wipe command', function(this: common.ISuite) {
     cli
       .do(`wsk action create aaa ${ROOT}/data/openwhisk/foo.js`, this.app)
       .then(cli.expectError(409))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create a bunch of actions
   for (let idx = 0; idx < 10; idx++) {
@@ -110,7 +110,7 @@ describe('wipe command', function(this: common.ISuite) {
       cli
         .do(`wsk action create aaa${idx} ${ROOT}/data/openwhisk/foo.js`, this.app)
         .then(cli.expectOK)
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // now try to cover the 404 race between our wipe and some other concurrent deletions
@@ -136,5 +136,5 @@ describe('wipe command', function(this: common.ISuite) {
     ])
       .then(([res]) => res) // project out the repl response
       .then(cli.expectOK) // confirm the repl's wipe was ok
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

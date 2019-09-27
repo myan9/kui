@@ -22,16 +22,16 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
 const actionName = 'foo'
 
-describe('Sidecar bottom stripe interactions for activations', function(this: common.ISuite) {
+describe('Sidecar bottom stripe interactions for activations', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** verify the mode buttons work */
   const verify = (name, expectedResult, expectedLogs) => {
@@ -48,7 +48,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
             assert.ok(false)
           }
         })
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     // this will form a part of the annotations record
@@ -61,7 +61,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .activation-result`))
         .then(ui.expectSubset(subsetOfAnnotations))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     // click on result mode button
@@ -78,7 +78,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     // click on raw mode button
@@ -95,7 +95,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
             return ok
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   }
 
@@ -106,7 +106,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName}`, () =>
     cli
@@ -114,7 +114,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   verify(actionName, { x: 5, y: 10, z: 3 }, '{ "x": 5, "y": 10, "z": 3 }')
 
   it(`should invoke ${actionName}`, () =>
@@ -123,7 +123,7 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   verify(actionName, { x: 5, y: 10, z: 99 }, '{ "x": 5, "y": 10, "z": 99 }')
 
   // this one is buggy:
@@ -131,6 +131,6 @@ describe('Sidecar bottom stripe interactions for activations', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
       verify(actionName, {x:5,y:10,z:99}, '{ x: 5, y: 10, z: 99 }') */
 })

@@ -19,18 +19,18 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import { dirname } from 'path'
 const { cli, keys, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 // TODO: webpack test
-localDescribe('Create action with implicit entity type, then list it', function(this: common.ISuite) {
+localDescribe('Create action with implicit entity type, then list it', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create an action', () =>
@@ -39,7 +39,7 @@ localDescribe('Create action with implicit entity type, then list it', function(
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this, true)))
+      .catch(Common.oops(this, true)))
 
   // toggle sidebar closed
   it('should toggle the sidebar closed with escape', async () => {
@@ -66,7 +66,7 @@ localDescribe('Create action with implicit entity type, then list it', function(
       await this.app.client.click(ui.selectors.SIDECAR_CLOSE_BUTTON)
       await sidecar.expectClosed(this.app)
     } catch (err) {
-      await common.oops(this, true)
+      await Common.oops(this, true)
     }
   })
 })

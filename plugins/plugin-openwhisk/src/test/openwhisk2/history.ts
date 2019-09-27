@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -22,9 +22,9 @@ import { dirname } from 'path'
 const { cli, sidecar } = ui
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-describe('History', function(this: common.ISuite) {
+describe('History', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const entityName = 'foo'
   const createCommand = `wsk action create ${entityName} ${ROOT}/data/openwhisk/foo.js`
@@ -36,7 +36,7 @@ describe('History', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(entityName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history with filter 1`, () =>
     cli.do(`history 1 create`, this.app).then(cli.expectOKWithOnly(createCommand))) // 1 says it better be the last command we executed
@@ -60,7 +60,7 @@ describe('History', function(this: common.ISuite) {
       .then(() => this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(entityName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should list history and show the action creation`, () =>
     cli.do(`history`, this.app).then(cli.expectOKWith(createCommand)))

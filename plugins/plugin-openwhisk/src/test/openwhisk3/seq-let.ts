@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -26,9 +26,9 @@ const seqName4 = 'seq4'
 const seqName5 = 'seq5'
 const actionNames = ['a', 'b', 'c']
 
-describe('Create a sequence via let', function(this: common.ISuite) {
+describe('Create a sequence via let', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create the component actions
   actionNames.forEach(actionName => {

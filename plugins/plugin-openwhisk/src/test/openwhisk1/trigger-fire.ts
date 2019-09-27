@@ -19,14 +19,14 @@
  *
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
-describe('wsk trigger fire tests', function(this: common.ISuite) {
+describe('wsk trigger fire tests', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create trigger', () =>
@@ -35,7 +35,7 @@ describe('wsk trigger fire tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('ttt'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create action', () =>
     cli
@@ -43,7 +43,7 @@ describe('wsk trigger fire tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('aaa'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create rule', () =>
     cli
@@ -51,7 +51,7 @@ describe('wsk trigger fire tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('rrr'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fire the trigger', () =>
     cli
@@ -74,7 +74,7 @@ describe('wsk trigger fire tests', function(this: common.ISuite) {
       .then(sidecar.expectShowing('aaa'))
       .then(app => app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ tvar: 2, avar: 3 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fire the trigger with fire parameter', () =>
     cli
@@ -97,5 +97,5 @@ describe('wsk trigger fire tests', function(this: common.ISuite) {
       .then(sidecar.expectShowing('aaa'))
       .then(app => app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct({ tvar: 2, avar: 3, fvar: 4 }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

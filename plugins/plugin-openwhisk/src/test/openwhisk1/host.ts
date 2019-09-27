@@ -19,20 +19,20 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli } = ui
 
-describe('openwhisk host tests', function(this: common.ISuite) {
+describe('openwhisk host tests', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should command not found on hosts set', () =>
     cli
       .do('wsk hosts set', this.app)
       .then(cli.expectError(404, 'Command not found'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('bogus host from default context', () =>
     cli.do(`wsk host set xxx`, this.app).then(
@@ -54,5 +54,5 @@ describe('openwhisk host tests', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(() => cli.do('wsk host get', this.app))
       .then(cli.expectOKWithCustom({ expect: openwhisk.apihost }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

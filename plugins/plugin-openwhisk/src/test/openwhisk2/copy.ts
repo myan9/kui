@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -33,9 +33,9 @@ const value1 = 'bar'
 
 const CMD = 'copy'
 
-describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
+describe('Use copy to copy openwhisk entities', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const cp = (a, b, aPackage?, bPackage?, cmd = CMD) => {
     // pass this key-value pair to the invocation
@@ -57,7 +57,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(b, undefined, undefined, bPackage))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     // verify that annotations survived the copy
     it('should switch to annotations mode', () =>
@@ -68,7 +68,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
         .then(sidecar.expectShowing(b, undefined, undefined, bPackage))
         .then(app => app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .action-source`))
         .then(ui.expectSubset(expectAnnotations))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     // invoke the copy
     it(`should invoke the copied action ${bFull}`, () =>
@@ -79,7 +79,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
         .then(sidecar.expectShowing(b))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct(expect))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     // verify that the original still exists
     it(`${aFull} should still exist`, () =>
@@ -88,7 +88,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(a, undefined, undefined, aPackage))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     // verify that original annotations survived the copy
     it('should switch to annotations mode', () =>
@@ -99,7 +99,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
         .then(sidecar.expectShowing(a, undefined, undefined, aPackage))
         .then(app => app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .action-source`))
         .then(ui.expectSubset(expectAnnotations))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   // COPY ACTION
@@ -109,7 +109,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   cp(actionName1, actionName1b)
   cp(actionName1, actionName1c, undefined, undefined, 'copy')
 
@@ -120,7 +120,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2, undefined, undefined, packageName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   cp(actionName2, actionName2b, packageName1)
   cp(actionName2, actionName2c, packageName1, undefined, 'copy')
 
@@ -131,7 +131,7 @@ describe('Use copy to copy openwhisk entities', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(packageName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   cp(actionName2, actionName2b, packageName1, packageName2)
 
   // COPY PACKAGED ACTION TO PACKAGED ACTION, new package

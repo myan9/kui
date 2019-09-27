@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
-const { rp } = common
+const { rp } = Common
 
-describe('Create api gateway', function(this: common.ISuite) {
+describe('Create api gateway', function(this: Common.ISuite) {
   if (process.env.NO_OPENWHISK_API_MGMT) {
     console.log('Skipping OpenWhisk API management tests')
     return
   }
 
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should fail to create the api for a non-existent action', () =>
     cli
       .do(`wsk api create /hello /world get echo`, this.app)
       .then(cli.expectError(404))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an echo action', () =>
     cli
@@ -41,13 +41,13 @@ describe('Create api gateway', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('echo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should fail to create the api for a non-web-action', () =>
     cli
       .do(`wsk api create /hello /world get echo`, this.app)
       .then(cli.expectError(412))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should webbify the action', () =>
     cli
@@ -55,7 +55,7 @@ describe('Create api gateway', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('echo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create the api', () =>
     cli
@@ -63,7 +63,7 @@ describe('Create api gateway', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('echo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should list and invoke the api', () =>
     cli
@@ -95,5 +95,5 @@ describe('Create api gateway', function(this: common.ISuite) {
 
       .then(href => rp({ url: `${href}?foo=bar`, rejectUnauthorized: false }))
       .then(ui.expectSubset({ foo: 'bar' }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

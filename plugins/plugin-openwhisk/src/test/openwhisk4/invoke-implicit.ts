@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -26,9 +26,9 @@ import paramsJson = require('@kui-shell/plugin-openwhisk/tests/data/openwhisk/pa
 
 const actionName = 'foo'
 
-describe('wsk action invoke with implicit entity', function(this: common.ISuite) {
+describe('wsk action invoke with implicit entity', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action', () =>
     cli
@@ -36,7 +36,7 @@ describe('wsk action invoke with implicit entity', function(this: common.ISuite)
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   for (let idx = 0; idx < 5; idx++) {
     it(`should invoke ${actionName} with implicit entity idx=${idx}`, () =>
@@ -47,7 +47,7 @@ describe('wsk action invoke with implicit entity', function(this: common.ISuite)
         .then(sidecar.expectShowing(actionName))
         .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
         .then(ui.expectStruct({ x: 3, name: 'grumble' }))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   it(`should invoke ${actionName} with implicit entity and --param-file`, () =>
@@ -58,7 +58,7 @@ describe('wsk action invoke with implicit entity', function(this: common.ISuite)
       .then(sidecar.expectShowing(actionName))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct(Object.assign({ x: 3 }, paramsJson)))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with implicit entity and -P`, () =>
     cli
@@ -68,7 +68,7 @@ describe('wsk action invoke with implicit entity', function(this: common.ISuite)
       .then(sidecar.expectShowing(actionName))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct(Object.assign({ x: 3 }, paramsJson)))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should invoke ${actionName} with explicit entity and -P`, () =>
     cli
@@ -78,11 +78,11 @@ describe('wsk action invoke with implicit entity', function(this: common.ISuite)
       .then(sidecar.expectShowing(actionName))
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_RESULT))
       .then(ui.expectStruct(Object.assign({ x: 3 }, paramsJson)))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should fail when requesting parameters of an activation`, () =>
     cli
       .do('wsk action params', this.app)
       .then(cli.expectError(0, 'The current entity does not support viewing parameters'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

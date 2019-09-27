@@ -19,14 +19,14 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, keys, sidecar } = ui
 
-describe('List activations, then drill down to summary views', function(this: common.ISuite) {
+describe('List activations, then drill down to summary views', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const drilldownWith = command => {
     return it(`should list activations and click on ${command}`, () =>
@@ -57,7 +57,7 @@ describe('List activations, then drill down to summary views', function(this: co
         .then(() => this.app)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing('Recent Activity'))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   const closeSidecar = () => {
@@ -65,7 +65,7 @@ describe('List activations, then drill down to summary views', function(this: co
       this.app.client
         .keys(keys.ESCAPE)
         .then(() => sidecar.expectClosed(this.app))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   drilldownWith('summary')

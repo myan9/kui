@@ -21,7 +21,7 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,7 +29,7 @@ import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/open
 import { readFileSync } from 'fs'
 import * as path from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 
 const actionName = 'foo'
 const actionName2 = 'foo2'
@@ -38,9 +38,9 @@ const fooSrc = readFileSync(path.join(ROOT, 'data/openwhisk/foo.js')).toString()
 const foo2Src = readFileSync(path.join(ROOT, 'data/openwhisk/foo2.js')).toString()
 
 // TODO: webpack test
-localDescribe('Sidecar bottom stripe interactions for actions', function(this: common.ISuite) {
+localDescribe('Sidecar bottom stripe interactions for actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   /** verify the mode buttons work */
   const verify = (name, expectedParams, expectedAnnotations, expectedSrc) => {
@@ -52,7 +52,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .action-source`))
         .then(ui.expectStruct(expectedParams))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     // click on annotations mode button
@@ -63,7 +63,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .action-source`))
         .then(ui.expectSubset(expectedAnnotations))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
 
     // click on code mode button
@@ -74,7 +74,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
         .then(sidecar.expectShowing(name))
         .then(() => this.app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .action-source`))
         .then(code => assert.strictEqual(code.replace(/\s+/g, ''), expectedSrc.replace(/\s+/g, '')))
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     })
   }
 
@@ -85,7 +85,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create an action, using the implicit entity type
   it(`should create an action ${actionName2}`, () =>
@@ -94,7 +94,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   verify(actionName2, { x: 6, y: 11 }, { aaa: 999 }, foo2Src)
 
@@ -104,7 +104,7 @@ localDescribe('Sidecar bottom stripe interactions for actions', function(this: c
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   verify(actionName, { x: 5, y: 10 }, { aaa: 888 }, fooSrc)
 })

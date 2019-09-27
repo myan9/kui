@@ -19,7 +19,7 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -35,9 +35,9 @@ const actionName2 = 'foo2'
 const actionName3 = 'foo3'
 const seqName = 'sss'
 
-describe('@file params and annotations', function(this: common.ISuite) {
+describe('@file params and annotations', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // action via wsk action create
   it('should create an action with --param-file', () =>

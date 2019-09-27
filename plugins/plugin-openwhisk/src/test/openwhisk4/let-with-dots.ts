@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -34,9 +34,9 @@ const actionName3 = 'foo3.crypto.cash'
 const packageName1 = 'ppp'
 const packageName2 = 'ppp.fun'
 
-describe('Create an action via let with dots', function(this: common.ISuite) {
+describe('Create an action via let with dots', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   for (let idx = 0; idx < fileWithSpacesAndQuotes.length; idx++) {
     const actionName1 = `foobar.${idx}`
@@ -49,7 +49,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(actionName1))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     it(`should create an action with spaces in the filename, variant ${idx}b`, () =>
       cli
@@ -57,7 +57,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(actionName2))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
 
     it(`should create an action with spaces in the filename, variant ${idx}c`, () =>
       cli
@@ -65,7 +65,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
         .then(cli.expectJustOK)
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing(actionName3))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   it('should create an action with dots in the filename, with external quotes', () =>
@@ -74,7 +74,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a packaged action with dots, variant 1', () =>
     cli
@@ -82,7 +82,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1, undefined, undefined, packageName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a packaged action with dots, variant 2', () =>
     cli
@@ -90,7 +90,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2, undefined, undefined, packageName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a packaged action with dots, variant 3', () =>
     cli
@@ -98,7 +98,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName3, undefined, undefined, packageName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a packaged action with dots, variant 4', () =>
     cli
@@ -106,7 +106,7 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1, undefined, undefined, packageName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a packaged action with dots, variant 5', () =>
     cli
@@ -114,5 +114,5 @@ describe('Create an action via let with dots', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2, undefined, undefined, packageName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

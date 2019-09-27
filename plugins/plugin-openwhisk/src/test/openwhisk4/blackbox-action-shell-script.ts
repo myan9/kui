@@ -17,7 +17,7 @@
 import * as fs from 'fs'
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,9 +29,9 @@ const flip = 'flip'
 
 const removeWhitespace = txt => txt.replace(/\s/g, '')
 
-describe('blackbox actions from a shell script', function(this: common.ISuite) {
+describe('blackbox actions from a shell script', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const flipSourcePath = `${ROOT}/data/openwhisk/flip.sh`
   const expectedFlipSource = removeWhitespace(fs.readFileSync(flipSourcePath).toString())
@@ -45,7 +45,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTION_SOURCE))
       .then(removeWhitespace)
       .then(txt => assert.strictEqual(txt, expectedFlipSource))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const N1 = 3
   it(`should invoke the native action with implicit entity`, () =>
@@ -59,7 +59,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
           trials: N1
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const N2 = 4
   it(`should invoke (again) the native action with implicit entity`, () =>
@@ -73,7 +73,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
           trials: N2
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should update a blackbox action variant 1', () =>
     cli
@@ -84,7 +84,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTION_SOURCE))
       .then(removeWhitespace)
       .then(txt => assert.strictEqual(txt, expectedFlipSource))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should update a blackbox action variant 2', () =>
     cli
@@ -95,7 +95,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTION_SOURCE))
       .then(removeWhitespace)
       .then(txt => assert.strictEqual(txt, expectedFlipSource))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should update a blackbox action variant 3', () =>
     cli
@@ -106,7 +106,7 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
       .then(() => this.app.client.getText(ui.selectors.SIDECAR_ACTION_SOURCE))
       .then(removeWhitespace)
       .then(txt => assert.strictEqual(txt, expectedFlipSource))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   const N3 = 5
   it(`should invoke (again) the native action, now with explicit`, () =>
@@ -120,5 +120,5 @@ describe('blackbox actions from a shell script', function(this: common.ISuite) {
           trials: N3
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

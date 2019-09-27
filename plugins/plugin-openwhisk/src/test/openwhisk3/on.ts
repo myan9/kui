@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,9 +29,9 @@ const ruleName = `on_${triggerName}_do_${actionName}`
 const ruleName2 = `on_${triggerName}_do_${actionName2}`
 const ruleName3 = `on_${triggerName2}_do_${actionName2}`
 
-describe('Create a rule via on', function(this: common.ISuite) {
+describe('Create a rule via on', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action via let without extension', () =>
     cli
@@ -39,7 +39,7 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action via let with extension', () =>
     cli
@@ -47,7 +47,7 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a trigger', () =>
     cli
@@ -55,7 +55,7 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(triggerName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a rule via on, using a new trigger', () =>
     cli
@@ -63,8 +63,8 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(ruleName))
-//      .then(expectRule({ triggerName, actionName }))
-      .catch(common.oops(this)))
+      //      .then(expectRule({ triggerName, actionName }))
+      .catch(Common.oops(this)))
 
   it('should create a rule via on, using the trigger created by the first on', () =>
     cli
@@ -72,8 +72,8 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(ruleName2))
-//      .then(expectRule({ triggerName, actionName: actionName2 }))
-      .catch(common.oops(this)))
+      //      .then(expectRule({ triggerName, actionName: actionName2 }))
+      .catch(Common.oops(this)))
 
   it('should create a rule via on, using a pre-existing trigger', () =>
     cli
@@ -81,6 +81,6 @@ describe('Create a rule via on', function(this: common.ISuite) {
       .then(cli.expectJustOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(ruleName3))
-//      .then(expectRule({ triggerName: triggerName2, actionName: actionName2 }))
-      .catch(common.oops(this)))
+      //      .then(expectRule({ triggerName: triggerName2, actionName: actionName2 }))
+      .catch(Common.oops(this)))
 })

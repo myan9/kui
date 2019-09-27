@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
 import { dirname, normalize } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-localDescribe('Change shell directory via cd', function(this: common.ISuite) {
+localDescribe('Change shell directory via cd', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should execute cd data', () => cli.do(`cd ${ROOT}/data`, this.app).then(cli.expectOKWithString('data')))
 
@@ -35,7 +35,7 @@ localDescribe('Change shell directory via cd', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('long'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should execute cd - to change to previous dir', () =>
     cli.do(`cd -`, this.app).then(cli.expectOKWithString(normalize(process.env.TEST_ROOT))))
@@ -49,7 +49,7 @@ localDescribe('Change shell directory via cd', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('long2'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should execute cd without arguments', () =>
     cli.do(`cd`, this.app).then(cli.expectOKWithString(normalize(process.env.HOME))))

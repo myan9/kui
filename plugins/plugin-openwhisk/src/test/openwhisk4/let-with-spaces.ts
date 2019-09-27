@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -33,9 +33,9 @@ const actionName3 = 'foo3 fun'
 const packageName1 = 'ppp'
 const packageName2 = 'ppp fun'
 
-describe('Create an action via let with spaces', function(this: common.ISuite) {
+describe('Create an action via let with spaces', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   for (let idx = 0; idx < fileWithSpacesAndQuotes.length; idx++) {
     const actionName1 = `foobar-${idx}`

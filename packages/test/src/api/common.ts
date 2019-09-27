@@ -39,7 +39,7 @@ let app
  * value of this function.
  *
  */
-const prepareElectron = (popup = false) => {
+const prepareElectron = (popup: string[]) => {
   const Application = require('spectron').Application
   const electron = require('electron') // relative to __dirname
   const appMain = process.env.APP_MAIN || '../../node_modules/@kui-shell/core/main/main.js' // relative to the tests/ directory
@@ -109,7 +109,7 @@ const waitForSession = (ctx: ISuite, noProxySessionWait = false) => {
 
 interface IBeforeOptions {
   noApp?: boolean
-  popup?: boolean
+  popup?: string[]
   noProxySessionWait?: boolean
   afterStart?: () => Promise<void>
   beforeStart?: () => Promise<void>
@@ -340,6 +340,12 @@ export const refresh = async (ctx: ISuite, wait = true, clean = false) => {
   }
 }
 
+/** restart the app */
+export const restart = async (ctx: ISuite) => {
+  await ctx.app.restart()
+  return waitForSession(ctx)
+}
+
 /** only execute the test in local */
 export const localIt = (msg: string, func: Func) => {
   if (process.env.MOCHA_RUN_TARGET !== 'webpack') return it(msg, func)
@@ -384,3 +390,25 @@ export const expectedVersion =
   (process.env.MOCHA_RUN_TARGET === 'electron' || process.env.MOCHA_RUN_TARGET === 'webpack')
     ? '0.0.1'
     : require('@kui-shell/settings/package.json').version
+
+/**
+ * Mimic the request-promise functionality, but with retry
+ *
+ */
+export const rp = (opts: object) => {
+  const rp = require('request-promise')
+  const withRetry = require('promise-retry')
+
+  return withRetry((retry, iter) => {
+    return rp(Object.assign({ timeout: 20000 }, typeof opts === 'string' ? { url: opts } : opts)).catch(err => {
+      const isNormalError = err && (err.statusCode === 400 || err.statusCode === 404 || err.statusCode === 409)
+      if (!isNormalError && iter < 10) {
+        console.error(err)
+        retry()
+      } else {
+        console.error(`Error in rp with opts=${JSON.stringify(opts)}`)
+        throw err
+      }
+    })
+  })
+}

@@ -19,12 +19,12 @@
  *    this test also covers toggling the sidecar
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 import { dirname } from 'path'
 const { cli, sidecar } = ui
-const { localDescribe } = common
+const { localDescribe } = Common
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
 const actionName1 = 'foo bar'
@@ -32,9 +32,9 @@ const actionName2 = 'bam'
 const sequenceName1 = 'sss'
 
 // TODO: webpack test
-localDescribe('Create a sequence with whitespacey names', function(this: common.ISuite) {
+localDescribe('Create a sequence with whitespacey names', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // create an action, using the implicit entity type
   it('should create an action', () =>
@@ -43,7 +43,7 @@ localDescribe('Create a sequence with whitespacey names', function(this: common.
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create the second action
   it('should create an action', () =>
@@ -52,7 +52,7 @@ localDescribe('Create a sequence with whitespacey names', function(this: common.
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName2))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it(`should show ${actionName1} by clicking on the result of "ls"`, () =>
     cli
@@ -62,7 +62,7 @@ localDescribe('Create a sequence with whitespacey names', function(this: common.
       .then(() => this.app)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // create a sequence
   it('should create a sequence', () =>
@@ -71,7 +71,7 @@ localDescribe('Create a sequence with whitespacey names', function(this: common.
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(sequenceName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // click on a sequence component bubble
   it('should show action after clicking on bubble', async () => {
@@ -80,7 +80,7 @@ localDescribe('Create a sequence with whitespacey names', function(this: common.
       await this.app.client.click(ui.selectors.SIDECAR_SEQUENCE_CANVAS_NODE_N(0))
       return sidecar.expectOpen(this.app).then(sidecar.expectShowing(actionName1))
     } catch (err) {
-      return common.oops(this)(err)
+      return Common.oops(this)(err)
     }
   })
 })

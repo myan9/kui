@@ -16,7 +16,7 @@
 
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -28,9 +28,9 @@ const HTML_WITH_JS_INPUT = `${ROOT}/data/openwhisk/hello-with-script.html`
 
 const actionName = 'foo'
 
-describe('Create a javascript web action via let', function(this: common.ISuite) {
+describe('Create a javascript web action via let', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   //
   // javascript web action: NO LONGER NEEDED, the html let should create the javascript action for us
@@ -47,7 +47,7 @@ describe('Create a javascript web action via let', function(this: common.ISuite)
        .then(sidecar.expectOpen)
        .then(sidecar.expectShowing(JS_INPUT))
        .then(sidecar.expectBadge('web'))
-       .catch(common.oops(this))) */
+       .catch(Common.oops(this))) */
 
   it('should create an HTML web action that uses a JS web action, via let', () =>
     cli
@@ -57,6 +57,6 @@ describe('Create a javascript web action via let', function(this: common.ISuite)
       .then(href => this.app.client.url(href))
       .then(() => this.app.client.getText('#hello'))
       .then(content => assert.strictEqual(content, 'hello'))
-      .then(() => common.restart(this)) // to unsmash the .url call
-      .catch(common.oops(this)))
+      .then(() => Common.restart(this)) // to unsmash the .url call
+      .catch(Common.oops(this)))
 })

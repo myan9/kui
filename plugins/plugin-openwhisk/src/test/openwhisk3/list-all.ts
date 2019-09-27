@@ -19,7 +19,7 @@
 //    this test also covers toggling the sidecar
 //
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
@@ -30,9 +30,9 @@ const triggerName = 'ttt'
 const actionNameInPackage = `${packageName}/${actionName}`
 const ruleName = `on_${triggerName}_do_${actionNameInPackage.replace(/\//g, '_')}`
 
-describe('List all OpenWhisk entities', function(this: common.ISuite) {
+describe('List all OpenWhisk entities', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this, () => cli.do(`wsk rule delete ${ruleName}`, this.app)))
+  after(Common.after(this, () => cli.do(`wsk rule delete ${ruleName}`, this.app)))
 
   // create action
   it('should create a packaged action', () =>

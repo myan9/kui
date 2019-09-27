@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -44,7 +44,7 @@ const invokeABunch = (ctx, actionName) => {
         .then(sidecar.expectShowing(actionName))
         .then(() => ctx.app.client.getText(ui.selectors.SIDECAR_ACTIVATION_ID)) // get the activationId
         .then(activationId => ui.waitForActivation(ctx.app, activationId, { name: actionName })) // wait till activation list shows it
-        .catch(common.oops(ctx)))
+        .catch(Common.oops(ctx)))
   }
 }
 
@@ -53,7 +53,7 @@ const invokeABunch = (ctx, actionName) => {
  * the given action
  *
  */
-const testPagination = (ctx: common.ISuite, actionName?: string) => {
+const testPagination = (ctx: Common.ISuite, actionName?: string) => {
   const { app } = ctx
 
   const limit = NN / 2
@@ -111,13 +111,13 @@ const testPagination = (ctx: common.ISuite, actionName?: string) => {
         })
       )
 
-      .catch(common.oops(ctx))
+      .catch(Common.oops(ctx))
   )
 }
 
-describe('Activation list paginator', function(this: common.ISuite) {
+describe('Activation list paginator', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it(`should create an action ${actionName}`, () =>
     cli

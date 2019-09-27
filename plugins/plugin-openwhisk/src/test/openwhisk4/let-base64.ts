@@ -16,7 +16,7 @@
 
 import { readFileSync } from 'fs'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -29,9 +29,9 @@ const content = readFileSync(file).toString()
 
 const actionName1 = 'foo'
 
-describe('Invoke an action with a binary-formatted parameter', function(this: common.ISuite) {
+describe('Invoke an action with a binary-formatted parameter', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   // this action reverses the base64 decoding, and returns the
   // result as a string; our input isn't really binary, we're just
@@ -42,7 +42,7 @@ describe('Invoke an action with a binary-formatted parameter', function(this: co
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing(actionName1))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should invoke it with a fake-binary file argument', () =>
     cli
@@ -52,5 +52,5 @@ describe('Invoke an action with a binary-formatted parameter', function(this: co
       .then(sidecar.expectShowing(actionName1))
       .then(app => app.client.getText(`${ui.selectors.SIDECAR_CONTENT} .activation-content`))
       .then(ui.expectStruct({ text: content }))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })

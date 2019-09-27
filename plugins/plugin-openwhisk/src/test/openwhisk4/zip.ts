@@ -17,7 +17,7 @@
 import * as fs from 'fs'
 import * as assert from 'assert'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -49,9 +49,9 @@ const rimraf = filepath => {
   return Promise.resolve()
 }
 
-describe('Create zip actions', function(this: common.ISuite) {
+describe('Create zip actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   const makeActionFromZip = (cmd: string, name: string) => {
     it(cmd, () =>
@@ -159,7 +159,7 @@ function main(args) {
             namespace: ui.expectedNamespace()
           })
         )
-        .catch(common.oops(this))
+        .catch(Common.oops(this))
     )
   }
 
@@ -214,7 +214,7 @@ function main(args) {
       .then(code =>
         assert.strictEqual(code.replace(/\s+/g, ''), src('openwhisk/zip-python/index.py').replace(/\s+/g, ''))
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   //
   // zip action without npm install
@@ -232,7 +232,7 @@ function main(args) {
     cli
       .do(`wsk action async -p y 3`, this.app)
       .then(cli.expectOKWithString(actionName16)) // e.g. "invoked `actionName16` with id:"
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   // call await
   it('should await successful completion of the activation', () =>
     cli
@@ -260,7 +260,7 @@ function main(args) {
     cli
       .do(`wsk action async --param lines '["and now", "for something completely", "different" ]'`, this.app)
       .then(cli.expectOKWithString(actionName18)) // e.g. "invoked `actionName18` with id:"
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   // call await
   it('should await successful completion of the activation', () =>
     cli

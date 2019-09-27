@@ -21,14 +21,14 @@
 
 import { SpectronClient } from 'spectron'
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 const { cli, sidecar } = ui
 
-describe('create new actions in editor', function(this: common.ISuite) {
+describe('create new actions in editor', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should create an action', () =>
     cli
@@ -36,19 +36,19 @@ describe('create new actions in editor', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should report 409 for new over existing action', () =>
     cli
       .do('new foo', this.app)
       .then(cli.expectError(409))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should report 498 for new --kind zoo', () =>
     cli
       .do('new nope --kind zoo', this.app)
       .then(cli.expectError(498)) // bad value for optional parameter
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   /** deploy the new action */
   const deploy = (app, action) => () => {
@@ -96,7 +96,7 @@ describe('create new actions in editor', function(this: common.ISuite) {
       .then(sidecar.expectShowing('foo2'))
       .then(() => setValue(this.app.client, 'let main = x => x', 'new')) // edit the action content
       .then(deploy(this.app, 'foo2'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should get the new action, edit the action content but not deployed', () =>
     cli
@@ -134,7 +134,7 @@ describe('create new actions in editor', function(this: common.ISuite) {
           return actionSrc.trim() === 'let main = x => x'
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should get the new action, edit the action content and deployed', () =>
     cli
@@ -174,7 +174,7 @@ describe('create new actions in editor', function(this: common.ISuite) {
           return actionSrc.trim() === 'let main = y => y'
         })
       )
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should invoke the new action', () =>
     cli
@@ -182,7 +182,7 @@ describe('create new actions in editor', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo2'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should open a new python', () =>
     cli
@@ -191,10 +191,10 @@ describe('create new actions in editor', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo3'))
       .then(deploy(this.app, 'foo3'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   /* it('should invoke the new python action, with implicit entity', () => cli.do('wsk action invoke', this.app)
        .then(cli.expectOK)
        .then(sidecar.expectOpen)
        .then(sidecar.expectShowing('foo3'))
-       .catch(common.oops(this))) */
+       .catch(Common.oops(this))) */
 })

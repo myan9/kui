@@ -19,7 +19,7 @@
  *
  */
 
-import * as common from '@kui-shell/core/tests/lib/common'
+import { Common } from '@kui-shell/test'
 import * as ui from '@kui-shell/core/tests/lib/ui'
 import * as openwhisk from '@kui-shell/plugin-openwhisk/tests/lib/openwhisk/openwhisk'
 
@@ -27,9 +27,9 @@ import { dirname } from 'path'
 const { cli, sidecar } = ui
 const ROOT = dirname(require.resolve('@kui-shell/plugin-openwhisk/tests/package.json'))
 
-describe('edit actions', function(this: common.ISuite) {
+describe('edit actions', function(this: Common.ISuite) {
   before(openwhisk.before(this))
-  after(common.after(this))
+  after(Common.after(this))
 
   it('should open a file with spaces', () =>
     cli
@@ -37,13 +37,13 @@ describe('edit actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('file with spaces.yaml'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should report 499 for edit --kind', () =>
     cli
       .do('edit nope --kind foo', this.app)
       .then(cli.expectError(499)) // unsupported optional parameter
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an action', () =>
     cli
@@ -51,13 +51,13 @@ describe('edit actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should report 499 for edit --kind on existing action', () =>
     cli
       .do('edit foo --kind foo', this.app)
       .then(cli.expectError(499)) // unsupported optional parameter
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should edit with implicit entity and shows correct sidecar mode buttons', () =>
     cli
@@ -79,7 +79,7 @@ describe('edit actions', function(this: common.ISuite) {
       .then(() => this.app.client.waitForExist(ui.selectors.SIDECAR_MODE_BUTTON('lock')))
       .then(() => this.app.client.waitForExist(ui.selectors.SIDECAR_MODE_BUTTON('Deploy')))
       .then(() => this.app.client.waitForExist(ui.selectors.SIDECAR_MODE_BUTTON('Revert')))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create an second action', () =>
     cli
@@ -87,7 +87,7 @@ describe('edit actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo2'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   // do this in a loop, to make sure we don't have any event listener leaks
   for (let idx = 0; idx < 20; idx++) {
@@ -98,7 +98,7 @@ describe('edit actions', function(this: common.ISuite) {
         .then(sidecar.expectOpen)
         .then(sidecar.expectShowing('foo'))
         .then(sidecar.expectBadge('v0.0.1'))
-        .catch(common.oops(this)))
+        .catch(Common.oops(this)))
   }
 
   it('should edit the second action', () =>
@@ -108,7 +108,7 @@ describe('edit actions', function(this: common.ISuite) {
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('foo2'))
       .then(sidecar.expectBadge('v0.0.1'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a sequence', () =>
     cli
@@ -116,12 +116,12 @@ describe('edit actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('seq'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should report 406 for edit of sequence', () =>
     cli
       .do('edit seq', this.app)
       .then(cli.expectError(406))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 
   it('should create a zip action', () =>
     cli
@@ -129,10 +129,10 @@ describe('edit actions', function(this: common.ISuite) {
       .then(cli.expectOK)
       .then(sidecar.expectOpen)
       .then(sidecar.expectShowing('zippy'))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
   it('should report 406 for edit of zip', () =>
     cli
       .do('edit zippy', this.app)
       .then(cli.expectError(406))
-      .catch(common.oops(this)))
+      .catch(Common.oops(this)))
 })
