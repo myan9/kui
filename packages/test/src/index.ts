@@ -17,6 +17,8 @@
 // this file defines the external API
 import * as SidecarExpect from './api/sidecar-expect'
 import * as SidecarDo from './api/sidecar-do'
+import * as Common from './api/common'
 
 export { SidecarExpect }
 export { SidecarDo }
+export { Common }
