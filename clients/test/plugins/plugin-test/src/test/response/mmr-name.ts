@@ -23,12 +23,11 @@
  */
 
 import { TestMMR } from '@kui-shell/test'
+import { command, metadata } from '../../lib/cmds/mmr-mode'
 
 const test = new TestMMR({
-  command: 'test mmr name',
-  metadata: {
-    name: 'this is the name part'
-  }
+  command,
+  metadata
 })
 
 test.name()

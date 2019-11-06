@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestStringResponse } from '@kui-shell/test'
-import { command } from '../../lib/cmds/say-hello'
 
-const test = new TestStringResponse({
-  command,
-  expect: 'hello world',
-  exact: true
-})
+export default () => `
+# Markdown Content
+This should render as HTML.
 
-test.string()
+[Link Fun](https://github.com/IBM/kui)
+`

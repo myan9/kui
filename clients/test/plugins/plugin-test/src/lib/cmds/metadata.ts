@@ -13,13 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestStringResponse } from '@kui-shell/test'
-import { command } from '../../lib/cmds/say-hello'
 
-const test = new TestStringResponse({
-  command,
-  expect: 'hello world',
-  exact: true
-})
-
-test.string()
+export const metadataWithNameOnly = {
+  metadata: {
+    name: 'this is the name part'
+  }
+}

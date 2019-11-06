@@ -15,27 +15,28 @@
  */
 
 /**
- * This file introduces a "test mmr name" command that opens the sidecar with
- * a plain text mode associated with a name metadata.
+ * This file introduces a "test mmr mode" command that opens the sidecar with
+ * some string modes.
  *
  */
 
 import { Commands, UI } from '@kui-shell/core'
 
 import { metadataWithNameOnly } from './metadata'
-import { plainTextMode } from './content/modes'
+import { textModes } from './content/modes'
 
-export const command = 'test mmr name'
-export const metadata = metadataWithNameOnly
+export const command = 'test mmr mode'
+export const modes = textModes
+export const metadata = metadataWithNameOnly.metadata
 
 const doModes = (): (() => UI.MultiModalResponse) => {
-  return () => Object.assign(metadata, { modes: plainTextMode })
+  return () => Object.assign(metadataWithNameOnly, { modes })
 }
 
 export default (commandTree: Commands.Registrar) => {
-  commandTree.listen('/test/mmr/name', doModes(), {
+  commandTree.listen('/test/mmr/mode', doModes(), {
     usage: {
-      docs: 'A showcase of MultiModalResponse metadata name'
+      docs: 'A test of MultiModalResponse mode'
     }
   })
 }

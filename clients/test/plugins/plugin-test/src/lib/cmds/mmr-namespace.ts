@@ -24,15 +24,19 @@ import { Commands, UI } from '@kui-shell/core'
 
 import { plainTextMode } from './content/modes'
 
-const metadata = {
+export const command = 'test mmr namespace'
+
+const metadataWithNamespace = {
   metadata: {
     name: 'this is the name part',
     namespace: 'this is the namespace part'
   }
 }
 
+export const metadata = metadataWithNamespace.metadata
+
 const doModes = (): (() => UI.MultiModalResponse) => {
-  return () => Object.assign(metadata, { modes: plainTextMode })
+  return () => Object.assign(metadataWithNamespace, { modes: plainTextMode })
 }
 
 export default (commandTree: Commands.Registrar) => {

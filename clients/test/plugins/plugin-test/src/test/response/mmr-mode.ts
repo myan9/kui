@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestStringResponse } from '@kui-shell/test'
-import { command } from '../../lib/cmds/say-hello'
 
-const test = new TestStringResponse({
+import { TestMMR } from '@kui-shell/test'
+import { command, modes, metadata } from '../../lib/cmds/mmr-mode'
+
+const test = new TestMMR({
   command,
-  expect: 'hello world',
-  exact: true
+  metadata,
+  modes
 })
 
-test.string()
+test.modes()
