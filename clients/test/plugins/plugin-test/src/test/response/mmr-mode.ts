@@ -15,12 +15,14 @@
  */
 
 import { TestMMR } from '@kui-shell/test'
-import { command, modes, metadata } from '../../lib/cmds/mmr-mode'
+import { command, modes, metadata, toolbarText, buttons } from '../../lib/cmds/mmr-mode'
 
 const test = new TestMMR(
   Object.assign(metadata, {
     command,
-    modes
+    modes,
+    toolbarText,
+    buttons
   })
 )
 

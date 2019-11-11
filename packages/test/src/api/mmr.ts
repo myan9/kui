@@ -33,15 +33,8 @@ interface MMRParam {
     namespace?: string
   }
   modes?: ModeParam[]
-}
-
-interface ModeParam {
-  mode: string
-  label?: string
-}
-
-interface TestModeOptions {
-  windowButtons?: boolean
+  toolbarText?: ToolbarText
+  buttons?: Button[]
 }
 
 enum SidecarState {
@@ -51,6 +44,23 @@ enum SidecarState {
 }
 
 type SidecarStateParam = 'minimized' | 'quited' | 'maximized'
+
+interface ModeParam {
+  mode: string
+  label?: string
+}
+
+interface Button {
+  mode: string
+  label?: string
+  command: string
+  kind: 'view' | 'drilldown'
+}
+
+interface ToolbarText {
+  type: string
+  text: string
+}
 
 export class TestMMR {
   // eslint-disable-next-line no-useless-constructor
@@ -101,8 +111,8 @@ export class TestMMR {
     })
   }
 
-  public modes(options?: TestModeOptions) {
-    const { command, modes } = this.param
+  public modes(options?: { windowButtons?: boolean }) {
+    const { command, modes, toolbarText, buttons } = this.param
 
     describe(`mmr modes ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
       before(Common.before(this))
@@ -115,6 +125,30 @@ export class TestMMR {
             .then(SidecarExpect.open)
             .then(SidecarExpect.modes(modes))
             .catch(Common.oops(this, true)))
+
+      const showToolbarText = (toolbarText: ToolbarText) => {
+        if (toolbarText) {
+          it(`should show toolbar in sidecar`, async () => {
+            try {
+              await SidecarExpect.toolbarText(toolbarText)(this.app)
+            } catch (err) {
+              await Common.oops(this, true)
+            }
+          })
+        }
+      }
+
+      const showToolbarButton = (button: Button) => {
+        if (button) {
+          it('should show buttons in sidecar toolbar', async () => {
+            try {
+              await SidecarExpect.toolbarButtonText(button.mode, button.label)
+            } catch (err) {
+              await Common.oops(this, true)
+            }
+          })
+        }
+      }
 
       const toggleSidecarWithESC = (expectOpen = false) =>
         it(`should hit ESCAPE key and expect sidecar ${expectOpen ? 'open' : 'closed'}`, async () => {
@@ -180,6 +214,8 @@ export class TestMMR {
       }
 
       showModes()
+      showToolbarText(toolbarText)
+      buttons.forEach(_ => showToolbarButton(_))
 
       if (options && options.windowButtons === true) {
         toggleSidecarWithESC()

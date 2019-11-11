@@ -29,9 +29,9 @@ export const command = 'test mmr mode'
 export const modes = textModes
 export const metadata = metadataWithNameOnly
 
-const buttons = [{ mode: 'hi', command: 'test string', kind: 'drilldown' as const }]
+export const buttons = [{ mode: 'hi', command: 'test string', kind: 'drilldown' as const }]
 
-const toolbarText = {
+export const toolbarText = {
   type: 'info',
   text: 'this is the toolbar text'
 }

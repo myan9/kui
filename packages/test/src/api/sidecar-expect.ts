@@ -124,6 +124,32 @@ export const mode = (expectedMode: string) => async (app: Application) => {
   return app
 }
 
+export const toolbarText = (expect: { type: string; text: string }) => async (app: Application) => {
+  const selector = Selectors.SIDECAR_TOOLBAR_TEXT(expect.type)
+
+  await app.client.waitUntil(async () => {
+    return app.client
+      .then(() => app.client.waitForText(selector, timeout))
+      .then(() => app.client.getText(selector))
+      .then(text => text === expect.text)
+  })
+
+  return app
+}
+
+export const toolbarButtonText = (mode: string, label?: string) => async (app: Application) => {
+  const selector = Selectors.SIDECAR_TOOLBAR_BUTTON(mode)
+
+  await app.client.waitUntil(async () => {
+    return app.client
+      .then(() => app.client.waitForText(selector, timeout))
+      .then(() => app.client.getText(selector))
+      .then(text => (label ? text === label : text === mode))
+  })
+
+  return app
+}
+
 const show = (expected: string, selector: string) => async (app: Application) => {
   await app.client.waitUntil(async () => {
     return app.client
