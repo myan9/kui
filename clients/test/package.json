@@ -25,6 +25,7 @@
   "devDependencies": {
     "@kui-shell/builder": "file:/tmp/kui-packs/kui-shell-builder.tgz",
     "@kui-shell/core": "file:/tmp/kui-packs/kui-shell-core.tgz",
+    "@kui-shell/plugin-editor": "file:/tmp/kui-packs/kui-shell-plugin-editor.tgz",
     "@kui-shell/test": "file:/tmp/kui-packs/kui-shell-test.tgz",
     "@types/mocha": "5.2.7",
     "@types/node": "12.7.12",
