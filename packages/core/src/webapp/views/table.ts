@@ -35,7 +35,7 @@ import {
   isMultiTable,
   isTable
 } from '../models/table'
-import { isWatchable } from '../models/basicModels'
+import { isWatchable, isPusher } from '../models/basicModels'
 import { applyDiffTable } from '../views/diffTable'
 import { theme } from '../../core/settings'
 
@@ -150,6 +150,59 @@ const calculateLadder = (initial: number): number[] => {
 
   debug('ladder', ladder)
   return ladder
+}
+
+/**
+ * pushDelete takes the rowKey of the row to be deleted and applies this to the table view
+ *
+ */
+const pushDelete = (tab: Tab, tableViewInfo: TableViewInfo, formatRowOption: RowFormatOptions) => (rowKey: string) => {
+  const existingRows = tableViewInfo.rowsModel
+  const foundIndex = existingRows.findIndex(_ => _.name === rowKey)
+
+  applyDiffTable(
+    { rowDeletion: [{ deleteIndex: foundIndex, model: existingRows[foundIndex] }] },
+    tab,
+    tableViewInfo.renderedTable,
+    tableViewInfo.renderedRows,
+    tableViewInfo.rowsModel,
+    formatRowOption
+  )
+}
+
+/**
+ * pushUpdate consumes the update notification and apply it to the table view
+ *
+ */
+const pushUpdate = (tab: Tab, tableViewInfo: TableViewInfo, formatRowOption: RowFormatOptions) => (newRow: Row) => {
+  const existingRows = tableViewInfo.rowsModel
+  const foundIndex = existingRows.findIndex(_ => _.name === newRow.name)
+
+  if (foundIndex === -1) {
+    // To get the insertion index, first concat the new row with the existing rows, then sort the rows
+    const index = sortBody([newRow].concat(existingRows)).findIndex(_ => _.name === newRow.name)
+
+    applyDiffTable(
+      { rowInsertion: [{ insertBeforeIndex: index + 1, model: newRow }] },
+      tab,
+      tableViewInfo.renderedTable,
+      tableViewInfo.renderedRows,
+      tableViewInfo.rowsModel,
+      formatRowOption
+    )
+  } else {
+    const doUpdate = JSON.stringify(newRow) !== JSON.stringify(existingRows[foundIndex])
+    if (doUpdate) {
+      applyDiffTable(
+        { rowUpdate: [{ updateIndex: foundIndex, model: newRow }] },
+        tab,
+        tableViewInfo.renderedTable,
+        tableViewInfo.renderedRows,
+        tableViewInfo.rowsModel,
+        formatRowOption
+      )
+    }
+  }
 }
 
 /**
@@ -822,6 +875,12 @@ export const formatTable = (
   const tableViewInfo = isMultiTable(response) ? response.tables.map(table => format(table)) : format(response)
 
   if (!hasReachedFinalState(response) && isWatchable(response) && response.watchByDefault) {
-    registerWatcher(tab, response.watchLimit, response.refreshCommand, resultDom, tableViewInfo, formatRowOption)
+    if (isPusher(response)) {
+      if (!Array.isArray(tableViewInfo)) {
+        response.watch(pushUpdate(tab, tableViewInfo, formatRowOption), pushDelete(tab, tableViewInfo, formatRowOption))
+      }
+    } else {
+      registerWatcher(tab, response.watchLimit, response.refreshCommand, resultDom, tableViewInfo, formatRowOption)
+    }
   }
 }

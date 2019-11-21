@@ -159,7 +159,7 @@ export class Table<RowType extends Row = Row> {
   }
 }
 
-export interface WatchableTable extends Table, Watchable {}
+export type WatchableTable = Table & Watchable
 
 export function isTable<C>(model: SidecarMode | MetadataBearing<C> | Entity): model is Table {
   return (
@@ -237,9 +237,9 @@ interface RowDeletion {
 }
 
 export interface RowDiff {
-  rowUpdate: RowUpdate[]
-  rowDeletion: RowDeletion[]
-  rowInsertion: RowInsertion[]
+  rowUpdate?: RowUpdate[]
+  rowDeletion?: RowDeletion[]
+  rowInsertion?: RowInsertion[]
 }
 
 /**

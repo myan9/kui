@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-export interface Watchable {
+import { Row } from '../models/table'
+
+export type Watchable = Poller | Pusher
+
+export interface Poller {
   refreshCommand: string
   watchByDefault: boolean // false: the model can be turned into a watching mode, but not the default mode
   watchInterval?: number
@@ -23,5 +27,15 @@ export interface Watchable {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isWatchable(model: any): model is Watchable {
-  return model && model.refreshCommand
+  return model && (model.refreshCommand || model.type === 'push')
+}
+
+export interface Pusher {
+  type: 'push'
+  watch: (update: (response: Row) => void, offline: (rowKey: string) => void) => void // watch provides the update/offline notification and asks for view updates/offline
+  watchByDefault: boolean
+}
+
+export function isPusher(model: Watchable): model is Pusher {
+  return (model as Pusher).type === 'push'
 }
