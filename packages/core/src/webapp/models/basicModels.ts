@@ -14,14 +14,29 @@
  * limitations under the License.
  */
 
-export interface Watchable {
+import { Table, MultiTable } from '../models/table'
+
+export type Watchable = Poller | Pusher
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isWatchable(model: any): model is Watchable {
+  return model && (model.refreshCommand || model.type === 'push')
+}
+
+export interface Poller {
   refreshCommand: string
   watchByDefault: boolean // false: the model can be turned into a watching mode, but not the default mode
   watchInterval?: number
   watchLimit?: number
 }
 
+export interface Pusher {
+  type: 'push'
+  watch: (updater: (response: Table | MultiTable | string) => void) => void
+  watchByDefault: boolean
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isWatchable(model: any): model is Watchable {
-  return model && model.refreshCommand
+export function isPusher(model: any): model is Pusher {
+  return model.type === 'push'
 }

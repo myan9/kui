@@ -159,7 +159,7 @@ export class Table {
   }
 }
 
-export interface WatchableTable extends Table, Watchable {}
+export type WatchableTable = Table & Watchable
 
 export function isTable(model: SidecarMode | Entity): model is Table {
   return (
@@ -246,7 +246,7 @@ export interface RowDiff {
  * diff two rows model
  * @param refreshRows is the rows model returned by refreshing
  */
-export function diffTableRows(existingRows: Row[], refreshRows: Row[]): RowDiff {
+export function diffTableRows(existingRows: Row[], refreshRows: Row[], doDelete = true): RowDiff {
   // find rows in the existing rows but not in the refreshed rows
   const rowDeletion: RowDeletion[] = existingRows
     .map((row, index) => {
@@ -273,5 +273,5 @@ export function diffTableRows(existingRows: Row[], refreshRows: Row[]): RowDiff 
     })
     .filter(row => !existingRows.some(_ => _.name === row.model.name))
 
-  return { rowUpdate, rowDeletion, rowInsertion }
+  return { rowUpdate, rowDeletion: doDelete ? rowDeletion : [], rowInsertion }
 }

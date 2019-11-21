@@ -35,7 +35,7 @@ import {
   isMultiTable,
   isTable
 } from '../models/table'
-import { isWatchable } from '../models/basicModels'
+import { isWatchable, isPusher } from '../models/basicModels'
 import { applyDiffTable } from '../views/diffTable'
 import { theme } from '../../core/settings'
 
@@ -146,7 +146,64 @@ const calculateLadder = (initial: number): number[] => {
   debug('ladder', ladder)
   return ladder
 }
+/**
+ * process the refreshed result
+ * @return processed Table info: { table: Row[], reachedFinalState: boolean }, or
+ *         processed MultiTable info: { tables: Row[][], reachedFinalState: boolean}
+ *
+ */
+const processRefreshResponse = (response: Table | MultiTable | string) => (tab: Tab) => {
+  if (!isTable(response) && !isMultiTable(response)) {
+    console.error('refresh result is not a table', response)
+    throw new Error('refresh result is not a table')
+  }
 
+  const reachedFinalState = hasReachedFinalState(response)
+
+  return isTable(response)
+    ? { table: prepareTable(tab, response), reachedFinalState }
+    : {
+        tables: response.tables.map(table => {
+          return prepareTable(tab, table)
+        }),
+        reachedFinalState
+      }
+}
+
+const apply = (
+  tab: Tab,
+  tableViewInfo: TableViewInfo | TableViewInfo[],
+  formatRowOption: RowFormatOptions,
+  doDelete = true
+) => (tables?: Row[][], table?: Row[]) => {
+  // diff the refreshed model from the existing one and apply the change
+  const applyRefreshResult = (newRowModel: Row[], tableViewInfo: TableViewInfo) => {
+    const diffs = diffTableRows(tableViewInfo.rowsModel, newRowModel, doDelete)
+    applyDiffTable(
+      diffs,
+      tab,
+      tableViewInfo.renderedTable,
+      tableViewInfo.renderedRows,
+      tableViewInfo.rowsModel,
+      formatRowOption
+    )
+  }
+
+  if (Array.isArray(tableViewInfo)) {
+    tables.forEach((newRowModel, index) => {
+      applyRefreshResult(newRowModel, tableViewInfo[index])
+    })
+  } else {
+    applyRefreshResult(table, tableViewInfo)
+  }
+}
+
+const updater = (tab: Tab, tableViewInfo: TableViewInfo | TableViewInfo[], formatRowOption: RowFormatOptions) => (
+  response: Table | MultiTable | string
+) => {
+  const processedResponse = processRefreshResponse(response)(tab)
+  apply(tab, tableViewInfo, formatRowOption, false)(processedResponse.tables, processedResponse.table)
+}
 /**
  * register a watchable job
  *
@@ -172,41 +229,22 @@ const registerWatcher = (
   // increase the table polling interval until it reaches the steady polling interval, store the ladder in an array
   const ladder = calculateLadder(initalPollingInterval)
 
-  /**
-   * process the refreshed result
-   * @return processed Table info: { table: Row[], reachedFinalState: boolean }, or
-   *         processed MultiTable info: { tables: Row[][], reachedFinalState: boolean}
-   *
-   */
-  const processRefreshResponse = (response: Table | MultiTable) => {
-    if (!isTable(response) && !isMultiTable(response)) {
-      console.error('refresh result is not a table', response)
-      throw new Error('refresh result is not a table')
-    }
-
-    const reachedFinalState = hasReachedFinalState(response)
-
-    return isTable(response)
-      ? { table: prepareTable(tab, response), reachedFinalState }
-      : {
-          tables: response.tables.map(table => {
-            return prepareTable(tab, table)
-          }),
-          reachedFinalState
-        }
+  const refresh = async (command: string) => {
+    const { qexec } = await import('../../repl/exec')
+    const response = await qexec<Table | MultiTable>(command)
+    return response
   }
 
   // execute the refresh command and apply the result
-  const refreshTable = async () => {
+  const refreshTable = async (refresh: (command: string) => Promise<Table | MultiTable>) => {
     debug(`refresh with ${command}`)
     let processedTableRow: Row[] = []
     let processedMultiTableRow: Row[][] = []
 
     try {
-      const { qexec } = await import('../../repl/exec')
-      const response = await qexec<Table | MultiTable>(command)
+      const response = await refresh(command)
 
-      const processedResponse = processRefreshResponse(response)
+      const processedResponse = processRefreshResponse(response)(tab)
 
       processedTableRow = processedResponse.table
       processedMultiTableRow = processedResponse.tables
@@ -240,26 +278,8 @@ const registerWatcher = (
       }
     }
 
-    // diff the refreshed model from the existing one and apply the change
-    const applyRefreshResult = (newRowModel: Row[], tableViewInfo: TableViewInfo) => {
-      const diffs = diffTableRows(tableViewInfo.rowsModel, newRowModel)
-      applyDiffTable(
-        diffs,
-        tab,
-        tableViewInfo.renderedTable,
-        tableViewInfo.renderedRows,
-        tableViewInfo.rowsModel,
-        formatRowOption
-      )
-    }
-
-    if (Array.isArray(tableViewInfo)) {
-      processedMultiTableRow.forEach((newRowModel, index) => {
-        applyRefreshResult(newRowModel, tableViewInfo[index])
-      })
-    } else {
-      applyRefreshResult(processedTableRow, tableViewInfo)
-    }
+    // update the view and table model
+    apply(tab, tableViewInfo, formatRowOption)(processedMultiTableRow, processedTableRow)
   }
 
   // timer handler
@@ -269,7 +289,7 @@ const registerWatcher = (
       job.abort()
     } else {
       try {
-        Promise.resolve(refreshTable())
+        Promise.resolve(refreshTable(refresh))
       } catch (err) {
         console.error('Error refreshing table', err)
         job.abort()
@@ -746,7 +766,7 @@ function setStyle(tableDom: HTMLElement, table: Table) {
 }
 
 // This helps multi-table view handler to use the the processed data from single-table view handler
-interface TableViewInfo {
+export interface TableViewInfo {
   renderedRows: HTMLElement[]
   rowsModel: Row[]
   renderedTable: HTMLElement
@@ -864,7 +884,11 @@ export const formatTable = (
   const tableViewInfo = isMultiTable(response) ? response.tables.map(table => format(table)) : format(response)
 
   if (!hasReachedFinalState(response) && isWatchable(response) && response.watchByDefault) {
-    registerWatcher(tab, response.watchLimit, response.refreshCommand, resultDom, tableViewInfo, formatRowOption)
+    if (isPusher(response)) {
+      response.watch(updater(tab, tableViewInfo, formatRowOption))
+    } else {
+      registerWatcher(tab, response.watchLimit, response.refreshCommand, resultDom, tableViewInfo, formatRowOption)
+    }
   }
 }
 
