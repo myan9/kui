@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import Debug from 'debug'
-import * as minimist from 'yargs-parser'
 import * as prettyPrintDuration from 'pretty-ms'
 
 import { Tab } from '../tab'
 import { isPopup } from '../popup-core'
 import { getCurrentPrompt } from '../prompt'
-import { _split as split, Split } from '../../repl/split'
 import { isMetadataBearing } from '../../models/entity'
-import { Table, Row, Cell, Icon, sortBody, TableStyle, diffTableRows, isTable } from '../models/table'
+import { Table, Row, Cell, Icon, sortBody, TableStyle, isTable } from '../models/table'
 import { isWatchable, isPusher, Watchable } from '../../core/jobs/watchable'
+import { registerWatcher } from '../../core/jobs/poll'
 import { theme } from '../../core/settings'
 
-import { WatchableJob } from '../../core/jobs/job'
 import { isHTML } from '../../util/types'
 
-const debug = Debug('webapp/views/table')
-
 /** ExistingTableSpec helps the watcher update the existing `Table` and view */
-interface ExistingTableSpec {
+export interface ExistingTableSpec {
   renderedRows: HTMLElement[]
   rowsModel: Row[]
   renderedTable: HTMLElement
@@ -47,25 +41,11 @@ export interface RowFormatOptions {
   usePip?: boolean
 }
 
-/** groups of States that mark desired final outcomes */
-// NOTE: This is a copy from kubectl plguin, and we should port models/states in kubectl plugin to the core
-enum FinalState {
-  NotPendingLike,
-  OnlineLike,
-  OfflineLike
-}
-
-const fastPolling = 500 // initial polling rate for watching OnlineLike or OfflineLike state
-const mediumPolling = 3000 // initial polling rate for watching a steady state
-const finalPolling = (theme && theme.tablePollingInterval) || 5000 // final polling rate (do not increase the interval beyond this!)
-
-debug('table polling intervals', fastPolling, mediumPolling, finalPolling)
-
 /**
  * get an array of row models
  *
  */
-const prepareTable = (tab: Tab, response: Table & Partial<Watchable>): Row[] => {
+export const prepareTable = (tab: Tab, response: Table & Partial<Watchable>): Row[] => {
   const { header, body, noSort } = response
 
   if (header) {
@@ -98,42 +78,6 @@ const hasReachedFinalState = (response: Table): boolean => {
   }
 
   return reachedFinalState
-}
-
-/**
- * find the final state from refresh command
- *
- */
-const findFinalStateFromCommand = (command: string): string => {
-  // parse the refresh command
-  const { A: argv } = split(command, true, true) as Split
-  const options = minimist(argv)
-
-  return options['final-state'] ? FinalState[options['finalState']] : ''
-}
-
-/**
- * calcuate the polling ladder
- *
- */
-const calculateLadder = (initial: number): number[] => {
-  const ladder = [initial]
-  let current = initial
-
-  // increment the polling interval
-  while (current < finalPolling) {
-    if (current < 1000) {
-      current = current + 250 < 1000 ? current + 250 : 1000
-      ladder.push(current)
-    } else {
-      ladder.push(current)
-      current = current + 2000 < finalPolling ? current + 2000 : finalPolling
-      ladder.push(current)
-    }
-  }
-
-  debug('ladder', ladder)
-  return ladder
 }
 
 /**
@@ -524,7 +468,7 @@ export const formatOneRowResult = (tab: Tab, options: RowFormatOptions = {}) => 
  * Update a row in the exiting table
  *
  */
-const udpateTheRow = (newRow: Row, updateIndex: number, existingTable: ExistingTableSpec) => (
+export const udpateTheRow = (newRow: Row, updateIndex: number, existingTable: ExistingTableSpec) => (
   tab: Tab,
   option?: RowFormatOptions
 ) => {
@@ -540,7 +484,7 @@ const udpateTheRow = (newRow: Row, updateIndex: number, existingTable: ExistingT
  * Insert a new row to the existing table
  *
  */
-const insertTheRow = (newRow: Row, insertBeforeIndex: number, existingTable: ExistingTableSpec) => (
+export const insertTheRow = (newRow: Row, insertBeforeIndex: number, existingTable: ExistingTableSpec) => (
   tab: Tab,
   option?: RowFormatOptions
 ) => {
@@ -554,7 +498,7 @@ const insertTheRow = (newRow: Row, insertBeforeIndex: number, existingTable: Exi
  * Delete a row from the existing table
  *
  */
-const deleteTheRow = (deleteRow: Row, deleteIndex: number, existingTable: ExistingTableSpec) => {
+export const deleteTheRow = (deleteRow: Row, deleteIndex: number, existingTable: ExistingTableSpec) => {
   // change the status badge to `offline`
   deleteRow.attributes.forEach(attr => {
     if (attr.key === 'STATUS') {
@@ -576,139 +520,6 @@ const deleteTheRow = (deleteRow: Row, deleteIndex: number, existingTable: Existi
   // remove the repeating pulse effect remained from the previous state, e.g. Terminating
   const pulse = existingTable.renderedRows[deleteIndex].querySelector('.repeating-pulse') as HTMLElement
   if (pulse) pulse.classList.remove('repeating-pulse')
-}
-
-/**
- * register a watchable job
- *
- */
-const registerWatcher = (
-  tab: Tab,
-  watchLimit = 100000,
-  command: string,
-  resultDom: HTMLElement,
-  existingTable: ExistingTableSpec,
-  formatRowOption?: RowFormatOptions
-) => {
-  let job: WatchableJob // eslint-disable-line prefer-const
-
-  // the final state we want to reach to
-  const expectedFinalState = findFinalStateFromCommand(command)
-
-  // establish the initial watch interval,
-  // if we're on resource creation/deletion, do fast polling, otherwise we do steady polling
-  const initalPollingInterval =
-    expectedFinalState === 'OfflineLike' || expectedFinalState === 'OnlineLike' ? fastPolling : mediumPolling
-
-  // increase the table polling interval until it reaches the steady polling interval, store the ladder in an array
-  const ladder = calculateLadder(initalPollingInterval)
-
-  /**
-   * process the refreshed result
-   * @return processed Table info: { table: Row[], reachedFinalState: boolean }
-   *
-   */
-  const processRefreshResponse = (response: Table) => {
-    if (!isTable(response)) {
-      console.error('refresh result is not a table', response)
-      throw new Error('refresh result is not a table')
-    }
-
-    const reachedFinalState = hasReachedFinalState(response)
-
-    return { table: prepareTable(tab, response), reachedFinalState }
-  }
-
-  // execute the refresh command and apply the result
-  const refreshTable = async () => {
-    debug(`refresh with ${command}`)
-    let processedTableRow: Row[] = []
-
-    try {
-      const { qexec } = await import('../../repl/exec')
-      const response = await qexec<Table>(command)
-
-      const processedResponse = processRefreshResponse(response)
-
-      processedTableRow = processedResponse.table
-
-      // stop watching if all resources in the table reached to the finial state
-      if (processedResponse.reachedFinalState) {
-        job.abort()
-      } else {
-        // if the refreshed result doesn't reach the expected state,
-        // then we increment the table polling interval by ladder until it reaches the steady polling interval
-        const newTimer = ladder.shift()
-        if (newTimer) {
-          // reshedule the job using new polling interval
-          job.abort()
-          job = new WatchableJob(tab, watchIt, newTimer + ~~(100 * Math.random())) // eslint-disable-line @typescript-eslint/no-use-before-define
-          job.start()
-        }
-      }
-    } catch (err) {
-      if (err.code === 404) {
-        if (expectedFinalState === 'OfflineLike') {
-          debug('resource not found after status check, but that is ok because that is what we wanted')
-          job.abort()
-        }
-      } else {
-        while (resultDom.firstChild) {
-          resultDom.removeChild(resultDom.firstChild)
-        }
-        job.abort()
-        throw err
-      }
-    }
-
-    // diff the refreshed model from the existing one and apply the change
-    const applyRefreshResult = (newRowModel: Row[], existingTable: ExistingTableSpec) => {
-      const diff = diffTableRows(existingTable.rowsModel, newRowModel)
-      if (diff.rowUpdate && diff.rowUpdate.length > 0) {
-        debug('update rows', diff.rowUpdate)
-        diff.rowUpdate.map(update => {
-          udpateTheRow(update.model, update.updateIndex, existingTable)(tab, formatRowOption)
-        })
-      }
-
-      if (diff.rowDeletion && diff.rowDeletion.length > 0) {
-        debug('delete rows', diff.rowDeletion)
-        diff.rowDeletion
-          .filter(_ => _.model.name !== 'NAME')
-          .map(rowDeletion => {
-            deleteTheRow(rowDeletion.model, rowDeletion.deleteIndex, existingTable)
-          })
-      }
-
-      if (diff.rowInsertion && diff.rowInsertion.length > 0) {
-        debug('insert rows', diff.rowInsertion)
-        diff.rowInsertion.map(insert => {
-          insertTheRow(insert.model, insert.insertBeforeIndex, existingTable)(tab, formatRowOption)
-        })
-      }
-    }
-
-    applyRefreshResult(processedTableRow, existingTable)
-  }
-
-  // timer handler
-  const watchIt = () => {
-    if (--watchLimit < 0) {
-      console.error('watchLimit exceeded')
-      job.abort()
-    } else {
-      try {
-        Promise.resolve(refreshTable())
-      } catch (err) {
-        console.error('Error refreshing table', err)
-        job.abort()
-      }
-    }
-  }
-
-  // establish the inital watchable job
-  job = new WatchableJob(tab, watchIt, ladder.shift() + ~~(100 * Math.random()))
-  job.start()
 }
 
 /**
