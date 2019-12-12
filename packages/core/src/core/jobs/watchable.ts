@@ -42,8 +42,8 @@ export interface Pusher {
 }
 
 /** callbacks to indicate state changes */
-type WatchedRowHasUpdate = (response: Row) => void
-type WactchedRowisOffline = (rowKey: string) => void
+export type WatchedRowHasUpdate = (response: Row) => void
+export type WactchedRowisOffline = (rowKey: string) => void
 
 function isPoller(model: Poller | Pusher): model is Poller {
   return (model as Poller).refreshCommand !== undefined
