@@ -23,7 +23,7 @@ import { isPopup } from '../popup-core'
 import { getCurrentPrompt } from '../prompt'
 import { _split as split, Split } from '../../repl/split'
 import { isMetadataBearing } from '../../models/entity'
-import { Table, Row, Cell, Icon, sortBody, TableStyle, diffTableRows, isTable } from '../models/table'
+import { Table, Row, Cell, Icon, sortBody, TableStyle, isTable } from '../models/table'
 import { isWatchable, isPusher, Watchable } from '../../core/jobs/watchable'
 import { theme } from '../../core/settings'
 
@@ -587,9 +587,8 @@ const registerWatcher = (
   watchLimit = 100000,
   command: string,
   resultDom: HTMLElement,
-  existingTable: ExistingTableSpec,
-  formatRowOption?: RowFormatOptions
-) => {
+  existingTable: ExistingTableSpec
+) => (updated: (row: Row) => void, deleted: (rowKey: string) => void) => {
   let job: WatchableJob // eslint-disable-line prefer-const
 
   // the final state we want to reach to
@@ -661,34 +660,21 @@ const registerWatcher = (
       }
     }
 
-    // diff the refreshed model from the existing one and apply the change
-    const applyRefreshResult = (newRowModel: Row[], existingTable: ExistingTableSpec) => {
-      const diff = diffTableRows(existingTable.rowsModel, newRowModel)
-      if (diff.rowUpdate && diff.rowUpdate.length > 0) {
-        debug('update rows', diff.rowUpdate)
-        diff.rowUpdate.map(update => {
-          udpateTheRow(update.model, update.updateIndex, existingTable)(tab, formatRowOption)
-        })
-      }
+    const deletes = existingTable.rowsModel
 
-      if (diff.rowDeletion && diff.rowDeletion.length > 0) {
-        debug('delete rows', diff.rowDeletion)
-        diff.rowDeletion
-          .filter(_ => _.model.name !== 'NAME')
-          .map(rowDeletion => {
-            deleteTheRow(rowDeletion.model, rowDeletion.deleteIndex, existingTable)
-          })
+    processedTableRow.forEach(row => {
+      const found = existingTable.rowsModel.findIndex(_ => _.name === row.name)
+      if (found === -1) {
+        updated(row) // insert
+      } else {
+        deletes.splice(found, 1)
+        if (JSON.stringify(row) !== JSON.stringify(existingTable.rowsModel[found])) {
+          updated(row) // update
+        }
       }
+    })
 
-      if (diff.rowInsertion && diff.rowInsertion.length > 0) {
-        debug('insert rows', diff.rowInsertion)
-        diff.rowInsertion.map(insert => {
-          insertTheRow(insert.model, insert.insertBeforeIndex, existingTable)(tab, formatRowOption)
-        })
-      }
-    }
-
-    applyRefreshResult(processedTableRow, existingTable)
+    deletes.forEach(_ => deleted(_.name))
   }
 
   // timer handler
@@ -844,37 +830,35 @@ export const formatTable = (tab: Tab, response: Table, resultDom: HTMLElement, o
 
   if (isWatchable(response)) {
     const watch = response.watch
-    if (isPusher(watch)) {
-      if (!Array.isArray(existingTable)) {
-        /** offline takes the rowKey of the row to be deleted and applies this to the table view */
-        const offline = (rowKey: string) => {
-          const existingRows = existingTable.rowsModel
-          const foundIndex = existingRows.findIndex(_ => _.name === rowKey)
-          deleteTheRow(existingRows[foundIndex], foundIndex, existingTable)
-        }
+    /** deleted takes the rowKey of the row to be deleted and applies this to the table view */
+    const deleted = (rowKey: string) => {
+      const existingRows = existingTable.rowsModel
+      const foundIndex = existingRows.findIndex(_ => _.name === rowKey)
+      deleteTheRow(existingRows[foundIndex], foundIndex, existingTable)
+    }
 
-        /** update consumes the update notification and apply it to the table view */
-        const update = (newRow: Row) => {
-          const existingRows = existingTable.rowsModel
-          const foundIndex = existingRows.findIndex(_ => _.name === newRow.name)
+    /** updated consumes the update notification and apply it to the table view */
+    const updated = (newRow: Row) => {
+      const existingRows = existingTable.rowsModel
+      const foundIndex = existingRows.findIndex(_ => _.name === newRow.name)
 
-          if (foundIndex === -1) {
-            // To get the insertion index, first concat the new row with the existing rows, then sort the rows
-            const index = sortBody([newRow].concat(existingRows)).findIndex(_ => _.name === newRow.name)
-            insertTheRow(newRow, index + 1, existingTable)(tab, formatRowOption)
-          } else {
-            const doUpdate = JSON.stringify(newRow) !== JSON.stringify(existingRows[foundIndex])
-            if (doUpdate) udpateTheRow(newRow, foundIndex, existingTable)(tab, formatRowOption)
-          }
-        }
-
-        // initiate the pusher watch
-        watch.init(update, offline)
+      if (foundIndex === -1) {
+        // To get the insertion index, first concat the new row with the existing rows, then sort the rows
+        const index = sortBody([newRow].concat(existingRows)).findIndex(_ => _.name === newRow.name)
+        insertTheRow(newRow, index + 1, existingTable)(tab, formatRowOption)
+      } else {
+        const doUpdate = JSON.stringify(newRow) !== JSON.stringify(existingRows[foundIndex])
+        if (doUpdate) udpateTheRow(newRow, foundIndex, existingTable)(tab, formatRowOption)
       }
+    }
+
+    if (isPusher(watch)) {
+      // initiate the pusher watch
+      watch.init(updated, deleted)
     } else {
       if (!hasReachedFinalState(response)) {
         // initiate the poller watch
-        registerWatcher(tab, watch.watchLimit, watch.refreshCommand, resultDom, existingTable, formatRowOption)
+        registerWatcher(tab, watch.watchLimit, watch.refreshCommand, resultDom, existingTable)(updated, deleted)
       }
     }
   }
