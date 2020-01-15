@@ -40,10 +40,8 @@ const port = process.env.KUI_PORT || (PORT_OFFSET === undefined ? 9080 : 9080 + 
 let contextRoot = ''
 try {
   if (process.env.CLIENT_HOME && !isWatching) {
-    const clientDefnHome = require(path.join(process.env.CLIENT_HOME, 'package.json')).kui.client
     contextRoot =
-      require(path.join(process.env.CLIENT_HOME, 'node_modules/@kui-shell', clientDefnHome, 'client.json'))
-        .contextRoot || ''
+      require(path.join(process.env.CLIENT_HOME, 'node_modules/@kui-shell/client/config.d/exec.json')).contextRoot || ''
     if (contextRoot && !/\/$/.test(contextRoot)) {
       contextRoot = contextRoot + '/'
     }
