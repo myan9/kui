@@ -461,8 +461,4 @@ export const pit = (msg: string, func: Func) => {
 }
 
 /** non-headless targets in travis use the clients/default version */
-export const expectedVersion =
-  process.env.TRAVIS_JOB_ID &&
-  (process.env.MOCHA_RUN_TARGET === 'electron' || process.env.MOCHA_RUN_TARGET === 'webpack')
-    ? '0.0.1'
-    : require('@kui-shell/settings/package.json').version
+export const expectedVersion = require('@kui-shell/client/package.json').version
