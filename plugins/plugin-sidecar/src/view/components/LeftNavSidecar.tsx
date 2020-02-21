@@ -63,7 +63,7 @@ export class LeftNavSidecar extends BaseSidecar<NavResponse, State> {
     super(props)
 
     // get state from each of the left navigation
-    const navigations = Object.entries(props.response).map(([title, mmr]) => {
+    const navigations = Object.entries(props.response.nav).map(([title, mmr]) => {
       const state = getStateFromMMR(props.tab, mmr)
       return Object.assign({ title }, state)
     })
@@ -120,7 +120,7 @@ export class LeftNavSidecar extends BaseSidecar<NavResponse, State> {
       <KuiContent
         tab={this.props.tab}
         mode={this.state.allNavs[navIdx].tabs[tabIdx]}
-        response={this.props.response[navIdx]}
+        response={this.props.response.nav[navIdx]}
       />
     )
   }

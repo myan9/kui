@@ -81,7 +81,11 @@ const aboutWindow = async (): Promise<NavResponse> => {
     })
   }
 
-  return fullAbout
+  return {
+    kind: 'about',
+    apiVersion: 'kui-shell/NavResponse/v1' as const,
+    nav: fullAbout
+  }
 }
 
 interface VersionOptions extends ParsedOptions {

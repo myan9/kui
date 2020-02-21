@@ -22,13 +22,19 @@ import { MultiModalResponse } from './mmr/types'
  * A `NavResponse` is a collection of `MultiModalResponse` with menu navigation
  *
  */
-export type NavResponse = Record<string, MultiModalResponse>
+export interface NavResponse {
+  apiVersion: 'kui-shell/NavResponse/v1'
+  kind: string
+  nav: Navigation
+}
+
+type Navigation = Record<string, MultiModalResponse>
 
 export function isNavResponse(entity: Entity): entity is NavResponse {
-  const nav = entity as NavResponse
+  const response = entity as NavResponse
   return (
-    typeof nav === 'object' &&
-    Object.keys(nav).length !== 0 &&
-    Object.keys(nav).every(menu => isMultiModalResponse(nav[menu]))
+    response.kind &&
+    response.apiVersion === 'kui-shell/NavResponse/v1' &&
+    Object.keys(response.nav).every(menu => isMultiModalResponse(response.nav[menu]))
   )
 }

@@ -25,7 +25,7 @@ import renderLeftNavSidecar from './components/LeftNavSidecar'
  *
  */
 function render(response: NavResponse | MultiModalResponse, tab: Tab, repl: REPL, renderer: Renderer): KuiComponent {
-  const entity = isNavResponse(response) ? response[Object.keys(response)[0]] : response
+  const entity = isNavResponse(response) ? response.nav[Object.keys(response.nav)[0]] : response
   if (entity) {
     return {
       apiVersion: 'kui-shell/component/v1' as const,
