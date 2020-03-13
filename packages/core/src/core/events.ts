@@ -16,10 +16,10 @@
 
 import { EventEmitter } from 'events'
 
-const eventBus = new EventEmitter()
-eventBus.setMaxListeners(100)
+const eventChannelUnsafe = new EventEmitter()
+eventChannelUnsafe.setMaxListeners(100)
 
-export default eventBus
+export default eventChannelUnsafe
 
 /**
  * Hook an event listener up to the family of standard user
@@ -27,7 +27,7 @@ export default eventBus
  *
  */
 export function wireToStandardEvents(listener: () => void) {
-  eventBus.on('/tab/new', listener)
-  eventBus.on('/tab/switch', listener)
-  eventBus.on('/command/complete/fromuser', listener)
+  eventChannelUnsafe.on('/tab/new', listener)
+  eventChannelUnsafe.on('/tab/switch', listener)
+  eventChannelUnsafe.on('/command/complete/fromuser', listener)
 }

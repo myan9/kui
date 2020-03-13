@@ -24,7 +24,7 @@ import { IDisposable, Terminal as XTerminal } from 'xterm'
 // uses of the public kui-shell API
 import {
   Tab,
-  eventBus,
+  eventChannelUnsafe,
   CodedError,
   inBrowser,
   ExecType,
@@ -169,7 +169,7 @@ class Resizer {
         debug('toggle event, but not for our sidecar')
       }
     }
-    eventBus.on('/sidecar/toggle', this.doToggle)
+    eventChannelUnsafe.on('/sidecar/toggle', this.doToggle)
 
     this.resize()
   }
@@ -185,7 +185,7 @@ class Resizer {
   destroy() {
     this.exitAltBufferMode()
     this.exitApplicationMode()
-    eventBus.off('/sidecar/toggle', this.doToggle)
+    eventChannelUnsafe.off('/sidecar/toggle', this.doToggle)
     window.removeEventListener('resize', this.resizeNow)
     document.removeEventListener('select', this.clearXtermSelectionNow)
   }
@@ -782,8 +782,8 @@ const getOrCreateChannel = async (
       ws.removeEventListener('close', onClose)
       if (!tab.state.closed) {
         debug('attempting to reestablish connection, because the tab is still open')
-        eventBus.emit('/tab/offline', tab)
-        eventBus.emit(`/tab/offline/${tab.state.uuid}`)
+        eventChannelUnsafe.emit('/tab/offline', tab)
+        eventChannelUnsafe.emit(`/tab/offline/${tab.state.uuid}`)
       }
     }
     ws.on('close', onClose)
@@ -865,7 +865,7 @@ export const doExec = (
           // theming
           // injectFont(terminal) // inject once on startup
           const doInjectTheme = () => injectFont(terminal, true)
-          eventBus.on('/theme/change', doInjectTheme) // and re-inject when the theme changes
+          eventChannelUnsafe.on('/theme/change', doInjectTheme) // and re-inject when the theme changes
 
           resizer = new Resizer(terminal, tab, execOptions, ourUUID)
 
@@ -874,11 +874,11 @@ export const doExec = (
             injectFont(terminal, true)
             resizer.resize()
           }
-          eventBus.on('/zoom', doZoom)
+          eventChannelUnsafe.on('/zoom', doZoom)
 
           const cleanupEventHandlers = () => {
-            eventBus.off('/zoom', doZoom)
-            eventBus.off('/theme/change', doInjectTheme)
+            eventChannelUnsafe.off('/zoom', doZoom)
+            eventChannelUnsafe.off('/theme/change', doInjectTheme)
           }
 
           // heuristic for hiding empty rows

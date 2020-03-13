@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react'
-import { inElectron, eventBus, Tab } from '@kui-shell/core'
+import { inElectron, eventChannelUnsafe, Tab } from '@kui-shell/core'
 
 import TabModel from './TabModel'
 import TopTabStripe, { TopTabStripeConfiguration } from './TopTabStripe'
@@ -56,11 +56,11 @@ export default class TabContainer extends React.PureComponent<Props, State> {
       activeIdx: 0
     }
 
-    eventBus.on('/tab/new/request', () => {
+    eventChannelUnsafe.on('/tab/new/request', () => {
       this.onNewTab()
     })
 
-    eventBus.on('/tab/close/request', async (tab: Tab) => {
+    eventChannelUnsafe.on('/tab/close/request', async (tab: Tab) => {
       if (this.state.tabs.length === 1) {
         // then we are closing the last tab, so close the window
         tab.REPL.qexec('window close')
@@ -69,7 +69,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
       }
     })
 
-    eventBus.on('/tab/switch/request', (idx: number) => {
+    eventChannelUnsafe.on('/tab/switch/request', (idx: number) => {
       this.onSwitchTab(idx)
     })
   }
