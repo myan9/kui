@@ -25,6 +25,7 @@ import { IDisposable, Terminal as XTerminal } from 'xterm'
 import {
   Tab,
   eventChannelUnsafe,
+  eventBus,
   CodedError,
   inBrowser,
   ExecType,
@@ -782,8 +783,8 @@ const getOrCreateChannel = async (
       ws.removeEventListener('close', onClose)
       if (!tab.state.closed) {
         debug('attempting to reestablish connection, because the tab is still open')
-        eventChannelUnsafe.emit('/tab/offline', tab)
-        eventChannelUnsafe.emit(`/tab/offline/${tab.state.uuid}`)
+        eventBus.emit('/tab/offline', tab)
+        eventBus.emitWithTabId(`/tab/offline`, tab.state.uuid)
       }
     }
     ws.on('close', onClose)

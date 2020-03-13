@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { eventChannelUnsafe, Registrar, Tab } from '@kui-shell/core'
+import { eventBus, Registrar, Tab } from '@kui-shell/core'
 
 // TODO fixme; this is needed by a few tests
 export const tabButtonSelector = '#new-tab-button'
@@ -30,7 +30,7 @@ const usage = {
  *
  */
 function closeTab(tab: Tab) {
-  eventChannelUnsafe.emit('/tab/close/request', tab)
+  eventBus.emit('/tab/close/request', tab)
   return true
 }
 
@@ -39,7 +39,7 @@ function closeTab(tab: Tab) {
  *
  */
 const newTabAsync = () => {
-  eventChannelUnsafe.emit('/tab/new/request')
+  eventBus.emit('/tab/new/request')
   return true
 }
 
@@ -52,7 +52,7 @@ export default function plugin(commandTree: Registrar) {
     '/tab/switch',
     ({ argvNoOptions }) => {
       const idx = parseInt(argvNoOptions[argvNoOptions.length - 1], 10)
-      eventChannelUnsafe.emit('/tab/switch/request', idx - 1)
+      eventBus.emit('/tab/switch/request', idx - 1)
       return true
     },
     { usage, needsUI: true }

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as React from 'react'
-import { inElectron, eventChannelUnsafe, Tab } from '@kui-shell/core'
+import { inElectron, Tab, eventBus } from '@kui-shell/core'
 
 import TabModel from './TabModel'
 import TopTabStripe, { TopTabStripeConfiguration } from './TopTabStripe'
@@ -56,11 +55,11 @@ export default class TabContainer extends React.PureComponent<Props, State> {
       activeIdx: 0
     }
 
-    eventChannelUnsafe.on('/tab/new/request', () => {
+    eventBus.on('/tab/new/request', () => {
       this.onNewTab()
     })
 
-    eventChannelUnsafe.on('/tab/close/request', async (tab: Tab) => {
+    eventBus.on('/tab/close/request', async (tab: Tab) => {
       if (this.state.tabs.length === 1) {
         // then we are closing the last tab, so close the window
         tab.REPL.qexec('window close')
@@ -69,7 +68,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
       }
     })
 
-    eventChannelUnsafe.on('/tab/switch/request', (idx: number) => {
+    eventBus.on('/tab/switch/request', (idx: number) => {
       this.onSwitchTab(idx)
     })
   }

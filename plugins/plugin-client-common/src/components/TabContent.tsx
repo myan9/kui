@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react'
-import { eventChannelUnsafe, Tab as KuiTab, TabState, initializeSession, i18n } from '@kui-shell/core'
+import { eventChannelUnsafe, eventBus, Tab as KuiTab, TabState, initializeSession, i18n } from '@kui-shell/core'
 import SplitPane from 'react-split-pane'
 
 import Cleaner from './cleaner'
@@ -95,8 +95,8 @@ export default class TabContent extends React.PureComponent<Props, State> {
     })
 
     const onOffline = this.onOffline.bind(this)
-    eventChannelUnsafe.on(`/tab/offline/${this.props.uuid}`, onOffline)
-    this.cleaners.push(() => eventChannelUnsafe.off(`/tab/offline/${this.props.uuid}`, onOffline))
+    eventBus.onWithTabId('/tab/offline', this.props.uuid, onOffline)
+    this.cleaners.push(() => eventBus.offWithTabId('/tab/offline', this.props.uuid, onOffline))
   }
 
   /* public static getDerivedStateFromProps(props: Props, state: State) {
@@ -121,7 +121,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
       try {
         state.tab.state = props.state
         initializeSession(state.tab).then(() => {
-          eventChannelUnsafe.emit('/tab/new', state.tab)
+          eventBus.emit('/tab/new', state.tab)
           eventChannelUnsafe.emit(`/tab/new/${props.uuid}`)
         })
 
@@ -153,7 +153,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
   }
 
   public componentWillUnmount() {
-    eventChannelUnsafe.emit('/tab/close', this.state.tab)
+    eventBus.emit('/tab/close', this.state.tab)
   }
 
   private terminal() {

@@ -122,12 +122,12 @@ export async function init(registrar: PreloadRegistrar) {
   if (inBrowser() && (proxyServer as { enabled?: boolean }).enabled !== false) {
     debug('initializing pty sessions')
 
-    const { eventChannelUnsafe } = await import('@kui-shell/core')
+    const { eventBus } = await import('@kui-shell/core')
 
     registrar.registerSessionInitializer(newSessionForTab)
 
     // listen for closed tabs
-    eventChannelUnsafe.on('/tab/close', async (tab: Tab) => {
+    eventBus.on('/tab/close', async (tab: Tab) => {
       try {
         debug('closing session for tab')
         getChannelForTab(tab).close()
