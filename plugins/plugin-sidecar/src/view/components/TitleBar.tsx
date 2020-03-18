@@ -16,7 +16,7 @@
 
 import * as React from 'react'
 import { REPL, Breadcrumb as KuiBreadcrumb } from '@kui-shell/core'
-import { Breadcrumb, BreadcrumbItem } from 'carbon-components-react'
+import { Breadcrumb, BreadcrumbItem, TooltipIcon } from 'carbon-components-react'
 import {
   Maximize20 as MaximizeIcon,
   Minimize20 as MinimizeIcon,
@@ -100,7 +100,9 @@ export default class Window extends React.PureComponent<Props> {
             onMouseDown={evt => evt.preventDefault()}
             onClick={() => this.toggleMinimization()}
           >
-            <CloseIcon />
+            <TooltipIcon tooltipText="Close">
+              <CloseIcon />
+            </TooltipIcon>
           </a>
         </div>
       )
@@ -125,7 +127,7 @@ export default class Window extends React.PureComponent<Props> {
                 onMouseDown={evt => evt.preventDefault()}
                 onClick={() => this.toggleMaximization()}
               >
-                {icon}
+                <TooltipIcon tooltipText={aria}>{icon}</TooltipIcon>
               </a>
             </div>
           </span>
