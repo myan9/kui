@@ -21,20 +21,6 @@ import { inBrowser } from '../core/capabilities'
 
 const debug = Debug('core/models/TabState')
 
-interface TabStateConfig {
-  maxWatchersPerTab?: number
-}
-
-let tabStateConfig: TabStateConfig
-try {
-  tabStateConfig = require('@kui-shell/client/config.d/limits.json')
-} catch (err) {
-  debug('using default TabStateConfig')
-  tabStateConfig = {
-    maxWatchersPerTab: 10
-  }
-}
-
 /**
  * State that we want to keep per tab
  *
@@ -63,7 +49,7 @@ export default class TabState {
   public drilldownInProgress: Promise<void>
 
   // eslint-disable-next-line no-useless-constructor
-  public constructor(public readonly uuid: string) {}
+  public constructor(public readonly uuid: string, public readonly maxWatchersPerTab?: number) {}
 
   public get env() {
     return this._env
@@ -116,7 +102,7 @@ export default class TabState {
   /** attach a job to this tab */
   public captureJob(job: WatchableJob) {
     if (!this._jobs) {
-      const maxJobs = tabStateConfig.maxWatchersPerTab
+      const maxJobs = this.maxWatchersPerTab !== undefined ? this.maxWatchersPerTab : 6
       this._jobs = new Array<WatchableJob>(maxJobs)
       this._age = new Array<number>(maxJobs)
     }

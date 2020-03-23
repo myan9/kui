@@ -16,6 +16,10 @@
 
 import { TabState } from '@kui-shell/core'
 
+export type TabModelOptions = {
+  maxWatchersPerTab?: number
+}
+
 /** cheapo uuid; we only need single-threaded uniqueness */
 let _uuidCounter = 1
 export function uuid() {
@@ -26,9 +30,9 @@ export default class TabModel {
   private readonly _uuid: string
   private readonly _state: TabState
 
-  public constructor() {
+  public constructor(options: TabModelOptions) {
     this._uuid = uuid()
-    this._state = new TabState(this._uuid)
+    this._state = new TabState(this._uuid, options.maxWatchersPerTab)
     this._state.capture()
   }
 

@@ -16,7 +16,7 @@
 import * as React from 'react'
 import { inElectron, Tab, eventBus } from '@kui-shell/core'
 
-import TabModel from './TabModel'
+import TabModel, { TabModelOptions } from './TabModel'
 import TopTabStripe, { TopTabStripeConfiguration } from './TopTabStripe'
 import TabContent, { TabContentOptions } from './TabContent'
 
@@ -36,7 +36,7 @@ import '../../web/css/static/TabContainer.scss'
  */
 
 type TabContainerOptions = TabContentOptions
-type Props = TabContainerOptions & TopTabStripeConfiguration
+type Props = TabContainerOptions & TopTabStripeConfiguration & TabModelOptions
 
 interface State {
   /** list of current tabs; one TabContent for each */
@@ -51,7 +51,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
     super(props)
 
     this.state = {
-      tabs: [new TabModel()],
+      tabs: [new TabModel({ maxWatchersPerTab: this.props.maxWatchersPerTab })],
       activeIdx: 0
     }
 
@@ -149,7 +149,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
     this.captureState()
 
     this.setState(curState => ({
-      tabs: curState.tabs.concat(new TabModel()),
+      tabs: curState.tabs.concat(new TabModel({ maxWatchersPerTab: this.props.maxWatchersPerTab })),
       activeIdx: curState.tabs.length
     }))
   }

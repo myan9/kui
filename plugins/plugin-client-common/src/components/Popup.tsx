@@ -20,11 +20,12 @@
 import * as React from 'react'
 import { eventChannelUnsafe, eventBus, Tab as KuiTab } from '@kui-shell/core'
 
-import { ComboSidecar, ContextWidgets, InputStripe, StatusStripe, TabContent, TabModel } from '..'
+import { ComboSidecar, ContextWidgets, InputStripe, StatusStripe, TabContent } from '..'
+import TabModel, { TabModelOptions } from './TabModel'
 
 import '../../web/css/static/Popup.scss'
 
-interface Props {
+type Props = TabModelOptions & {
   commandLine: string[]
   children?: React.ReactNode
 }
@@ -48,7 +49,7 @@ export default class Popup extends React.PureComponent<Props, State> {
     })
 
     this.state = {
-      model: new TabModel(),
+      model: new TabModel({ maxWatchersPerTab: props.maxWatchersPerTab }),
       promptPlaceholder: ''
     }
   }
