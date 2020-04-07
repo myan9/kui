@@ -22,6 +22,7 @@ import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/components'
 import { ClusterUtilization } from '@kui-shell/plugin-kubectl/view-utilization'
 import { ProxyOfflineIndicator } from '@kui-shell/plugin-proxy-support'
+import { DogWidget } from '@kui-shell/plugin-hello/mdist/index'
 
 /**
  * Format our body, with extra status stripe widgets
@@ -39,6 +40,7 @@ export default function renderMain(props: KuiProps) {
       </ContextWidgets>
 
       <MeterWidgets>
+        <DogWidget />
         <ClusterUtilization />
         <ProxyOfflineIndicator />
       </MeterWidgets>
