@@ -61,6 +61,7 @@ const pollForEndMarker = async (fd /*: number */) /* : Promise<string> */ => {
     const iter = async (idx = 0) => {
       try {
         const maybe = await readFileAsync(fd)
+        console.error('tee-to-file content:', maybe.toString())
         if (maybe.indexOf(KUI_TEE_TO_FILE_END_MARKER) >= 0) {
           resolve(maybe.toString().replace(KUI_TEE_TO_FILE_END_MARKER, ''))
         } else {
@@ -129,6 +130,8 @@ class CLI {
         ourEnv.KUI_TEE_TO_FILE_END_MARKER = KUI_TEE_TO_FILE_END_MARKER
         ourEnv.KUI_TEE_TO_FILE_EXIT_ON_END_MARKER = true
         // ourEnv.DEBUG = '*' // be careful with this one, as it is incompatible with child_process.exec
+        debug('tee to file name:', ourEnv.KUI_TEE_TO_FILE)
+        debug('tee to file end marker:', ourEnv.KUI_TEE_TO_FILE_END_MARKER)
       }
 
       exec(command, { env: ourEnv }, async (err, stdout, stderr) => {
@@ -260,6 +263,8 @@ exports.cli = new CLI()
 
 /** bin/kui --ui impl */
 exports.kuiElectron = new CLI(kui, undefined, true) // the last true requests teeToFile mode
+
+exports.ibmcloudKui = new CLI('ibmcloud kui', undefined, true)
 
 /**
  * @return a CLI impl for the given executable `exe`, located in the given `bindir`.
