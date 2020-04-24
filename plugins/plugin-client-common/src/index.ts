@@ -28,6 +28,8 @@ import '../web/css/static/status-stripe.css'
 // default client
 export { default as Kui, Props as KuiProps } from './components/Client/Kui'
 
+export { ComponentContext } from './components/Client/Context'
+
 // Client components
 export { default as Search } from './components/Client/Search'
 export { default as InputStripe } from './components/Client/InputStripe'

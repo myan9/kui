@@ -16,7 +16,6 @@
 
 import * as React from 'react'
 import { REPL } from '@kui-shell/core'
-import { Breadcrumb, BreadcrumbItem } from 'carbon-components-react'
 import {
   Maximize16 as MaximizeIcon,
   Minimize16 as MinimizeIcon,
@@ -27,9 +26,7 @@ import {
 } from '@carbon/icons-react'
 
 import Width from './width'
-import TopNavBreadcrumb from './breadcrumb'
-
-import '../../../../web/css/static/Breadcrumb.scss'
+import { TopNavBreadcrumb, Breadcrumb } from '../Breadcrumb/TopNavBreadcrumb'
 
 export interface Props {
   kind?: string
@@ -196,21 +193,7 @@ export default class Window extends React.PureComponent<Props> {
         {this.forward()}
 
         {breadcrumbs && breadcrumbs.length > 0 && (
-          <Breadcrumb noTrailingSlash={breadcrumbs.length > 1}>
-            {breadcrumbs.map((_, idx) => (
-              <BreadcrumbItem
-                href="#"
-                key={idx}
-                className={[_.className, _.deemphasize && 'kui--secondary-breadcrumb', 'zoomable']
-                  .filter(_ => _)
-                  .join(' ')}
-                isCurrentPage={idx === currentPageIdx}
-                onClick={_.command && (() => this.props.repl.pexec(_.command))}
-              >
-                {_.command ? <a href="#">{_.label}</a> : <span>{_.label}</span>}
-              </BreadcrumbItem>
-            ))}
-          </Breadcrumb>
+          <Breadcrumb breadcrumbs={breadcrumbs} repl={this.props.repl} currentPageIdx={currentPageIdx} />
         )}
       </div>
     )

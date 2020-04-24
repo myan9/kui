@@ -34,7 +34,7 @@ import {
 
 import Width from './width'
 import Badge from './Badge'
-import TopNavBreadcrumb from './breadcrumb'
+import { TopNavBreadcrumb } from '../Breadcrumb/TopNavBreadcrumb'
 import ToolbarContainer from './ToolbarContainer'
 import { BaseHistoryEntry, BaseSidecar, Props, cwd } from './BaseSidecar'
 

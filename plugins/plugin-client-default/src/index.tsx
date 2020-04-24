@@ -16,7 +16,7 @@
 
 import * as React from 'react'
 
-import { Kui, KuiProps, ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
+import { Kui, KuiProps, ContextWidgets, MeterWidgets, ComponentContext } from '@kui-shell/plugin-client-common'
 
 import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { CurrentContext, CurrentNamespace } from '@kui-shell/plugin-kubectl/components'
@@ -33,17 +33,19 @@ import { productName } from '@kui-shell/client/config.d/name.json'
  */
 export default function renderMain(props: KuiProps) {
   return (
-    <Kui productName={productName} {...props}>
-      <ContextWidgets>
-        <CurrentGitBranch className="kui--hide-in-narrower-windows" />
-        <CurrentContext />
-        <CurrentNamespace />
-      </ContextWidgets>
+    <ComponentContext.Provider value="patternfly">
+      <Kui productName={productName} {...props}>
+        <ContextWidgets>
+          <CurrentGitBranch className="kui--hide-in-narrower-windows" />
+          <CurrentContext />
+          <CurrentNamespace />
+        </ContextWidgets>
 
-      <MeterWidgets>
-        <ClusterUtilization />
-        <ProxyOfflineIndicator />
-      </MeterWidgets>
-    </Kui>
+        <MeterWidgets>
+          <ClusterUtilization />
+          <ProxyOfflineIndicator />
+        </MeterWidgets>
+      </Kui>
+    </ComponentContext.Provider>
   )
 }

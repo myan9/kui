@@ -1,0 +1,57 @@
+/* breadcrumbs */
+body[kui-theme-style] nav[aria-label='Breadcrumb'] {
+  overflow-x: hidden;
+
+  &.pf-c-breadcrumb {
+    display: flex;
+    flex-wrap: nowrap;
+    font-family: var(--font-sans-serif);
+    padding: 0 1em;
+    line-height: unset;
+
+    .pf-c-breadcrumb__item {
+      margin-right: 0.5em;
+
+      &.kui--version-breadcrumb .pf-c-breadcrumb__link {
+        color: var(--color-base0F);
+      }
+
+      &.kui--secondary-breadcrumb {
+        overflow: hidden;
+        .pf-c-breadcrumb__link {
+          color: var(--color-text-02);
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      .pf-c-breadcrumb__link {
+        font-size: inherit;
+        font-size: 1em;
+        font-weight: normal;
+        color: var(--color-base0C);
+        overflow: unset;
+        line-height: unset;
+      }
+
+      &:not(.kui--secondary-breadcrumb) .pf-c-breadcrumb__link {
+        font-weight: 500;
+      }
+
+      &.bx--breadcrumb-item--current .pf-c-breadcrumb__link {
+        color: var(--color-text-01);
+        font-weight: 700;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      &:after {
+        margin-left: 0.5em;
+        color: var(--color-text-02);
+      }
+    }
+  }
+}

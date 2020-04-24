@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-import { Breadcrumb } from '@kui-shell/core'
+import * as React from 'react'
 
-type TopNavBreadcrumb = Breadcrumb & { deemphasize?: boolean; isCurrentPage?: boolean; className?: string }
+type SupportedComponent = 'carbon' | 'patternfly'
 
-export default TopNavBreadcrumb
+export const ComponentContext = React.createContext<SupportedComponent>('carbon')
+
+export const usePatternFly = (component: SupportedComponent) => {
+  console.error('!!2!!!', component)
+  return component === 'patternfly'
+}
