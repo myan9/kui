@@ -16,7 +16,7 @@
 
 import Debug from 'debug'
 import * as React from 'react'
-import { Tabs, Tab } from 'carbon-components-react'
+import { Nav, NavList, NavItem, NavVariants } from '@patternfly/react-core'
 
 import {
   eventChannelUnsafe,
@@ -168,39 +168,29 @@ export default class TopNavSidecar extends BaseSidecar<MultiModalResponse, Histo
     )
   }
 
-  // first div used to be sidecar-top-stripe
   private tabs() {
     return (
       <div className="zoomable full-height">
         <div className="full-height">
-          <Tabs
+          <Nav
             className="sidecar-bottom-stripe-mode-bits sidecar-bottom-stripe-button-container"
-            triggerHref="#"
-            selected={this.current.currentTabIndex}
-            onSelectionChange={(idx: number) =>
+            onSelect={result => {
               this.setState(({ current }) => ({
-                current: Object.assign({}, current, { currentTabIndex: idx })
+                current: Object.assign({}, current, { currentTabIndex: result.itemId })
               }))
-            }
+            }}
           >
-            {this.current.tabs.map((mode: MultiModalMode, idx: number) => (
-              <Tab
-                href="#"
-                key={mode.mode}
-                id={mode.mode}
-                tabIndex={0}
-                className="sidecar-bottom-stripe-button"
-                label={mode.label || mode.mode}
-                data-mode={mode.mode}
-                handleTabKeyDown={() => false}
-                handleTabAnchorFocus={() => false}
-                handleTabClick={() => false}
-                onMouseDown={event => event.preventDefault()}
-              >
-                {this.tabContent(idx)}
-              </Tab>
-            ))}
-          </Tabs>
+            <NavList variant={NavVariants.tertiary}>
+              {this.current.tabs.map((mode: MultiModalMode, idx: number) => {
+                return (
+                  <NavItem key={idx} itemId={idx} data-mode={mode.mode} isActive={this.current.currentTabIndex === idx}>
+                    {mode.label || mode.mode}
+                  </NavItem>
+                )
+              })}
+            </NavList>
+          </Nav>
+          {this.tabContent(this.current.currentTabIndex)}
         </div>
       </div>
     )
@@ -222,7 +212,7 @@ export default class TopNavSidecar extends BaseSidecar<MultiModalResponse, Histo
     const { toolbarText } = this.current.response
 
     return (
-      <div className="sidecar-content-container">
+      <div key={idx} className="sidecar-content-container">
         <div className="custom-content">
           <ToolbarContainer
             tab={this.state.tab}

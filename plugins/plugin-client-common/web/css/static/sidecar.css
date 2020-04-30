@@ -60,6 +60,14 @@
     border-bottom: 1px solid var(--color-sidecar-background-02);
   }
 
+  .pf-c-nav {
+    background-color: var(--color-sidecar-header);
+
+    a:hover:not(.plain-anchor) {
+      color: unset;
+    }
+  }
+
   .bx--side-nav {
     z-index: unset;
     position: unset;
