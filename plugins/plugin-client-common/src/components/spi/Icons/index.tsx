@@ -40,6 +40,7 @@ export type SupportedIcon =
   | 'Trash'
   | 'TerminalOnly'
   | 'TerminalPlusSidecar'
+  | 'WatchPane'
   | 'Up'
   | 'Warning'
   | 'WindowMaximize'
