@@ -15,7 +15,7 @@
  */
 
 import { Button, Link, MultiModalMode, NavResponse, Tab } from '@kui-shell/core'
-import { BaseHistoryEntry } from '../../Views/Sidecar/BaseSidecar'
+import { BaseHistoryEntry } from '../../Views/util/CircularBuffer'
 
 interface Nav {
   title: string
