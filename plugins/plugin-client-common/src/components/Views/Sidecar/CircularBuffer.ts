@@ -40,6 +40,10 @@ export default class CircularBuffer<T> {
     return this.entries.findIndex(predicate)
   }
 
+  public get peekAll() {
+    return this.entries
+  }
+
   public update(idx: number, t: T) {
     this.entries[idx] = t
     this.activeIdx = idx
@@ -76,7 +80,7 @@ export default class CircularBuffer<T> {
   }
 
   /* public hasRight() {
-    return this.activeIdx < 
+    return this.activeIdx <
   } */
 
   public shiftRight() {

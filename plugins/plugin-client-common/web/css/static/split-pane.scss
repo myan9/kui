@@ -78,14 +78,14 @@
     position: unset !important;
   }
 
-  &.kui--secondary-closed,
-  &.kui--secondary-minimized {
+  &.kui--sidecar-closed,
+  &.kui--sidecar-minimized {
     .Resizer {
       display: none;
     }
   }
 
-  &.kui--secondary-minimized {
+  &.kui--sidecar-minimized {
     .Pane2 {
       width: 0% !important;
       opacity: 0.925;
@@ -94,7 +94,7 @@
 }
 
 @media (max-width: 44rem) {
-  .SplitPane.vertical:not(.kui--secondary-closed) {
+  .SplitPane.vertical:not(.kui--sidecar-closed) {
     .Pane1 {
       flex: 0 !important;
     }

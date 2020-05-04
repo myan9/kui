@@ -58,6 +58,8 @@ export type Props<T extends KuiTable = KuiTable> = PaginationConfiguration & {
 
   /** use toolbars? */
   toolbars: boolean
+
+  asGrid: boolean
 }
 
 /** state of PaginatedTable component */
@@ -94,7 +96,7 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
         rows,
         radio,
         gridableColumn,
-        asGrid: false,
+        asGrid: this.props.asGrid,
         page: 1,
         pageSize: this.defaultPageSize
       } as S

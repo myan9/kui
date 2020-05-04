@@ -22,6 +22,7 @@ import Icons from '../spi/Icons'
 import Confirm from '../Views/Confirm'
 import Loading from '../Content/Loading'
 import Width from '../Views/Sidecar/width'
+import WatchPane from '../Views/WatchPane'
 import ScrollableTerminal, { TerminalOptions } from '../Views/Terminal/ScrollableTerminal'
 
 import '../../../web/css/static/split-pane.scss'
@@ -29,6 +30,11 @@ import '../../../web/css/static/split-pane.scss'
 type Cleaner = () => void
 
 const strings = i18n('client')
+
+const enum TopPaneWidth {
+  Watching = '80%',
+  NotWatching = '100%'
+}
 
 interface WithTabUUID {
   uuid: string
@@ -56,9 +62,11 @@ type CurrentlyShowing = 'TerminalOnly' | 'TerminalPlusSidecar'
 type State = Partial<WithTab> & {
   sessionInit: 'NotYet' | 'InProgress' | 'Done'
 
-  secondaryWidth: Width
-  priorSecondaryWidth: Width /* prior to closing */
-  secondaryHasContent: boolean
+  sidecarWidth: Width
+  priorSidecarWidth: Width /* prior to closing */
+  sidecarHasContent: boolean
+
+  topPaneWidth: TopPaneWidth
 
   splitPaneImpl?: SplitPane
   splitPaneImplHacked?: boolean
@@ -95,9 +103,10 @@ export default class TabContent extends React.PureComponent<Props, State> {
     this.state = {
       tab: undefined,
       sessionInit: 'NotYet',
-      secondaryWidth: Width.Closed,
-      priorSecondaryWidth: Width.Closed,
-      secondaryHasContent: false,
+      sidecarWidth: Width.Closed,
+      priorSidecarWidth: Width.Closed,
+      sidecarHasContent: false,
+      topPaneWidth: TopPaneWidth.NotWatching,
       activeView: 'TerminalOnly'
     }
   }
@@ -181,8 +190,8 @@ export default class TabContent extends React.PureComponent<Props, State> {
         <ScrollableTerminal
           {...this.props}
           tab={this.state.tab}
-          secondaryIsVisible={this.state.secondaryWidth !== Width.Closed}
-          closeSecondary={() => this.setState({ secondaryWidth: Width.Closed })}
+          sidecarIsVisible={this.state.sidecarWidth !== Width.Closed}
+          closeSidecar={() => this.setState({ sidecarWidth: Width.Closed })}
           ref={c => {
             // so that we can refocus/blur
             this._terminal = c
@@ -194,13 +203,13 @@ export default class TabContent extends React.PureComponent<Props, State> {
 
   private onWillChangeSize(desiredWidth: Width) {
     this.setState(curState => {
-      const secondaryWidth = desiredWidth
-      const activeView = secondaryWidth === Width.Closed ? 'TerminalOnly' : 'TerminalPlusSidecar'
+      const sidecarWidth = desiredWidth
+      const activeView = sidecarWidth === Width.Closed ? 'TerminalOnly' : 'TerminalPlusSidecar'
 
       return {
-        secondaryHasContent: true,
-        secondaryWidth,
-        priorSecondaryWidth: curState.secondaryWidth,
+        sidecarHasContent: true,
+        sidecarWidth,
+        priorSidecarWidth: curState.sidecarWidth,
         activeView
       }
     })
@@ -208,10 +217,24 @@ export default class TabContent extends React.PureComponent<Props, State> {
 
   private show(activeView: CurrentlyShowing) {
     this.setState(curState => {
-      const secondaryWidth =
-        activeView === 'TerminalOnly' ? Width.Closed : curState.priorSecondaryWidth || Width.Split60
-      return { secondaryWidth, activeView, priorSecondaryWidth: curState.secondaryWidth }
+      const sidecarWidth = activeView === 'TerminalOnly' ? Width.Closed : curState.priorSidecarWidth || Width.Split60
+      return { sidecarWidth, activeView, priorSidecarWidth: curState.sidecarWidth }
     })
+  }
+
+  private toggleWatch() {
+    this.setState({
+      topPaneWidth:
+        this.state.topPaneWidth !== TopPaneWidth.NotWatching ? TopPaneWidth.NotWatching : TopPaneWidth.Watching
+    })
+  }
+
+  private openWatchPane() {
+    if (this.state.topPaneWidth === TopPaneWidth.NotWatching) {
+      this.setState({
+        topPaneWidth: TopPaneWidth.Watching
+      })
+    }
   }
 
   private onWillLoseFocus() {
@@ -226,7 +249,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
       return React.cloneElement(node, {
         key,
         uuid: this.props.uuid,
-        width: this.state.secondaryWidth,
+        width: this.state.sidecarWidth,
         willChangeSize: this.onWillChangeSize.bind(this),
         willLoseFocus: this.onWillLoseFocus.bind(this)
       })
@@ -315,9 +338,11 @@ export default class TabContent extends React.PureComponent<Props, State> {
         >
           <div className="kui--rows">
             <div className="kui--columns" style={{ position: 'relative' }}>
-              {this.leftRightSplit()}
+              <SplitPane split="horizontal" minSize={0} size={this.state.topPaneWidth}>
+                {this.leftRightSplit()}
+                <WatchPane uuid={this.props.uuid} tab={this.state.tab} openWatchPane={this.openWatchPane.bind(this)} />
+              </SplitPane>
             </div>
-
             {this.bottom()}
           </div>
           {this.state.tab && <Confirm tab={this.state.tab} uuid={this.props.uuid} />}
@@ -338,10 +363,11 @@ export default class TabContent extends React.PureComponent<Props, State> {
           this.setState({ splitPaneImpl: c })
         }}
         split="vertical"
-        resizerStyle={this.state.secondaryWidth === Width.Maximized && { display: 'none' }}
+        resizerStyle={this.state.sidecarWidth === Width.Maximized && { display: 'none' }}
         minSize={0}
-        className={this.state.secondaryWidth === Width.Closed ? 'kui--secondary-closed' : undefined}
-        size={this.state.secondaryWidth}
+        className={this.state.sidecarWidth === Width.Closed ? 'kui--sidecar-closed' : undefined}
+        size={this.state.sidecarWidth}
+        style={{ height: 'inherit' }} // FIXME!!!
         primary="second"
       >
         {this.terminal()}
@@ -355,8 +381,8 @@ export default class TabContent extends React.PureComponent<Props, State> {
    * the visibility of various views.
    */
   protected topTabButtons() {
-    if (this.props.active && this.state.secondaryHasContent) {
-      /* re: kui--hide-in-narrower-windows, see https://github.com/IBM/kui/issues/4459 */
+    if (this.props.active) {
+        /* re: kui--hide-in-narrower-windows, see https://github.com/IBM/kui/issues/4459 */
       return (
         <div id="kui--custom-top-tab-stripe-button-container" className="kui--hide-in-narrower-windows">
           <Icons
@@ -366,14 +392,18 @@ export default class TabContent extends React.PureComponent<Props, State> {
             onClick={this.state.activeView !== 'TerminalOnly' ? () => this.show('TerminalOnly') : undefined}
           />
 
-          <Icons
-            icon="TerminalPlusSidecar"
-            data-mode="show terminal and sidecar"
-            data-active={this.state.activeView === 'TerminalPlusSidecar' || undefined}
-            onClick={
-              this.state.activeView !== 'TerminalPlusSidecar' ? () => this.show('TerminalPlusSidecar') : undefined
-            }
-          />
+          {this.state.sidecarHasContent && (
+            <Icons
+              icon="TerminalPlusSidecar"
+              data-mode="show terminal and sidecar"
+              data-active={this.state.activeView === 'TerminalPlusSidecar' || undefined}
+              onClick={
+                this.state.activeView !== 'TerminalPlusSidecar' ? () => this.show('TerminalPlusSidecar') : undefined
+              }
+            />
+          )}
+
+          <Icons icon="WatchPane" data-mode="show watch pane" onClick={() => this.toggleWatch()} />
         </div>
       )
     }
