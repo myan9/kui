@@ -36,8 +36,8 @@ type Props = TerminalOptions & {
   /** tab model */
   tab: KuiTab
 
-  secondaryIsVisible?: boolean
-  closeSecondary: () => void
+  sidecarIsVisible?: boolean
+  closeSidecar: () => void
 }
 
 interface State {
@@ -88,9 +88,9 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       return
     }
 
-    if (isPopup() && this.props.secondaryIsVisible) {
+    if (isPopup() && this.props.sidecarIsVisible) {
       // see https://github.com/IBM/kui/issues/4183
-      this.props.closeSecondary()
+      this.props.closeSidecar()
     }
 
     this.setState(curState => {
@@ -210,7 +210,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
   public render() {
     return (
-      <div className={'repl' + (this.props.secondaryIsVisible ? ' sidecar-visible' : '')} id="main-repl">
+      <div className={'repl' + (this.props.sidecarIsVisible ? ' sidecar-visible' : '')} id="main-repl">
         <div className="repl-inner zoomable" ref={c => (this._scrollRegion = c)} onClick={this.onClick.bind(this)}>
           <Accordion>
             {this.state.blocks.map((_, idx) => (

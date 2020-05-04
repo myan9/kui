@@ -1,0 +1,62 @@
+.Pane.horizontal.Pane2 {
+  background-color: var(--color-sidecar-header);
+
+  .kui--watch-pane {
+    display: flex;
+    height: 100%;
+
+    > div.kui--watch-subpane {
+      width: 100%;
+    }
+
+    // copied from componenets/Table/badges.scss
+    .kui--data-table-as-grid {
+      .bx--data-table {
+        display: grid;
+        grid-column-gap: 0.1875em;
+        grid-row-gap: 0.1875em;
+        padding: 0.5em 1em;
+
+        [data-tag='badge'] [data-tag='badge-circle'] {
+          margin: 0;
+          width: 1.375em;
+          height: 1.375em;
+          border-radius: 0;
+
+          transition-property: filter;
+          transition-timing-function: var(--transition-timing-function);
+          transition-duration: var(--transition-duration);
+
+          &:hover {
+            filter: saturate(2) brightness(1.5);
+            cursor: pointer;
+          }
+        }
+      }
+
+      .kui--data-table-toolbar.kui--data-table-toolbar-bottom {
+        display: none;
+      }
+    }
+
+    .bx--data-table-container {
+      width: 100%;
+      .bx--data-table {
+        width: 100%;
+
+        td.entity-name,
+        td.kui--entity-name-secondary {
+          width: 100%;
+          max-width: 0;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+
+        .hide-with-sidecar {
+          display: none;
+        }
+      }
+    }
+  }
+}

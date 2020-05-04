@@ -22,6 +22,7 @@ import {
   PlusIcon as Add,
   TerminalIcon as TerminalOnly,
   ColumnsIcon as TerminalPlusSidecar,
+  NetworkIcon as WatchPane,
   WindowCloseIcon,
   ExpandArrowsAltIcon as WindowMaximizeIcon,
   CompressArrowsAltIcon as WindowMinimizeIcon,
@@ -96,6 +97,8 @@ export default function PatternFly4Icons(props: Props) {
       return <TerminalOnly style={size32} {...props} />
     case 'TerminalPlusSidecar':
       return <TerminalPlusSidecar style={size32} {...props} />
+    case 'WatchPane':
+      return <WatchPane style={size32} {...props} />
     case 'Warning':
       return <Warning {...props} />
     case 'Up':
