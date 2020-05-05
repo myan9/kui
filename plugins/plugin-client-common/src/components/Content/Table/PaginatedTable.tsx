@@ -93,7 +93,9 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
       const { headers, rows, radio } = kui2carbon(this.props.response)
 
       const gridableColumn = this.props.response.body[0]
-        ? this.props.response.header.attributes.findIndex(cell => /STATUS/i.test(cell.key))
+        ? this.props.response.header.attributes.findIndex(
+            cell => /STATUS/i.test(cell.key) || /STATUS/i.test(cell.value)
+          )
         : -1
 
       this.state = {

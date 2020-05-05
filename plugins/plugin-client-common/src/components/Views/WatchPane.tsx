@@ -27,6 +27,7 @@ import {
   Watchable,
   ParsedOptions
 } from '@kui-shell/core'
+
 import LivePaginatedTable from '../Content/Table/LivePaginatedTable'
 import { cwd as _cwd } from './Sidecar/BaseSidecar'
 import CircularBuffer from './Sidecar/CircularBuffer' // FIXME: hoist this up

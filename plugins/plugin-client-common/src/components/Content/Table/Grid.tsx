@@ -47,7 +47,7 @@ export default class Grid<P extends Props> extends React.PureComponent<P> {
         {response.body.map((kuiRow, kidx) => {
           const row = visibleRows[kidx]
           const title = row['STATUS']
-          const { css } = kuiRow.attributes[gridableColumn]
+          const css = (gridableColumn !== -1 && kuiRow.attributes[gridableColumn].css) || 'kui--status-unknown'
 
           return (
             <span key={kidx} data-tag="badge">
