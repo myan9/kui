@@ -27,7 +27,7 @@ import {
   Watchable,
   ParsedOptions
 } from '@kui-shell/core'
-import renderTable from '../Content/Table'
+import LivePaginatedTable from '../Content/Table/LivePaginatedTable'
 import { cwd as _cwd } from './Sidecar/BaseSidecar'
 import CircularBuffer from './Sidecar/CircularBuffer' // FIXME: hoist this up
 import sameCommand from './Sidecar/same'
@@ -115,15 +115,36 @@ export default class WatchPane extends React.PureComponent<Props, State> {
     return 3
   }
 
+  private prefixBreadcrumbs(idx: number) {
+    return [{ label: `Watcher ${idx + 1}` }]
+  }
+
   public render() {
     return (
-      <div className="kui--watch-pane kui--inverted-color-context">
+      <div className="kui--watch-pane">
         {this.state.history &&
-          this.state.history.peekAll.map((history, key) => (
-            <div className="kui--watch-subpane" data-pane-id={key} key={history.uuid}>
-              {renderTable(this.props.tab, this.props.tab.REPL, history.response, undefined, true, true)}
-            </div>
-          ))}
+          Array(this.capacity())
+            .fill(undefined)
+            .map((_, idx) => {
+              const history = this.state.history.peekAt(idx)
+              if (history) {
+                return (
+                  <div className="kui--watch-subpane kui--screenshotable" data-pane-id={idx} key={history.uuid}>
+                    <LivePaginatedTable
+                      tab={this.props.tab}
+                      repl={this.props.tab.REPL}
+                      response={history.response}
+                      asGrid
+                      toolbars
+                      paginate={false}
+                      prefixBreadcrumbs={this.prefixBreadcrumbs(idx)}
+                    />
+                  </div>
+                )
+              } else {
+                return <div className="kui--watch-subpane" data-pane-id={idx} key={idx} />
+              }
+            })}
       </div>
     )
   }

@@ -338,7 +338,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         >
           <div className="kui--rows">
             <div className="kui--columns" style={{ position: 'relative' }}>
-              <SplitPane split="horizontal" minSize={0} size={this.state.topPaneWidth}>
+              <SplitPane split="horizontal" allowResize={false} minSize={0} size={this.state.topPaneWidth}>
                 {this.leftRightSplit()}
                 <WatchPane uuid={this.props.uuid} tab={this.state.tab} openWatchPane={this.openWatchPane.bind(this)} />
               </SplitPane>
