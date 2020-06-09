@@ -25,6 +25,7 @@ import KuiContext from '../../../Client/context'
 import { TabCompletionState } from './TabCompletion'
 import ActiveISearch, { onKeyUp } from './ActiveISearch'
 import { BlockModel, isActive, isProcessing, isFinished, hasCommand, isEmpty, hasUUID, hasValue } from './BlockModel'
+import { BlockViewTraits } from './'
 
 import DropDown from '../../../spi/DropDown'
 
@@ -92,7 +93,7 @@ type InputProps = {
   model?: BlockModel
 }
 
-export type Props = InputOptions & InputProps
+export type Props = InputOptions & InputProps & BlockViewTraits
 
 export interface State {
   /** the execution ID for this prompt, if any */
@@ -338,7 +339,11 @@ export default class Input extends InputProvider {
 
   /** render the time the block started processing */
   private timestamp() {
-    if (!isEmpty(this.props.model) && (isProcessing(this.props.model) || isFinished(this.props.model))) {
+    if (
+      !this.props.isPinned &&
+      !isEmpty(this.props.model) &&
+      (isProcessing(this.props.model) || isFinished(this.props.model))
+    ) {
       return (
         this.props.model.startTime && (
           <span className="kui--repl-block-timestamp kui--repl-block-right-element">
@@ -364,7 +369,9 @@ export default class Input extends InputProvider {
   }
 
   private removeAction() {
-    return !this.props.willRemove ? [] : [{ label: strings('Remove'), handler: () => this.props.willRemove() }]
+    return !this.props.willRemove
+      ? []
+      : [{ label: this.props.isPinned ? strings('Close') : strings('Remove'), handler: () => this.props.willRemove() }]
   }
 
   private screenshotAction() {
