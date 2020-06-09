@@ -27,6 +27,8 @@ import {
   Streamable
 } from '@kui-shell/core'
 
+import { BlockViewTraits } from './'
+
 import {
   BlockModel,
   ProcessingBlock,
@@ -44,7 +46,7 @@ import Scalar from '../../../Content/Scalar/'
 
 const okString = i18n('plugin-client-common')('ok')
 
-interface Props {
+type Props = {
   /** tab UUID */
   uuid: string
 
@@ -53,7 +55,7 @@ interface Props {
 
   model: ProcessingBlock | FinishedBlock
   onRender: () => void
-}
+} & BlockViewTraits
 
 interface State {
   isResultRendered: boolean
@@ -117,7 +119,7 @@ export default class Output extends React.PureComponent<Props, State> {
       return (
         <div className="repl-result-like result-vertical" data-stream>
           {this.state.streamingOutput.map((part, idx) => (
-            <Scalar key={idx} tab={this.props.tab} response={part} />
+            <Scalar key={idx} tab={this.props.tab} response={part} isPinned={this.props.isPinned} />
           ))}
         </div>
       )
@@ -144,7 +146,7 @@ export default class Output extends React.PureComponent<Props, State> {
           {isCancelled(this.props.model) ? (
             <React.Fragment />
           ) : (
-            <Scalar tab={this.props.tab} response={this.props.model.response} />
+            <Scalar tab={this.props.tab} response={this.props.model.response} isPinned={this.props.isPinned} />
           )}
         </div>
       )
