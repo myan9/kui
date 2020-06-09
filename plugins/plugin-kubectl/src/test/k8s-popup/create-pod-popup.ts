@@ -138,8 +138,8 @@ wdescribe(`popup watch pods in ${ns1}`, function(this: Common.ISuite) {
 
   it(`should watch resource named ${pod} in namespace ${ns1}`, async () => {
     try {
-      await this.app.client.waitForExist(Selectors.WATCHER_N(1))
-      await this.app.client.waitForExist(Selectors.WATCHER_N_GRID_CELL_ONLINE(1, pod))
+      await ReplExpect.splitCount(2)(this.app)
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_ONLINE_FOR_SPLIT(2, pod))
     } catch (err) {
       Common.oops(this, true)(err)
     }
