@@ -158,6 +158,14 @@ export const SPLIT_N = (N: number) => `${SPLITS}:nth-child(${N})`
 export const CURRENT_PROMPT_BLOCK_FOR_SPLIT = (N: number) => `${SPLIT_N(N)} ${_PROMPT_BLOCK}`
 export const CURRENT_PROMPT_FOR_SPLIT = (N: number) => `${CURRENT_PROMPT_BLOCK_FOR_SPLIT(N)} ${_PROMPT}`
 
+export const CURRENT_GRID_FOR_SPLIT = (N: number) => `${CURRENT_PROMPT_BLOCK_FOR_SPLIT(N)} ${_PROMPT} ${_TABLE_AS_GRID}`
+export const CURRENT_GRID_BY_NAME_FOR_SPLIT = (N: number, name: string) =>
+  `${CURRENT_PROMPT_BLOCK_FOR_SPLIT(N)} ${_TABLE_AS_GRID} [data-tag="badge"][data-entity-name="${name}"]`
+export const CURRENT_GRID_ONLINE_FOR_SPLIT = (N: number, name: string) =>
+  `${CURRENT_GRID_BY_NAME_FOR_SPLIT(N, name)} .green-background`
+export const CURRENT_GRID_OFFLINE_FOR_SPLIT = (N: number, name: string) =>
+  `${CURRENT_GRID_BY_NAME_FOR_SPLIT(N, name)} .red-background`
+
 /** xterm */
 export const ALT_BUFFER_N = (N: number) => `${CURRENT_TAB} .kui--scrollback:nth-child(${N}).xterm-alt-buffer-mode`
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
