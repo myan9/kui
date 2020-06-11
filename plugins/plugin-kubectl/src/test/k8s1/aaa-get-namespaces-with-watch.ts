@@ -199,9 +199,18 @@ wdescribe(`kubectl watch namespace via watch pane ${process.env.MOCHA_RUN_TARGET
     const createIt: () => Promise<void> = createNS.bind(this, kubectl)
     const deleteIt: () => void = deleteNS.bind(this, kubectl)
     const watchIt: () => void = watchNS.bind(this, kubectl)
+
+    const checkResponseOutput = () => {
+      it(`should emit a helpful message in response to ${kubectl} watch request`, () =>
+        CLI.command(`${kubectl} get pods -w`, this.app)
+          .then(ReplExpect.okWithString('Output has been pinned to a watch pane'))
+          .catch(Common.oops(this, true)))
+    }
+
     //
     // here come the tests
     //
+    checkResponseOutput()
     createIt()
     deleteIt()
     watchIt()
