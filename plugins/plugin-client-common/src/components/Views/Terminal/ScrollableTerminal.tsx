@@ -44,9 +44,12 @@ import {
   BlockModel
 } from './Block/BlockModel'
 
+import '../../../../web/scss/components/Terminal/_index.scss'
+
 type Cleaner = () => void
 
-const MAX_SPLITS = 4
+const MAX_TERMINALS = 3
+const MAX_PINNED = 4
 
 export interface TerminalOptions {
   noActiveInput?: boolean
@@ -245,6 +248,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       const inProcessIdx = curState.blocks.findIndex(_ => isProcessing(_) && _.execUUID === event.execUUID)
 
       // response `showInTerminal` is either non-watchable response, or watch response that's forced to show in terminal
+      // FIXME simplify or eliminate?
       const showInTerminal =
         !this.props.config.enableWatchPane ||
         !isWatchable(event.response) ||
@@ -268,6 +272,8 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
                 } /** <--- pin the block, and render the block accordingly e.g. not show timestamp, auto-gridify table */
               )
 
+              // FIXME: catch "no more splits" exception and make sure
+              // this propagates back to repl/exec? or wraparound...
               doSplitViewViaId(uuid, pinnedBlock)
 
               const blocks = curState.blocks
@@ -296,6 +302,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
             }
           } catch (err) {
             console.error('error updating state', err)
+            throw err
           }
         } else {
           console.error('invalid state: got a command completion event for a block that is not processing', event)
@@ -371,9 +378,16 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     return state
   }
 
+  private numPinnedSplits() {
+    return this.state.splits.reduce((N, _) => (N += _.blocks.find(_ => _.isPinned) ? 1 : 0), 0)
+  }
+
   /** Split the view */
   private onSplit(resolve: (response: true) => void, reject: (err: Error) => void, pinBlock?: FinishedBlock) {
-    if (this.state.splits.length === MAX_SPLITS) {
+    const nPinned = this.numPinnedSplits()
+    const nTerminals = this.state.splits.length - nPinned
+
+    if ((!pinBlock && nTerminals === MAX_TERMINALS) || (pinBlock && nPinned === MAX_PINNED)) {
       reject(new Error('No more splits allowed'))
     } else {
       this.setState(({ splits, focusedIdx }) => {
@@ -419,6 +433,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     return curState.splits.findIndex(_ => _.uuid === uuid)
   }
 
+  /** FIXME */
+  private findNonPinnedSplit(curState: State, uuid: string): number {
+    return this.findSplit(curState, uuid)
+  }
+
   /**
    * Remove the given split (identified by `sbuuid`) from the state.
    *
@@ -451,7 +470,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
    */
   private splice(sbuuid: string, mutator: (state: ScrollbackState) => Pick<ScrollbackState, 'blocks'>) {
     this.setState(curState => {
-      const focusedIdx = this.findSplit(curState, sbuuid)
+      const focusedIdx = this.findNonPinnedSplit(curState, sbuuid)
       const splits = curState.splits
         .slice(0, focusedIdx)
         .concat([Object.assign({}, curState.splits[focusedIdx], mutator(curState.splits[focusedIdx]))])
@@ -519,51 +538,63 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
   }
 
   public render() {
+    const nPinned = this.numPinnedSplits()
+    const nTerminals = this.state.splits.length - nPinned
+
     return (
       <div className={'repl' + (this.props.sidecarIsVisible ? ' sidecar-visible' : '')} id="main-repl">
         <div
           className="repl-inner zoomable kui--terminal-split-container"
           ref={c => (this._scrollRegion = c)}
-          data-split-count={this.state.splits.length}
+          data-split-count={nTerminals}
+          data-pinned-count={nPinned === 0 ? undefined : nPinned}
         >
           {this.state.splits.map(scrollback => {
             const tab = this.tabFor(scrollback)
-            return (
-              <div
-                className="kui--scrollback scrollable scrollable-auto"
-                data-has-pinned={!!scrollback.blocks.find(_ => _.isPinned)}
-                key={tab.uuid}
-                data-scrollback-id={tab.uuid}
-                ref={ref => this.tabRefFor(scrollback, ref)}
-                onClick={this.onClick.bind(this, scrollback)}
-              >
-                {scrollback.blocks.map((_, idx) => (
-                  <Block
-                    key={hasUUID(_) ? _.execUUID : idx}
-                    idx={idx}
-                    model={_}
-                    uuid={scrollback.uuid}
-                    tab={tab}
-                    noActiveInput={this.props.noActiveInput}
-                    onOutputRender={this.onOutputRender.bind(this)}
-                    willRemove={
-                      _.isPinned
-                        ? this.removeSplit.bind(this, scrollback.uuid)
-                        : this.willRemoveBlock.bind(this, scrollback.uuid, idx)
+            const hasPinned = !!scrollback.blocks.find(_ => _.isPinned)
+            return React.createElement(
+              hasPinned ? 'span' : 'div',
+              {
+                className: 'kui--scrollback scrollable scrollable-auto',
+                'data-has-pinned': hasPinned || undefined,
+                key: tab.uuid,
+                'data-scrollback-id': tab.uuid,
+                ref: ref => this.tabRefFor(scrollback, ref),
+                onClick: this.onClick.bind(this, scrollback)
+              },
+              scrollback.blocks.map((_, idx) => (
+                <Block
+                  key={hasUUID(_) ? _.execUUID : idx}
+                  idx={idx}
+                  model={_}
+                  uuid={scrollback.uuid}
+                  tab={tab}
+                  noActiveInput={this.props.noActiveInput}
+                  onOutputRender={this.onOutputRender.bind(this)}
+                  willRemove={
+                    _.isPinned
+                      ? this.removeSplit.bind(this, scrollback.uuid)
+                      : this.willRemoveBlock.bind(this, scrollback.uuid, idx)
+                  }
+                  willLoseFocus={() => this.doFocus(scrollback)}
+                  isPinned={_.isPinned}
+                  ref={c => {
+                    if (isActive(_)) {
+                      // grab a ref to the active block, to help us maintain focus
+                      scrollback._activeBlock = c
                     }
-                    willLoseFocus={() => this.doFocus(scrollback)}
-                    isPinned={_.isPinned}
-                    ref={c => {
-                      if (isActive(_)) {
-                        // grab a ref to the active block, to help us maintain focus
-                        scrollback._activeBlock = c
-                      }
-                    }}
-                  />
-                ))}
-              </div>
+                  }}
+                />
+              ))
             )
           })}
+          {nPinned > 0 &&
+            nPinned < MAX_PINNED &&
+            Array(MAX_PINNED - nPinned)
+              .fill(undefined)
+              .map((_, idx) => (
+                <span key={`kui--pinned-blank-${idx}`} data-has-pinned className="kui--scrollback kui--pinned-blank" />
+              ))}
         </div>
       </div>
     )
