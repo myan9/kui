@@ -136,6 +136,7 @@ export default class Block extends React.PureComponent<Props, State> {
       (!this.props.noActiveInput || !isActive(this.props.model)) && (
         <div
           className={'repl-block ' + this.props.model.state.toString()}
+          data-pinned={this.props.isPinned || undefined}
           data-uuid={hasUUID(this.props.model) && this.props.model.execUUID}
           data-input-count={this.props.idx}
           ref={c => this.setState({ _block: c })}
