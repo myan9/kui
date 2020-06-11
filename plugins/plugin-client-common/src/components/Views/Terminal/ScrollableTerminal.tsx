@@ -435,21 +435,23 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     return curState.splits.findIndex(_ => _.uuid === uuid)
   }
 
-  /** FIXME */
-  private findNonPinnedSplit(curState: State, uuid: string): number {
-    return this.findSplit(curState, uuid)
+  /** does the scrollback has pinned blocks? */
+  private hasPinned(scrollback: ScrollbackState) {
+    return scrollback.blocks.findIndex(block => block.isPinned) !== -1
   }
 
   /**
    * @return the index of the given scrollback, in the context of the
    * current (given) state
-   * Note: if theres's no scrollback matched the given state,
+   * Note: if theres's no unpinned scrollback matched the given state,
    * e.g. the scrollback has been removed, return 0
    *
    */
   private findAvailableSplit(curState: State, uuid: string): number {
     const focusedIdx = this.findSplit(curState, uuid)
-    return focusedIdx !== -1 ? focusedIdx : 0
+    const availableSplit = focusedIdx !== -1 ? focusedIdx : 0
+
+    return !this.hasPinned(curState.splits[availableSplit]) ? availableSplit : 0
   }
 
   /**
@@ -468,11 +470,9 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
           eventBus.emitWithTabId('/tab/close/request', parent.uuid, parent)
         }
 
-        // const focusedIdx = curState.focusedIdx !== idx ? curState.focusedIdx : idx === 0 ? idx
-
-        return {
-          splits
-        }
+        // if there's no unpinned split remained, make a new split
+        const nonPinnedSplits = splits.filter(_ => !this.hasPinned(_))
+        return nonPinnedSplits.length !== 0 ? { splits } : { splits: [this.scrollback()].concat(splits) }
       }
     })
   }
