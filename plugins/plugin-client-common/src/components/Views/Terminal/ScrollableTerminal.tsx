@@ -129,13 +129,15 @@ function isInViewport(elm: HTMLElement) {
 
 /**
  * When the following requirements meet, auto-pin the command block:
- * 1. the scalar response is watchable, e.g. watchable table,
- * 2. the command option or exec options doesn't say alwaysViewIn Terminal,
+ * 1. not in popup mode
+ * 3. the scalar response is watchable, e.g. watchable table,
+ * 3. the command option or exec options doesn't say alwaysViewIn Terminal,
  * i.e. crud command may always want to be displayed in terminal even though it's watchable,
  *
  */
 function maybePinTheBlock(event: CommandCompleteEvent<ScalarResponse>) {
   return (
+    !isPopup() &&
     isWatchable(event.response) &&
     event.evaluatorOptions.alwaysViewIn !== 'Terminal' &&
     event.execOptions.alwaysViewIn !== 'Terminal'

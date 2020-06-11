@@ -69,7 +69,6 @@ wdescribe(`kubectl logs getty via watch pane ${process.env.MOCHA_RUN_TARGET || '
     it(`should wait for the pod ${podName} to come up`, () => {
       return CLI.command(`kubectl get pod ${podName} -n ${ns} -w`, this.app)
         .then(async () => {
-          await ReplExpect.splitCount(splitIndex)(this.app)
           await this.app.client.waitForExist(Selectors.CURRENT_GRID_ONLINE_FOR_SPLIT(splitIndex, podName))
         })
         .catch(Common.oops(this, true))
