@@ -127,7 +127,6 @@ const watchNS = function(this: Common.ISuite, kubectl: string) {
         console.error('start watching and split terminal')
         // execute the watch command, and expect ok in repl
         await CLI.command(watchCmd, this.app)
-        await ReplExpect.splitCount(2)
 
         console.error('wait for watcher1')
 

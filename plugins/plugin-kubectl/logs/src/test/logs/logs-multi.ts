@@ -77,7 +77,6 @@ describe(`kubectl Logs multiple pods via selector ${process.env.MOCHA_RUN_TARGET
     it(`should wait for the pod to come up`, () => {
       return CLI.command(`kubectl get pod ${podName} -n ${ns} -w`, this.app)
         .then(async () => {
-          await ReplExpect.splitCount(waitIndex + 2)(this.app)
           await this.app.client.waitForExist(Selectors.CURRENT_GRID_ONLINE_FOR_SPLIT(waitIndex + 2, podName))
         })
         .catch(Common.oops(this, true))
