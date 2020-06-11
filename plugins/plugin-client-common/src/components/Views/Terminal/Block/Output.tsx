@@ -20,6 +20,7 @@ import {
   i18n,
   isCodedError,
   isHTML,
+  isMarkdownResponse,
   isTable,
   eventChannelUnsafe,
   Tab as KuiTab,
@@ -168,6 +169,7 @@ export default class Output extends React.PureComponent<Props, State> {
       const { response } = block
       return (
         isHTML(response) ||
+        isMarkdownResponse(response) ||
         (typeof response === 'string' && response.length > 0) ||
         (isTable(response) && response.body.length > 0) ||
         this.state.streamingOutput.length > 0
