@@ -21,6 +21,7 @@ import {
   Tab as KuiTab,
   ScalarResponse,
   isHTML,
+  isMarkdownResponse,
   isRadioTable,
   isTable,
   isMixedResponse,
@@ -29,6 +30,7 @@ import {
 
 import HTMLDom from './HTMLDom'
 import renderTable from '../Table'
+import Markdown from '../Markdown'
 import { KuiContext } from '../../../'
 import RadioTableSpi from '../../spi/RadioTable'
 import { isError } from '../../Views/Terminal/Block/BlockModel'
@@ -111,6 +113,8 @@ export default class Scalar extends React.PureComponent<Props, State> {
         // ^^^ intentionally using an "else" so that typescript double
         // checks that we've covered every case of ScalarResponse
         return <HTMLDom content={response} />
+      } else if (isMarkdownResponse(response)) {
+        return <Markdown source={response.content} />
       }
     } catch (err) {
       console.error('catastrophic error rendering Scalar', err)

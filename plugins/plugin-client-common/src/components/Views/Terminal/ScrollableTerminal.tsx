@@ -18,6 +18,7 @@ import * as React from 'react'
 import { v4 as uuid } from 'uuid'
 
 import {
+  i18n,
   eventBus,
   eventChannelUnsafe,
   ScalarResponse,
@@ -45,6 +46,8 @@ import {
 } from './Block/BlockModel'
 
 import '../../../../web/scss/components/Terminal/_index.scss'
+
+const strings = i18n('plugin-client-common')
 
 type Cleaner = () => void
 
@@ -237,6 +240,14 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     }
   }
 
+  /** Format a MarkdownResponse */
+  private markdown(key: string) {
+    return {
+      content: strings(key),
+      contentType: 'text/markdown' as const
+    }
+  }
+
   /** the REPL finished executing a command */
   private onExecEnd(uuid = this.current ? this.current.uuid : undefined, event: CommandCompleteEvent<ScalarResponse>) {
     if (event.echo === false) {
@@ -280,6 +291,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
               const blocks = curState.blocks
                 .slice(0, inProcessIdx) // everything before
+                .concat([Finished(inProcess, this.markdown('Output has been pinned to a watch pane'), false)]) // tell the user that we pinned the output
                 .concat(curState.blocks.slice(inProcessIdx + 1)) // everything after
                 .concat([Active()]) // plus a new block!
 
