@@ -167,7 +167,7 @@ export abstract class InputProvider<S extends State = State> extends React.PureC
         console.error('error rendering i-search', err)
         return this.normalPrompt()
       }
-    } else {
+    } else if (!this.props.isPinned) {
       return this.normalPrompt()
     }
   }
@@ -253,6 +253,10 @@ export default class Input extends InputProvider {
 
   /** the element that represents the command being/having been/going to be executed */
   protected input() {
+    if (this.props.isPinned) {
+      return
+    }
+
     const active = isActive(this.props.model)
 
     if (active) {
