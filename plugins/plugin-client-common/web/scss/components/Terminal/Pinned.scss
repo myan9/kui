@@ -23,12 +23,20 @@ $inset: 0.5em;
 .kui--scrollback[data-has-pinned='true'] {
   background-color: var(--color-base03);
   padding: 0;
+
+  /* css magic for inner scrolling (see below for more magic rules) */
+  display: flex;
+  overflow: hidden;
 }
 
 /** special styling of input area for pinned scrollbacks */
 .repl-block[data-pinned] {
   margin: 0;
   position: relative;
+
+  /* css magic for inner scrolling (see above and below for more magic rules) */
+  flex: 1;
+  overflow: hidden;
 
   .repl-input {
     position: absolute;
@@ -39,10 +47,18 @@ $inset: 0.5em;
   .kui--data-table-wrapper {
     padding: 0;
   }
+  .kui--data-table-toolbar-filler {
+    display: none;
+  }
   .kui--data-table-toolbar-top {
     border-bottom: 1px dashed var(--color-table-border3);
-    margin-bottom: $inset;
     padding: 0 $inset;
+  }
+
+  nav[aria-label='Breadcrumb'],
+  .bx--breadcrumb {
+    /* avoid overflow due to long breadcrumbs */
+    overflow: hidden;
   }
 }
 
@@ -80,11 +96,17 @@ span.kui--scrollback.kui--pinned-blank {
 /** special styling of table-as-grid within pinned scrollbacks */
 span.kui--scrollback[data-has-pinned] [data-table-watching] {
   flex: 1;
+  overflow: hidden;
 
   .kui--data-table-as-grid .bx--data-table {
     padding: $inset;
-
     grid-template-columns: repeat(auto-fill, $table-grid-cell-size) !important;
+
+    /* css magic to give inner scrolling of grid */
+    position: absolute;
+    overflow-y: auto;
+    max-height: 100%;
+
     [data-tag='badge'] [data-tag='badge-circle'] {
       width: $table-grid-cell-size;
       height: $table-grid-cell-size;
