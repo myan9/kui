@@ -27,7 +27,7 @@ import ActiveISearch, { onKeyUp } from './ActiveISearch'
 import { BlockModel, isActive, isProcessing, isFinished, hasCommand, isEmpty, hasUUID, hasValue } from './BlockModel'
 import { BlockViewTraits } from './'
 
-import DropDown from '../../../spi/DropDown'
+import DropDown, { DropDownAction } from '../../../spi/DropDown'
 
 const strings = i18n('plugin-client-common')
 const strings2 = i18n('plugin-client-common', 'screenshot')
@@ -74,6 +74,9 @@ export interface InputOptions {
 
   /** Block is about to lose focus */
   willLoseFocus?: () => void
+
+  /* unpin the view, e.g. show the view back in terminal */
+  unPin?: () => void
 }
 
 type InputProps = {
@@ -372,13 +375,19 @@ export default class Input extends InputProvider {
     }
   }
 
-  private removeAction() {
+  private removeAction(): DropDownAction[] {
     return !this.props.willRemove
       ? []
-      : [{ label: this.props.isPinned ? strings('Close') : strings('Remove'), handler: () => this.props.willRemove() }]
+      : [
+          {
+            label: this.props.isPinned ? strings('Close') : strings('Remove'),
+            hasDivider: true,
+            handler: () => this.props.willRemove()
+          }
+        ]
   }
 
-  private screenshotAction() {
+  private screenshotAction(): DropDownAction[] {
     return !this.props.willScreenshot || inBrowser()
       ? []
       : [
@@ -389,10 +398,23 @@ export default class Input extends InputProvider {
         ]
   }
 
+  private unPinnedAction(): DropDownAction[] {
+    return !this.props.isPinned
+      ? []
+      : [
+          {
+            label: strings2('Unpin'),
+            handler: () => this.props.unPin()
+          }
+        ]
+  }
+
   /** DropDown menu for completed blocks */
   private dropdown() {
     if (!isActive(this.props.model)) {
-      const actions = this.removeAction().concat(this.screenshotAction())
+      const actions = this.screenshotAction()
+        .concat(this.removeAction())
+        .concat(this.unPinnedAction())
       return (
         <DropDown
           actions={actions}

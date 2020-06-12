@@ -74,6 +74,34 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
 
   // here comes the tests should start watching successfully
   const ns = createNS()
+  const NUM_PIN = 4
+
+  /** create a pod */
+  const createPod = () => {
+    return CLI.command(
+      `k create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
+      this.app
+    )
+      .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
+      .then(status => waitForGreen(this.app, status))
+  }
+
+  /** delete the pod */
+  const deletePod = () => {
+    return CLI.command(`k delete pods nginx -n ${ns}`, this.app)
+      .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
+      .then(status => waitForRed(this.app, status))
+  }
+
+  /** wait for the pod */
+  const watchPod = (splitCount: number) => {
+    // start to watch pods in a non-existent namespace
+    return CLI.command(`k get pods -w -n ${ns}`, this.app)
+      .then(ReplExpect.okWithString('Output has been pinned to a watch pane'))
+      .then(() => ReplExpect.splitCount(splitCount))
+  }
+
+  it('should reload', () => Common.refresh(this))
 
   it(`should watch pods, starting from an non-existent namespace`, async () => {
     try {
@@ -88,13 +116,7 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
         .then(status => waitForGreen(this.app, status))
 
       console.error('watch from non-existent namespace 2')
-      // create a pod
-      await CLI.command(
-        `k create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
-        this.app
-      )
-        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
-        .then(status => waitForGreen(this.app, status))
+      await createPod()
 
       console.error('watch from non-existent namespace 3')
 
@@ -105,10 +127,7 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
       await this.app.client.waitForExist(Selectors.CURRENT_GRID_ONLINE_FOR_SPLIT(2, 'nginx'))
 
       console.error('watch from non-existent namespace 4')
-      // delete the pod
-      await CLI.command(`k delete pods nginx -n ${ns}`, this.app)
-        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
-        .then(status => waitForRed(this.app, status))
+      await deletePod()
 
       console.error('watch from non-existent namespace 5')
       // the watch table should have the new pods with offline status
@@ -124,32 +143,53 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
 
   it('should watch pods and hit the maximum limit of pinned views', async () => {
     try {
-      // create a pod
-      await CLI.command(
-        `k create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
-        this.app
-      )
-        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
-        .then(status => waitForGreen(this.app, status))
+      await createPod()
 
-      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
-        ReplExpect.okWithString('Output has been pinned to a watch pane')
-      )
+      // open three watchers
+      await watchPod(NUM_PIN)
+      await watchPod(NUM_PIN)
+      await watchPod(NUM_PIN)
 
-      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
-        ReplExpect.okWithString('Output has been pinned to a watch pane')
-      )
-
-      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
-        ReplExpect.okWithString('Output has been pinned to a watch pane')
-      )
-
-      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
-        ReplExpect.error(
-          500,
-          'You have reached the maximum number of pinned views. Consider either closing one, or re-executing the command in a new tab.'
+      // fail on the fourth watcher
+      await CLI.command(`k get pods -w -n ${ns}`, this.app)
+        .then(
+          ReplExpect.error(
+            500,
+            'You have reached the maximum number of pinned views. Consider either closing one, or re-executing the command in a new tab.'
+          )
         )
-      )
+        .then(() => ReplExpect.splitCount(NUM_PIN)(this.app))
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  // continue the last test
+  it('should exit terminal when three watcher panes are active', async () => {
+    try {
+      await CLI.command('exit', this.app)
+
+      // still have four splits
+      await ReplExpect.splitCount(NUM_PIN)(this.app)
+
+      // still watching
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(3, 'nginx'))
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(4, 'nginx'))
+
+      // unpin the watcher
+      await this.app.client.click(Selectors.SPLIT_N_MENU(4))
+      await this.app.client.waitForVisible(Selectors.BLOCK_UNPIN_BUTTON)
+      await this.app.client.click(Selectors.BLOCK_UNPIN_BUTTON)
+
+      await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })({ app: this.app, count: 0 })
+
+      await deletePod()
+
+      // the watch table should have the new pods with offline status
+      const watchStatus = `${Selectors.OUTPUT_N(1)} ${Selectors.BY_NAME('nginx')}`
+      await this.app.client.waitForExist(watchStatus, CLI.waitTimeout)
+      await waitForRed(this.app, watchStatus)
     } catch (err) {
       await Common.oops(this, true)(err)
     }
@@ -157,43 +197,68 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
 
   it('should reload', () => Common.refresh(this))
 
-  it('should watch pods and exit the terminal', async () => {
-    try {
-      await CLI.command(`k get pods -w -n ${ns}`, this.app)
-        .then(ReplExpect.okWithString('Output has been pinned to a watch pane'))
-        .then(() => ReplExpect.splitCount(4)(this.app))
-
-      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
-
-      // exit the first terminal and still see two splits
-      await CLI.command('exit', this.app).then(() => ReplExpect.splitCount(4)(this.app))
-
-      // watch pane should not be affected
-      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
-    } catch (err) {
-      await Common.oops(this, true)(err)
-    }
-  })
-
+  // continue the last test
   it('should open sidecar via watch pane, and click the sidecar title to pexec in terminal', async () => {
     try {
-      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+      await createPod()
+      await watchPod(NUM_PIN)
+
+      // click grid to open sidecar
       await this.app.client.click(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
 
       await SidecarExpect.open(this.app)
         .then(SidecarExpect.mode(defaultModeForGet))
         .then(SidecarExpect.showing('nginx'))
 
+      // click sidecar title: nginx
       await this.app.client.click(Selectors.SIDECAR_TITLE)
+      await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })({ app: this.app, count: 2 })
 
-      // this is the first command in the terminal, since we exit this terminal in the previosu test
-      await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })({ app: this.app, count: 0 })
+      // still have four splits
+      await ReplExpect.splitCount(NUM_PIN)(this.app)
 
-      // split pane should not be affected
-      await ReplExpect.splitCount(4)(this.app)
-
-      // watch pane should not be affected
+      // still watching
       await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  it('should reload', () => Common.refresh(this))
+
+  it('should watch pod, remove the original block and unpin the watcher', async () => {
+    try {
+      await watchPod(NUM_PIN)
+
+      // remove the original block
+      this.app.client.click(Selectors.PROMPT_BLOCK_LAST_MENU)
+      await this.app.client.waitForVisible(Selectors.BLOCK_REMOVE_BUTTON)
+      this.app.client.click(Selectors.BLOCK_REMOVE_BUTTON)
+
+      // unpin the last watcher
+      await this.app.client.click(Selectors.SPLIT_N_MENU(2))
+      await this.app.client.waitForVisible(Selectors.BLOCK_UNPIN_BUTTON)
+      await this.app.client.click(Selectors.BLOCK_UNPIN_BUTTON)
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'), 500, true)
+
+      // should have the third output
+      await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })({ app: this.app, count: 0 })
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  // continue the last test
+  it('should watch pod and close the pod watcher', async () => {
+    try {
+      await watchPod(NUM_PIN)
+
+      await this.app.client.click(Selectors.SPLIT_N_MENU(2))
+      await this.app.client.waitForVisible(Selectors.BLOCK_CLOSE_BUTTON)
+      await this.app.client.click(Selectors.BLOCK_CLOSE_BUTTON)
+
+      // should only have one split when sidecar open
+      await ReplExpect.splitCount(1)(this.app)
     } catch (err) {
       await Common.oops(this, true)(err)
     }

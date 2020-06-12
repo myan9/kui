@@ -531,6 +531,37 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     })
   }
 
+  /** remove the pinned block, and show the original response in a non-pinned scrollback */
+  private unPinTheBlock(uuid: string, block: FinishedBlock) {
+    // 1. remove the pin
+    this.removeSplit(uuid)
+
+    // 2. find an available block to show the unpinned response
+    this.splice(uuid, curState => {
+      const unPinnedBlock = Object.assign(block, { isPinned: false })
+      const findOriginalBlock = curState.blocks.findIndex(
+        _ => hasUUID(_) && hasUUID(block) && _.execUUID === block.execUUID
+      )
+      const activeBlockIdx = curState.blocks.findIndex(_ => isActive(_))
+
+      if (findOriginalBlock !== -1) {
+        return {
+          blocks: curState.blocks
+            .slice(0, findOriginalBlock) // everything before the original block
+            .concat([unPinnedBlock]) // add the unpinned block
+            .concat(curState.blocks.slice(findOriginalBlock + 1)) // everything after the original block
+        }
+      } else {
+        return {
+          blocks: curState.blocks
+            .slice(0, activeBlockIdx) // everything before the active block
+            .concat([unPinnedBlock]) // add the unpinned block
+            .concat(curState.blocks.slice(activeBlockIdx)) // everything after
+        }
+      }
+    })
+  }
+
   /** remove the block at the given index */
   private willRemoveBlock(uuid: string, idx: number) {
     this.splice(uuid, curState => ({
@@ -625,6 +656,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
                       ? this.removeSplit.bind(this, scrollback.uuid)
                       : this.willRemoveBlock.bind(this, scrollback.uuid, idx)
                   }
+                  unPin={this.unPinTheBlock.bind(this, scrollback.uuid, _)}
                   willLoseFocus={() => this.doFocus(scrollback)}
                   isPinned={_.isPinned}
                   ref={c => {
