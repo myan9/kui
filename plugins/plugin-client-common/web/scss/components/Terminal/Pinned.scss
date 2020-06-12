@@ -16,20 +16,33 @@
 
 /** Pinned scrollbacks */
 
-$table-grid-cell-size: 0.875em;
+$table-grid-cell-size: 1em;
+$inset: 0.5em;
 
 /** special styling of the whole scrollback, if it is pinned */
 .kui--scrollback[data-has-pinned='true'] {
   background-color: var(--color-base03);
+  padding: 0;
 }
 
 /** special styling of input area for pinned scrollbacks */
 .repl-block[data-pinned] {
+  margin: 0;
   position: relative;
 
   .repl-input {
     position: absolute;
+    top: calc(0.875em / 4);
     right: 0;
+  }
+
+  .kui--data-table-wrapper {
+    padding: 0;
+  }
+  .kui--data-table-toolbar-top {
+    border-bottom: 1px dashed var(--color-table-border3);
+    margin-bottom: $inset;
+    padding: 0 $inset;
   }
 }
 
@@ -69,7 +82,8 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
   flex: 1;
 
   .kui--data-table-as-grid .bx--data-table {
-    padding: 0;
+    padding: $inset;
+
     grid-template-columns: repeat(auto-fill, $table-grid-cell-size) !important;
     [data-tag='badge'] [data-tag='badge-circle'] {
       width: $table-grid-cell-size;
@@ -91,12 +105,12 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
 .repl:not(.sidecar-visible) .kui--terminal-split-container {
   &[data-split-count='1'][data-pinned-count] {
     grid-template-areas:
-      'T1 T1 T1 T1'
-      'T1 T1 T1 T1'
-      'T1 T1 T1 T1'
-      'P1 P2 P3 P4';
+      'T1 T1 T1'
+      'T1 T1 T1'
+      'T1 T1 T1'
+      'P1 P2 P3';
     grid-template-rows: repeat(4, 1fr);
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 
   &[data-split-count='2'] {
@@ -105,12 +119,12 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
 
     &[data-pinned-count] {
       grid-template-areas:
-        'T1 T1 T2 T2'
-        'T1 T1 T2 T2'
-        'T1 T1 T2 T2'
-        'P1 P2 P3 P4';
+        'T1 T1 T1 T2 T2 T2'
+        'T1 T1 T1 T2 T2 T2'
+        'T1 T1 T1 T2 T2 T2'
+        'P1 P1 P2 P2 P3 P3';
       grid-template-rows: repeat(4, 1fr);
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(6, 1fr);
     }
   }
 
@@ -120,12 +134,12 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
 
     &[data-pinned-count] {
       grid-template-areas:
-        'T1 T1 T1 T1 T2 T2 T2 T2 T3 T3 T3 T3'
-        'T1 T1 T1 T1 T2 T2 T2 T2 T3 T3 T3 T3'
-        'T1 T1 T1 T1 T2 T2 T2 T2 T3 T3 T3 T3'
-        'P1 P1 P1 P2 P2 P2 P3 P3 P3 P4 P4 P4';
+        'T1 T2 T3'
+        'T1 T2 T3'
+        'T1 T2 T3'
+        'P1 P2 P3';
       grid-template-rows: repeat(4, 1fr);
-      grid-template-columns: repeat(12, 1fr);
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 }
@@ -137,39 +151,52 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
  */
 .repl.sidecar-visible .kui--terminal-split-container {
   /* no point in showing blanks 3 and 4, that would just waste precious vertical real estate */
-  &[data-pinned-count='1'],
+  &[data-pinned-count='1'] {
+    span.kui--scrollback.kui--pinned-blank {
+      &:nth-of-type(2),
+      &:nth-of-type(3) {
+        display: none;
+      }
+    }
+  }
   &[data-pinned-count='2'] {
     span.kui--scrollback.kui--pinned-blank {
-      &:nth-of-type(3),
-      &:nth-of-type(4) {
+      &:nth-of-type(3) {
         display: none;
       }
     }
   }
 
+  grid-template-columns: repeat(1, 1fr);
+
   /* sidecar open, one terminal */
   &[data-split-count='1'] {
-    &[data-pinned-count='1'],
+    &[data-pinned-count='1'] {
+      grid-template-areas:
+        'T1'
+        'T1'
+        'T1'
+        'T1'
+        'P1';
+      grid-template-rows: repeat(5, 1fr);
+    }
     &[data-pinned-count='2'] {
       grid-template-areas:
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'P1 P2';
+        'T1'
+        'T1'
+        'T1'
+        'P1'
+        'P2';
       grid-template-rows: repeat(5, 1fr);
-      grid-template-columns: repeat(2, 1fr);
     }
-    &[data-pinned-count='3'],
-    &[data-pinned-count='4'] {
+    &[data-pinned-count='3'] {
       grid-template-areas:
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'P1 P2'
-        'P3 P4';
+        'T1'
+        'T1'
+        'P1'
+        'P2'
+        'P3';
       grid-template-rows: repeat(5, 1fr);
-      grid-template-columns: repeat(2, 1fr);
     }
   }
 
@@ -178,32 +205,37 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
     grid-template-rows: repeat(2, 1fr);
     grid-template-areas: 'T1' 'T2';
 
-    &[data-pinned-count='1'],
+    &[data-pinned-count='1'] {
+      grid-template-areas:
+        'T1'
+        'T1'
+        'T2'
+        'T2'
+        'P1';
+      grid-template-rows: repeat(5, 1fr);
+    }
     &[data-pinned-count='2'] {
       grid-template-areas:
-        'T1 T1'
-        'T1 T1'
-        'T2 T2'
-        'T2 T2'
-        'P1 P2';
-      grid-template-rows: repeat(5, 1fr);
-      grid-template-columns: repeat(2, 1fr);
-    }
-    &[data-pinned-count='3'],
-    &[data-pinned-count='4'] {
-      grid-template-areas:
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'T2 T2'
-        'T2 T2'
-        'T2 T2'
-        'P1 P2'
-        'P1 P2'
-        'P3 P4'
-        'P3 P4';
+        'T1'
+        'T1'
+        'T1'
+        'T2'
+        'T2'
+        'T2'
+        'P1'
+        'P1'
+        'P2'
+        'P2';
       grid-template-rows: repeat(10, 1fr);
-      grid-template-columns: repeat(2, 1fr);
+    }
+    &[data-pinned-count='3'] {
+      grid-template-areas:
+        'T1'
+        'T2'
+        'P1'
+        'P2'
+        'P3';
+      grid-template-rows: repeat(5, 1fr);
     }
   }
 
@@ -212,37 +244,52 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
     grid-template-rows: repeat(3, 1fr);
     grid-template-areas: 'T1' 'T2' 'T3';
 
-    &[data-pinned-count='1'],
+    &[data-pinned-count='1'] {
+      grid-template-areas:
+        'T1'
+        'T1'
+        'T1'
+        'T1'
+        'T2'
+        'T2'
+        'T2'
+        'T2'
+        'T3'
+        'T3'
+        'T3'
+        'T3'
+        'P1'
+        'P1'
+        'P1';
+      grid-template-rows: repeat(15, 1fr);
+    }
     &[data-pinned-count='2'] {
       grid-template-areas:
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'T1 T1'
-        'T2 T2'
-        'T2 T2'
-        'T2 T2'
-        'T2 T2'
-        'T3 T3'
-        'T3 T3'
-        'T3 T3'
-        'T3 T3'
-        'P1 P2'
-        'P1 P2'
-        'P1 P2';
-      grid-template-rows: repeat(15, 1fr);
-      grid-template-columns: repeat(2, 1fr);
-    }
-    &[data-pinned-count='3'],
-    &[data-pinned-count='4'] {
-      grid-template-areas:
-        'T1 T1'
-        'T2 T2'
-        'T3 T3'
-        'P1 P2'
-        'P3 P4';
+        'T1'
+        'T2'
+        'T3'
+        'P1'
+        'P2';
       grid-template-rows: repeat(5, 1fr);
-      grid-template-columns: repeat(2, 1fr);
+    }
+    &[data-pinned-count='3'] {
+      grid-template-areas:
+        'T1'
+        'T1'
+        'T2'
+        'T2'
+        'T3'
+        'T3'
+        'P1'
+        'P1'
+        'P1'
+        'P2'
+        'P2'
+        'P2'
+        'P3'
+        'P3'
+        'P3';
+      grid-template-rows: repeat(15, 1fr);
     }
   }
 }

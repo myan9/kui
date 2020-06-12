@@ -51,8 +51,11 @@ const strings = i18n('plugin-client-common')
 
 type Cleaner = () => void
 
-const MAX_TERMINALS = 3
-const MAX_PINNED = 4
+/** Hard limit on the number of Terminal splits */
+const MAX_TERMINALS = 2
+
+/** Hard limit on the number of Pinned splits */
+const MAX_PINNED = 3
 
 export interface TerminalOptions {
   noActiveInput?: boolean
