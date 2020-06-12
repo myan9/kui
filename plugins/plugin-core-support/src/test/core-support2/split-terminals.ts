@@ -130,25 +130,32 @@ describe(`split terminals ${process.env.MOCHA_RUN_TARGET || ''}`, function(this:
   it('should refresh', () => Common.refresh(this))
 
   showVersion(1)
-  splitTheTerminalViaCommand(2)
+  splitTheTerminalViaButton(2)
   showVersion(2)
-  splitTheTerminalViaButton(3)
-  showVersion(3)
-  splitTheTerminalViaCommand(3, true)
 
-  closeTheSplit(2)
-  showVersion(2)
-  splitTheTerminalViaButton(3)
-  showVersion(3)
-  closeTheSplit(2)
+  /* if (MAX_TERMINALS === 3) {
+    splitTheTerminalViaButton(3)
+    showVersion(3)
+    splitTheTerminalViaCommand(3, true)
+
+    closeTheSplit(2)
+    showVersion(2)
+    splitTheTerminalViaButton(3)
+    showVersion(3)
+    closeTheSplit(2)
+  } */
+
   closeTheSplit(1)
   splitTheTerminalViaCommand(2)
   closeTheSplit(1)
 
   splitTheTerminalViaCommand(2)
   focusOnSplit(1, 2)
-  splitTheTerminalViaCommand(3)
-  focusOnSplit(2, 1)
-  focusOnSplit(1, 2)
-  focusOnSplit(2, 3)
+
+  /* if (MAX_TERMINALS === 3) {
+    splitTheTerminalViaCommand(3)
+    focusOnSplit(2, 1)
+    focusOnSplit(1, 2)
+    focusOnSplit(2, 3)
+  } */
 })
