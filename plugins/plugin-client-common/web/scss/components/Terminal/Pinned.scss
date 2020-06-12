@@ -36,7 +36,14 @@ $inset: 0.5em;
 
   /* css magic for inner scrolling (see above and below for more magic rules) */
   flex: 1;
+  display: flex;
   overflow: hidden;
+
+  .repl-output,
+  .repl-result {
+    /* css magic for inner scrolling (see above and below for more magic rules) */
+    flex: 1;
+  }
 
   .repl-input {
     position: absolute;
@@ -46,6 +53,11 @@ $inset: 0.5em;
 
   .kui--data-table-wrapper {
     padding: 0;
+
+    /* css magic for inner scrolling (see above and below for more magic rules) */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
   .kui--data-table-toolbar-filler {
     display: none;
@@ -95,6 +107,7 @@ span.kui--scrollback.kui--pinned-blank {
 
 /** special styling of table-as-grid within pinned scrollbacks */
 span.kui--scrollback[data-has-pinned] [data-table-watching] {
+  display: flex;
   flex: 1;
   overflow: hidden;
 
@@ -105,7 +118,8 @@ span.kui--scrollback[data-has-pinned] [data-table-watching] {
     /* css magic to give inner scrolling of grid */
     position: absolute;
     overflow-y: auto;
-    max-height: 100%;
+    max-height: calc(100% - 1.875em - #{$inset});
+    top: 1.875em;
 
     [data-tag='badge'] [data-tag='badge-circle'] {
       width: $table-grid-cell-size;
