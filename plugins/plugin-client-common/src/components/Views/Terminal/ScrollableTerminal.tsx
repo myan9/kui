@@ -51,8 +51,11 @@ const strings = i18n('plugin-client-common')
 
 type Cleaner = () => void
 
+/** Hard limit on the number of Terminal splits */
 const MAX_TERMINALS = 3
-const MAX_PINNED = 4
+
+/** Hard limit on the number of Pinned splits */
+const MAX_PINNED = 3
 
 export interface TerminalOptions {
   noActiveInput?: boolean
@@ -619,7 +622,12 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
             Array(MAX_PINNED - nPinned)
               .fill(undefined)
               .map((_, idx) => (
-                <span key={`kui--pinned-blank-${idx}`} data-has-pinned className="kui--scrollback kui--pinned-blank" />
+                <span
+                  key={`kui--pinned-blank-${idx}`}
+                  data-has-pinned
+                  className="kui--scrollback kui--pinned-blank"
+                  data-foo={idx}
+                />
               ))}
         </div>
       </div>
