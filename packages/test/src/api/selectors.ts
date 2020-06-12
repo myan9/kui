@@ -96,8 +96,9 @@ export const OUTPUT_N_STREAMING = (N: number) => `${PROMPT_BLOCK_N(N)} [data-str
 export const OUTPUT_N_PTY = (N: number) => OUTPUT_N_STREAMING(N)
 export const PROMPT_BLOCK_LAST = `${PROMPT_BLOCK}:nth-last-child(2)`
 export const PROMPT_BLOCK_FINAL = `${PROMPT_BLOCK}:nth-last-child(1)`
-export const PROMPT_BLOCK_LAST_MENU = `${PROMPT_BLOCK_LAST} .kui--repl-block-right-element.kui--toolbar-button-with-icon`
-export const BLOCK_REMOVE_BUTTON = `.kui--repl-block-right-element.kui--toolbar-button-with-icon button[data-mode="Remove"]`
+export const OVERFLOW_MENU = '.kui--repl-block-right-element.kui--toolbar-button-with-icon'
+export const PROMPT_BLOCK_LAST_MENU = `${PROMPT_BLOCK_LAST} ${OVERFLOW_MENU}`
+export const BLOCK_REMOVE_BUTTON = `${OVERFLOW_MENU} button[data-mode="Remove"]`
 export const PROMPT_LAST = `${PROMPT_BLOCK_LAST} .repl-input-element`
 export const PROMPT_FINAL = `${PROMPT_BLOCK_FINAL} .repl-input-element`
 export const OUTPUT_LAST = `${PROMPT_BLOCK_LAST} .repl-result`
@@ -165,6 +166,10 @@ export const CURRENT_GRID_ONLINE_FOR_SPLIT = (N: number, name: string) =>
   `${CURRENT_GRID_BY_NAME_FOR_SPLIT(N, name)} .green-background`
 export const CURRENT_GRID_OFFLINE_FOR_SPLIT = (N: number, name: string) =>
   `${CURRENT_GRID_BY_NAME_FOR_SPLIT(N, name)} .red-background`
+
+export const SPLIT_N_MENU = (N: number) => `${SPLIT_N(N)} ${OVERFLOW_MENU}`
+export const BLOCK_CLOSE_BUTTON = `${OVERFLOW_MENU} button[data-mode="Close"]`
+export const BLOCK_UNPIN_BUTTON = `${OVERFLOW_MENU} button[data-mode="Unpin"]`
 
 /** xterm */
 export const ALT_BUFFER_N = (N: number) => `${CURRENT_TAB} .kui--scrollback:nth-child(${N}).xterm-alt-buffer-mode`
