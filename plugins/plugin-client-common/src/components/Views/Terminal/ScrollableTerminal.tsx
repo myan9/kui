@@ -102,10 +102,14 @@ interface State {
 }
 
 function doSplitViewViaId(uuid: string, focusBlock?: FinishedBlock) {
-  return new Promise((resolve, reject) => {
+  const res = new Promise((resolve, reject) => {
     const requestChannel = `/kui-shell/TabContent/v1/tab/${uuid}`
     setTimeout(() => eventChannelUnsafe.emit(requestChannel, resolve, reject, focusBlock))
+  }).catch(err => {
+    console.error('doSplitViewViaId', err)
+    throw err
   })
+  return res
 }
 
 /** Split the given tab uuid */
@@ -251,6 +255,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     }
   }
 
+  /** is the number of pinned views reached the max limit? */
+  private hasReachedMaxPinnned() {
+    return this.numPinnedSplits() === MAX_PINNED
+  }
+
   /** the REPL finished executing a command */
   private onExecEnd(uuid = this.current ? this.current.uuid : undefined, event: CommandCompleteEvent<ScalarResponse>) {
     if (event.echo === false) {
@@ -276,30 +285,39 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
         if (isProcessing(inProcess)) {
           try {
             if (maybePinTheBlock(event)) {
-              const pinnedBlock = Object.assign(
-                {},
-                Finished(
-                  inProcess,
-                  event.responseType === 'ScalarResponse' && showInTerminal ? event.response : true,
-                  event.cancelled
-                ),
-                {
-                  isPinned: true
-                } /** <--- pin the block, and render the block accordingly e.g. not show timestamp, auto-gridify table */
-              )
+              if (this.hasReachedMaxPinnned()) {
+                const blocks = curState.blocks
+                  .slice(0, inProcessIdx) // everything before
+                  .concat([Finished(inProcess, new Error(strings('No more pins allowed')), false)]) // tell the user that we didn't pinned the output
+                  .concat(curState.blocks.slice(inProcessIdx + 1)) // everything after
+                  .concat([Active()]) // plus a new block!
 
-              // FIXME: catch "no more splits" exception and make sure
-              // this propagates back to repl/exec? or wraparound...
-              doSplitViewViaId(uuid, pinnedBlock)
+                return {
+                  blocks
+                }
+              } else {
+                const pinnedBlock = Object.assign(
+                  {},
+                  Finished(
+                    inProcess,
+                    event.responseType === 'ScalarResponse' && showInTerminal ? event.response : true,
+                    event.cancelled
+                  ),
+                  {
+                    isPinned: true
+                  } /** <--- pin the block, and render the block accordingly e.g. not show timestamp, auto-gridify table */
+                )
 
-              const blocks = curState.blocks
-                .slice(0, inProcessIdx) // everything before
-                .concat([Finished(inProcess, this.markdown('Output has been pinned to a watch pane'), false)]) // tell the user that we pinned the output
-                .concat(curState.blocks.slice(inProcessIdx + 1)) // everything after
-                .concat([Active()]) // plus a new block!
+                doSplitViewViaId(uuid, pinnedBlock)
+                const blocks = curState.blocks
+                  .slice(0, inProcessIdx) // everything before
+                  .concat([Finished(inProcess, this.markdown('Output has been pinned to a watch pane'), false)]) // tell the user that we pinned the output
+                  .concat(curState.blocks.slice(inProcessIdx + 1)) // everything after
+                  .concat([Active()]) // plus a new block!
 
-              return {
-                blocks
+                return {
+                  blocks
+                }
               }
             } else {
               const blocks = curState.blocks
@@ -404,8 +422,10 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     const nPinned = this.numPinnedSplits()
     const nTerminals = this.state.splits.length - nPinned
 
-    if ((!pinBlock && nTerminals === MAX_TERMINALS) || (pinBlock && nPinned === MAX_PINNED)) {
-      reject(new Error('No more splits allowed'))
+    if (!pinBlock && nTerminals === MAX_TERMINALS) {
+      reject(new Error(strings('No more splits allowed')))
+    } else if (pinBlock && this.hasReachedMaxPinnned()) {
+      reject(new Error(strings('No more pins allowed')))
     } else {
       this.setState(({ splits, focusedIdx }) => {
         const newFocus = focusedIdx + 1

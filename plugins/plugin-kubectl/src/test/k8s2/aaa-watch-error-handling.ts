@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
-import { createNS, waitForGreen, waitForRed } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
+import { Common, CLI, ReplExpect, Selectors, SidecarExpect } from '@kui-shell/test'
+import { createNS, waitForGreen, waitForRed, defaultModeForGet } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
 
 const wdescribe = process.env.USE_WATCH_PANE ? describe : xdescribe
 
@@ -73,10 +73,10 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
   )
 
   // here comes the tests should start watching successfully
+  const ns = createNS()
+
   it(`should watch pods, starting from an non-existent namespace`, async () => {
     try {
-      const ns = createNS()
-
       console.error('watch from non-existent namespace 0')
       // start to watch pods in a non-existent namespace
       await CLI.command(`k get pods -w -n ${ns}`, this.app)
@@ -115,12 +115,93 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
       await this.app.client.waitForExist(Selectors.CURRENT_GRID_OFFLINE_FOR_SPLIT(2, 'nginx'), CLI.waitTimeout)
 
       console.error('watch from non-existent namespace 6')
-      // delete the namespace
-      await CLI.command(`k delete ns ${ns}`, this.app)
-        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
-        .then(nsStatus => waitForRed(this.app, nsStatus))
     } catch (err) {
       await Common.oops(this, true)(err)
     }
   })
+
+  it('should reload', () => Common.refresh(this))
+
+  it('should watch pods and hit the maximum limit of pinned views', async () => {
+    try {
+      // create a pod
+      await CLI.command(
+        `k create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod -n ${ns}`,
+        this.app
+      )
+        .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') }))
+        .then(status => waitForGreen(this.app, status))
+
+      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
+        ReplExpect.okWithString('Output has been pinned to a watch pane')
+      )
+
+      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
+        ReplExpect.okWithString('Output has been pinned to a watch pane')
+      )
+
+      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
+        ReplExpect.okWithString('Output has been pinned to a watch pane')
+      )
+
+      await CLI.command(`k get pods -w -n ${ns}`, this.app).then(
+        ReplExpect.error(
+          500,
+          'You have reached the maximum number of pinned views. Consider either closing one, or re-executing the command in a new tab.'
+        )
+      )
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  it('should reload', () => Common.refresh(this))
+
+  it('should watch pods and exit the terminal', async () => {
+    try {
+      await CLI.command(`k get pods -w -n ${ns}`, this.app)
+        .then(ReplExpect.okWithString('Output has been pinned to a watch pane'))
+        .then(() => ReplExpect.splitCount(4)(this.app))
+
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+
+      // exit the first terminal and still see two splits
+      await CLI.command('exit', this.app).then(() => ReplExpect.splitCount(4)(this.app))
+
+      // watch pane should not be affected
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  it('should open sidecar via watch pane, and click the sidecar title to pexec in terminal', async () => {
+    try {
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+      await this.app.client.click(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+
+      await SidecarExpect.open(this.app)
+        .then(SidecarExpect.mode(defaultModeForGet))
+        .then(SidecarExpect.showing('nginx'))
+
+      await this.app.client.click(Selectors.SIDECAR_TITLE)
+
+      // this is the first command in the terminal, since we exit this terminal in the previosu test
+      await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })({ app: this.app, count: 0 })
+
+      // split pane should not be affected
+      await ReplExpect.splitCount(4)(this.app)
+
+      // watch pane should not be affected
+      await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
+    } catch (err) {
+      await Common.oops(this, true)(err)
+    }
+  })
+
+  it('should delete the namespace', () =>
+    CLI.command(`k delete ns ${ns}`, this.app)
+      .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(ns) }))
+      .then(nsStatus => waitForRed(this.app, nsStatus))
+      .catch(Common.oops(this, true)))
 })

@@ -86,7 +86,9 @@ export default class Scalar extends React.PureComponent<Props, State> {
           </KuiContext.Consumer>
         )
       } else if (isTable(response)) {
-        return renderTable(tab, tab.REPL, response, undefined, true, this.props.isPinned)
+        const renderBottomToolbar = !this.props.isPinned
+        const renderGrid = this.props.isPinned
+        return renderTable(tab, tab.REPL, response, undefined, renderBottomToolbar, renderGrid)
         // ^^^ Notes: typescript doesn't like this, and i don't know why:
         // "is not assignable to type IntrinsicAttributes..."
         // <PaginatedTable {...props} />
