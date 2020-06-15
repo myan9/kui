@@ -137,23 +137,6 @@ function isInViewport(elm: HTMLElement) {
   return !(rect.bottom < 0 || rect.top - viewHeight >= 0)
 }
 
-/**
- * When the following requirements meet, auto-pin the command block:
- * 1. not in popup mode
- * 3. the scalar response is watchable, e.g. watchable table,
- * 3. the command option or exec options doesn't say alwaysViewIn Terminal,
- * i.e. crud command may always want to be displayed in terminal even though it's watchable,
- *
- */
-function maybePinTheBlock(event: CommandCompleteEvent<ScalarResponse>) {
-  return (
-    !isPopup() &&
-    isWatchable(event.response) &&
-    event.evaluatorOptions.alwaysViewIn !== 'Terminal' &&
-    event.execOptions.alwaysViewIn !== 'Terminal'
-  )
-}
-
 export default class ScrollableTerminal extends React.PureComponent<Props, State> {
   private _scrollRegion: HTMLDivElement
 
@@ -260,6 +243,26 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     return this.numPinnedSplits() === MAX_PINNED
   }
 
+  /**
+   * When the following requirements meet, auto-pin the command block:
+   * 1. user has enbaled the splitTerminals anad enableWatcherAutoPin feature flag
+   * 2. not in popup mode
+   * 3. the scalar response is watchable, e.g. watchable table,
+   * 4. the command option or exec options doesn't say alwaysViewIn Terminal,
+   * i.e. crud command may always want to be displayed in terminal even though it's watchable,
+   *
+   */
+  private shouldPinTheBlock(event: CommandCompleteEvent<ScalarResponse>) {
+    return (
+      this.props.config.splitTerminals &&
+      this.props.config.enableWatcherAutoPin &&
+      !isPopup() &&
+      isWatchable(event.response) &&
+      event.evaluatorOptions.alwaysViewIn !== 'Terminal' &&
+      event.execOptions.alwaysViewIn !== 'Terminal'
+    )
+  }
+
   /** the REPL finished executing a command */
   private onExecEnd(uuid = this.current ? this.current.uuid : undefined, event: CommandCompleteEvent<ScalarResponse>) {
     if (event.echo === false) {
@@ -272,19 +275,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     this.splice(uuid, curState => {
       const inProcessIdx = curState.blocks.findIndex(_ => isProcessing(_) && _.execUUID === event.execUUID)
 
-      // response `showInTerminal` is either non-watchable response, or watch response that's forced to show in terminal
-      // FIXME simplify or eliminate?
-      const showInTerminal =
-        !this.props.config.enableWatchPane ||
-        !isWatchable(event.response) ||
-        (isWatchable(event.response) &&
-          (event.evaluatorOptions.alwaysViewIn === 'Terminal' || event.execOptions.alwaysViewIn === 'Terminal'))
-
       if (inProcessIdx >= 0) {
         const inProcess = curState.blocks[inProcessIdx]
         if (isProcessing(inProcess)) {
           try {
-            if (maybePinTheBlock(event)) {
+            if (this.shouldPinTheBlock(event)) {
               if (this.hasReachedMaxPinnned()) {
                 const blocks = curState.blocks
                   .slice(0, inProcessIdx) // everything before
@@ -298,17 +293,16 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
               } else {
                 const pinnedBlock = Object.assign(
                   {},
-                  Finished(
-                    inProcess,
-                    event.responseType === 'ScalarResponse' && showInTerminal ? event.response : true,
-                    event.cancelled
-                  ),
+                  Finished(inProcess, event.responseType === 'ScalarResponse' ? event.response : true, event.cancelled),
                   {
                     isPinned: true
                   } /** <--- pin the block, and render the block accordingly e.g. not show timestamp, auto-gridify table */
                 )
 
+                // show the response in a split view
                 doSplitViewViaId(uuid, pinnedBlock)
+
+                // signify that the response has been pinned in the original block
                 const blocks = curState.blocks
                   .slice(0, inProcessIdx) // everything before
                   .concat([Finished(inProcess, this.markdown('Output has been pinned to a watch pane'), false)]) // tell the user that we pinned the output
@@ -323,11 +317,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
               const blocks = curState.blocks
                 .slice(0, inProcessIdx) // everything before
                 .concat([
-                  Finished(
-                    inProcess,
-                    event.responseType === 'ScalarResponse' && showInTerminal ? event.response : true,
-                    event.cancelled
-                  )
+                  Finished(inProcess, event.responseType === 'ScalarResponse' ? event.response : true, event.cancelled)
                 ]) // mark as finished
                 .concat(curState.blocks.slice(inProcessIdx + 1)) // everything after
                 .concat([Active()]) // plus a new block!

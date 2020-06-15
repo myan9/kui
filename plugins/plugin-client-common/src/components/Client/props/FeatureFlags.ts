@@ -15,14 +15,14 @@
  */
 
 type FeatureFlags = {
-  /** [Optional] Enable WatchPane? */
-  enableWatchPane?: boolean
-
   /** [Optional] disable table title? */
   disableTableTitle?: boolean
 
   /** [Optional] Enable Split Terminals? */
   splitTerminals?: boolean
+
+  /** [Optional] automatically pin watchable command ouptut to the WatchPane? */
+  enableWatcherAutoPin?: boolean
 }
 
 export default FeatureFlags

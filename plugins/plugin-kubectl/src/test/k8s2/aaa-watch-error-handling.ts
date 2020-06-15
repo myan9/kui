@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as assert from 'assert'
+
 import { Common, CLI, ReplExpect, Selectors, SidecarExpect } from '@kui-shell/test'
 import { createNS, waitForGreen, waitForRed, defaultModeForGet } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
 
@@ -109,6 +111,10 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
       // start to watch pods in a non-existent namespace
       await CLI.command(`k get pods -w -n ${ns}`, this.app)
 
+      // the empty watch table should be pinned and show 'No resources'
+      const emptyWatcher = await this.app.client.getText(Selectors.SPLIT_N_OUTPUT(2))
+      assert.ok(emptyWatcher.includes('No resources'))
+
       console.error('watch from non-existent namespace 1')
       // create the namespace
       await CLI.command(`k create ns ${ns}`, this.app)
@@ -120,7 +126,7 @@ wdescribe(`kubectl watch error handler via watch pane ${process.env.MOCHA_RUN_TA
 
       console.error('watch from non-existent namespace 3')
 
-      // the watch table should have the new pods with online status
+      // the watch table should have the new pods with online status, and 'No resources' should go away
       await this.app.client.waitForExist(Selectors.CURRENT_GRID_BY_NAME_FOR_SPLIT(2, 'nginx'))
 
       console.error('watch from non-existent namespace 3.5')

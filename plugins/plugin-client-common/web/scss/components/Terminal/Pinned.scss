@@ -45,6 +45,11 @@ $inset: 0.5em;
     flex: 1;
   }
 
+  /* unset the font-size of kui--hero-text in ui.css */
+  .repl-output .kui--hero-text {
+    font-size: unset;
+  }
+
   .repl-input {
     position: absolute;
     top: calc(0.875em / 4);

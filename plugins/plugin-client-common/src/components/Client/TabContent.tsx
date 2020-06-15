@@ -24,7 +24,6 @@ import Confirm from '../Views/Confirm'
 import Loading from '../spi/Loading'
 import { TopTabButton } from './TabModel'
 import Width from '../Views/Sidecar/width'
-import WatchPane, { Height } from '../Views/WatchPane'
 
 import getSize from '../Views/Terminal/getSize'
 import ScrollableTerminal, { TerminalOptions } from '../Views/Terminal/ScrollableTerminal'
@@ -57,7 +56,7 @@ type Props = TabContentOptions &
     willUpdateTopTabButtons?: (buttons: TopTabButton[]) => void
   }
 
-type CurrentlyShowing = 'TerminalOnly' | 'TerminalPlusSidecar' | 'TerminalPlusWatcher' | 'TerminalSidecarWatcher'
+type CurrentlyShowing = 'TerminalOnly' | 'TerminalPlusSidecar'
 type SessionInitStatus = 'NotYet' | 'InProgress' | 'Reinit' | 'Done' | 'Error'
 
 type State = Partial<WithTab> & {
@@ -68,9 +67,6 @@ type State = Partial<WithTab> & {
   sidecarWidth: Width
   priorSidecarWidth: Width /* prior to closing */
   sidecarHasContent: boolean
-
-  primaryHeight: Height
-  watchPaneHasContent: boolean
 
   splitPaneImpl?: SplitPane
   splitPaneImplHacked?: boolean
@@ -111,8 +107,6 @@ export default class TabContent extends React.PureComponent<Props, State> {
       sidecarWidth: Width.Closed,
       priorSidecarWidth: Width.Closed,
       sidecarHasContent: false,
-      watchPaneHasContent: false,
-      primaryHeight: Height.NotSplit,
       activeView: 'TerminalOnly'
     }
   }
@@ -274,16 +268,8 @@ export default class TabContent extends React.PureComponent<Props, State> {
   private onWillChangeSize(desiredWidth: Width) {
     this.setState(curState => {
       const sidecarWidth = desiredWidth
-      const watchPaneOpen = curState.primaryHeight === Height.Split
 
-      const activeView: CurrentlyShowing =
-        sidecarWidth === Width.Closed
-          ? watchPaneOpen
-            ? 'TerminalPlusWatcher'
-            : 'TerminalOnly'
-          : watchPaneOpen
-          ? 'TerminalSidecarWatcher'
-          : 'TerminalPlusSidecar'
+      const activeView: CurrentlyShowing = sidecarWidth === Width.Closed ? 'TerminalOnly' : 'TerminalPlusSidecar'
 
       const newState = {
         sidecarHasContent: true,
@@ -299,17 +285,13 @@ export default class TabContent extends React.PureComponent<Props, State> {
 
   private show(activeView: CurrentlyShowing) {
     this.setState(curState => {
-      const showSidecar = activeView === 'TerminalPlusSidecar' || activeView === 'TerminalSidecarWatcher'
-      const showWatchPane = activeView === 'TerminalPlusWatcher' || activeView === 'TerminalSidecarWatcher'
-
+      const showSidecar = activeView === 'TerminalPlusSidecar'
       const sidecarWidth = showSidecar ? Width.Split60 : Width.Closed
-      const primaryHeight = showWatchPane ? Height.Split : Height.NotSplit
 
       const newState = {
         sidecarWidth,
         activeView,
         priorSidecarWidth: curState.sidecarWidth,
-        primaryHeight,
         sidecarHasContent: curState.sidecarHasContent
       }
 
@@ -323,32 +305,6 @@ export default class TabContent extends React.PureComponent<Props, State> {
     if (this.state.activeView !== desiredView) {
       this.show(desiredView)
     }
-  }
-
-  private openWatchPane() {
-    const notWatching = this.state.activeView === 'TerminalOnly' || this.state.activeView === 'TerminalPlusSidecar'
-
-    if (notWatching) {
-      this.setState(curState => {
-        const sidecarClosed = curState.sidecarWidth === Width.Closed
-
-        return {
-          activeView: sidecarClosed ? 'TerminalPlusWatcher' : 'TerminalSidecarWatcher',
-          watchPaneHasContent: true,
-          primaryHeight: Height.Split
-        }
-      })
-    }
-  }
-
-  private closeWatchPane() {
-    this.setState(curState => {
-      return {
-        activeView: curState.activeView === 'TerminalSidecarWatcher' ? 'TerminalPlusSidecar' : 'TerminalOnly',
-        watchPaneHasContent: false,
-        primaryHeight: Height.NotSplit
-      }
-    })
   }
 
   private onWillLoseFocus() {
@@ -459,44 +415,13 @@ export default class TabContent extends React.PureComponent<Props, State> {
         >
           <div className="kui--rows">
             <div className="kui--columns" style={{ position: 'relative' }}>
-              {this.topDownSplit()}
+              {this.leftRightSplit()}
             </div>
             {this.bottom()}
           </div>
           {this.state.tab && <Confirm tab={this.state.tab} uuid={this.props.uuid} />}
         </div>
       </React.Fragment>
-    )
-  }
-
-  /**
-   *  Terminal | Sidecar
-   *  ------------------
-   *      WatchPane
-   */
-  private topDownSplit() {
-    return (
-      <SplitPane
-        split="horizontal"
-        allowResize={false}
-        size={this.state.primaryHeight}
-        className={this.state.primaryHeight === Height.NotSplit ? 'kui--watch-pane-closed' : undefined}
-      >
-        {this.leftRightSplit()}
-
-        <KuiContext.Consumer>
-          {config =>
-            config.enableWatchPane && (
-              <WatchPane
-                uuid={this.props.uuid}
-                tab={this.state.tab}
-                openWatchPane={this.openWatchPane.bind(this)}
-                closeWatchPane={this.closeWatchPane.bind(this)}
-              />
-            )
-          }
-        </KuiContext.Consumer>
-      </SplitPane>
     )
   }
 
@@ -514,7 +439,6 @@ export default class TabContent extends React.PureComponent<Props, State> {
         minSize={0}
         className={this.state.sidecarWidth === Width.Closed ? 'kui--sidecar-closed' : undefined}
         size={this.state.sidecarWidth}
-        style={{ height: 'inherit' }} // otherwise; height will be 100% and watch pane will be hidden
         primary="second"
       >
         {this.terminal()}

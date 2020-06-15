@@ -156,6 +156,7 @@ export const WATCHER_N_SHOW_AS_TABLE = (N: number) => WATCHER_N_DROPDOWN_ITEM(N,
 export const NEW_SPLIT_BUTTON = '#kui--split-terminal-button'
 export const SPLITS = `${CURRENT_TAB} .kui--scrollback`
 export const SPLIT_N = (N: number) => `${SPLITS}:nth-child(${N})`
+export const SPLIT_N_OUTPUT = (N: number) => `${SPLITS}:nth-child(${N}) .repl-output`
 export const CURRENT_PROMPT_BLOCK_FOR_SPLIT = (N: number) => `${SPLIT_N(N)} ${_PROMPT_BLOCK}`
 export const CURRENT_PROMPT_FOR_SPLIT = (N: number) => `${CURRENT_PROMPT_BLOCK_FOR_SPLIT(N)} ${_PROMPT}`
 
@@ -168,7 +169,7 @@ export const CURRENT_GRID_OFFLINE_FOR_SPLIT = (N: number, name: string) =>
   `${CURRENT_GRID_BY_NAME_FOR_SPLIT(N, name)} .red-background`
 
 export const SPLIT_N_MENU = (N: number) => `${SPLIT_N(N)} ${OVERFLOW_MENU}`
-export const BLOCK_CLOSE_BUTTON = `${OVERFLOW_MENU} button[data-mode="Close"]`
+export const BLOCK_CLOSE_BUTTON = `${OVERFLOW_MENU} button[data-mode="Stop watching"]`
 export const BLOCK_UNPIN_BUTTON = `${OVERFLOW_MENU} button[data-mode="Unpin"]`
 
 /** xterm */

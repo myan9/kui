@@ -380,8 +380,7 @@ export default class Input extends InputProvider {
       ? []
       : [
           {
-            label: this.props.isPinned ? strings('Close') : strings('Remove'),
-            hasDivider: true,
+            label: this.props.isPinned ? strings('Stop watching') : strings('Remove'),
             handler: () => this.props.willRemove()
           }
         ]
@@ -404,6 +403,7 @@ export default class Input extends InputProvider {
       : [
           {
             label: strings2('Unpin'),
+            hasDivider: true,
             handler: () => this.props.unPin()
           }
         ]
@@ -413,8 +413,8 @@ export default class Input extends InputProvider {
   private dropdown() {
     if (!isActive(this.props.model)) {
       const actions = this.screenshotAction()
-        .concat(this.removeAction())
         .concat(this.unPinnedAction())
+        .concat(this.removeAction())
       return (
         <DropDown
           actions={actions}

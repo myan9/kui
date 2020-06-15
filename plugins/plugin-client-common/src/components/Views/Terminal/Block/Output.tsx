@@ -25,7 +25,8 @@ import {
   eventChannelUnsafe,
   Tab as KuiTab,
   Stream,
-  Streamable
+  Streamable,
+  isWatchable
 } from '@kui-shell/core'
 
 import { BlockViewTraits } from './'
@@ -45,7 +46,7 @@ import {
 
 import Scalar from '../../../Content/Scalar/'
 
-const okString = i18n('plugin-client-common')('ok')
+const strings = i18n('plugin-client-common')
 
 type Props = {
   /** tab UUID */
@@ -181,8 +182,17 @@ export default class Output extends React.PureComponent<Props, State> {
 
   private ok(hasContent: boolean) {
     if (isOk(this.props.model)) {
-      const okMessage = hasContent ? '' : okString
-      return <div className="ok">{okMessage}</div>
+      if (hasContent) {
+        return <div className="ok" />
+      } else if (isWatchable(this.props.model.response)) {
+        return this.props.isPinned ? (
+          <div className="kui--hero-text">{strings('No resources')}</div>
+        ) : (
+          <div className="ok">{strings('No resources')}</div>
+        )
+      } else {
+        return <div className="ok">{strings('ok')}</div>
+      }
     }
   }
 
