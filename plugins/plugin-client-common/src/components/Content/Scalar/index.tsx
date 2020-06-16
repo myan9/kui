@@ -38,7 +38,8 @@ import { isError } from '../../Views/Terminal/Block/BlockModel'
 interface Props {
   tab: KuiTab
   response: ScalarResponse | Error
-  isPinned?: boolean
+  isPinned: boolean
+  onRender: (hasContent: boolean) => void
 }
 
 interface State {
@@ -88,7 +89,7 @@ export default class Scalar extends React.PureComponent<Props, State> {
       } else if (isTable(response)) {
         const renderBottomToolbar = !this.props.isPinned
         const renderGrid = this.props.isPinned
-        return renderTable(tab, tab.REPL, response, undefined, renderBottomToolbar, renderGrid)
+        return renderTable(tab, tab.REPL, response, undefined, renderBottomToolbar, renderGrid, this.props.onRender)
         // ^^^ Notes: typescript doesn't like this, and i don't know why:
         // "is not assignable to type IntrinsicAttributes..."
         // <PaginatedTable {...props} />
@@ -96,7 +97,7 @@ export default class Scalar extends React.PureComponent<Props, State> {
         return (
           <div className="result-vertical flex-layout" style={{ flex: 1, alignItems: 'unset' }}>
             {response.map((part, idx) => (
-              <Scalar key={idx} tab={this.props.tab} response={part} isPinned={this.props.isPinned} />
+              <Scalar {...this.props} key={idx} response={part} />
             ))}
           </div>
         )

@@ -60,6 +60,7 @@ type Props = {
 } & BlockViewTraits
 
 interface State {
+  assertHasContent: boolean
   isResultRendered: boolean
 
   streamingOutput: Streamable[]
@@ -78,6 +79,7 @@ export default class Output extends React.PureComponent<Props, State> {
     }
 
     this.state = {
+      assertHasContent: false,
       isResultRendered: false,
       streamingOutput: [],
       streamingConsumer
@@ -116,12 +118,25 @@ export default class Output extends React.PureComponent<Props, State> {
     }
   }
 
+  private onRender(assertHasContent: boolean): void {
+    if (this.props.onRender) {
+      this.props.onRender()
+    }
+    this.setState({ assertHasContent })
+  }
+
   private stream() {
     if (this.state.streamingOutput.length > 0) {
       return (
         <div className="repl-result-like result-vertical" data-stream>
           {this.state.streamingOutput.map((part, idx) => (
-            <Scalar key={idx} tab={this.props.tab} response={part} isPinned={this.props.isPinned} />
+            <Scalar
+              key={idx}
+              tab={this.props.tab}
+              response={part}
+              isPinned={this.props.isPinned}
+              onRender={this.onRender.bind(this)}
+            />
           ))}
         </div>
       )
@@ -148,7 +163,12 @@ export default class Output extends React.PureComponent<Props, State> {
           {isCancelled(this.props.model) ? (
             <React.Fragment />
           ) : (
-            <Scalar tab={this.props.tab} response={this.props.model.response} isPinned={this.props.isPinned} />
+            <Scalar
+              tab={this.props.tab}
+              response={this.props.model.response}
+              isPinned={this.props.isPinned}
+              onRender={this.onRender.bind(this)}
+            />
           )}
         </div>
       )
@@ -197,7 +217,10 @@ export default class Output extends React.PureComponent<Props, State> {
   }
 
   public render() {
-    const hasContent = this.isShowingSomethingInTerminal(this.props.model)
+    const hasContent =
+      this.state.assertHasContent !== undefined
+        ? this.state.assertHasContent
+        : this.isShowingSomethingInTerminal(this.props.model)
 
     return (
       <div className={'repl-output result-vertical' + (hasContent ? ' repl-result-has-content' : '')}>
