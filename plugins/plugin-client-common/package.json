@@ -28,7 +28,7 @@
     "cli-spinners": "^2.3.0",
     "monaco-editor": "0.20.0",
     "monaco-editor-webpack-plugin": "1.9.0",
-    "react-markdown": "4.3.1",
+    "markdown-to-jsx": "6.11.4",
     "react-split-pane": "0.1.91",
     "tmp": "0.1.0"
   },

@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { v4 as uuid } from 'uuid'
 import { dirname, join, relative } from 'path'
-import * as ReactMarkdown from 'react-markdown'
+import MarkdownToJSX from 'markdown-to-jsx'
 import { REPL, Tab as KuiTab } from '@kui-shell/core'
 import {
   Link,
@@ -62,94 +62,112 @@ export default class Markdown extends React.PureComponent<Props> {
   }
 
   public render() {
+    const list = props => {
+      return React.createElement(
+        props.ordered ? OrderedList : UnorderedList,
+        { nested: props.depth > 0, className: props.className },
+        props.children
+      )
+    }
+
+    const tableCell = props => (
+      <StructuredListCell head={props.isHeader} className={props.className}>
+        {props.children}
+      </StructuredListCell>
+    )
+
+    const heading = (props, level: number) => {
+      console.error('props', props)
+      const valueChild =
+        props.children && props.children.length === 1 ? props.children[0] : props.children.find(_ => _.props.value)
+      const anchor =
+        !valueChild || !valueChild.props || !valueChild.props.value
+          ? undefined
+          : this.anchorFrom(valueChild.props.value.toLowerCase().replace(/ /g, '-'))
+      return React.createElement(
+        `h${level}`,
+        Object.assign({}, props, {
+          'data-markdown-anchor': anchor,
+          'data-is-href': valueChild && valueChild.props && valueChild.props.href
+        }),
+        props.children
+      )
+    }
+
+    console.error('this.props', this.props.source)
     return (
-      <ReactMarkdown
-        source={this.props.source}
+      <MarkdownToJSX
         className={
           this.props.className || 'padding-content scrollable scrollable-x scrollable-auto marked-content page-content'
         }
-        renderers={{
-          link: props => {
-            const isLocal = !/^http/i.test(props.href)
-            const target = !isLocal ? '_blank' : undefined
-            const href = isLocal ? '#' : props.href
-            const onClick = !isLocal
-              ? undefined
-              : async () => {
-                  let file = props.href
-                  if (props.href.startsWith('#kuiexec?command=')) {
-                    const cmdline = decodeURIComponent(props.href.slice('#kuiexec?command='.length))
-                    if (cmdline) {
-                      return this.props.repl.pexec(cmdline)
-                    }
-                  } else if (props.href.charAt(0) === '#') {
-                    const elt = this.props.tab.querySelector(
-                      `[data-markdown-anchor="${this.anchorFrom(props.href.slice(1))}"]`
-                    )
-                    if (elt) {
-                      return elt.scrollIntoView()
-                    }
-                  } else if (this.props.fullpath) {
-                    const absoluteHref = join(dirname(this.props.fullpath), props.href)
-                    const relativeToCWD = relative(process.cwd() || process.env.PWD, absoluteHref)
-                    file = relativeToCWD
-                  }
-                  return this.props.repl.pexec(`open ${this.props.repl.encodeComponent(file)}`)
-                }
-            return <Link {...props} href={href} target={target} onClick={onClick} />
-          },
-          code: props => <CodeSnippet value={props.value} onCopy={this.onCopy.bind(this, props.value)} />,
-          heading: props => {
-            const valueChild =
-              props.children && props.children.length === 1
-                ? props.children[0]
-                : props.children.find(_ => _.props.value)
-            const anchor =
-              !valueChild || !valueChild.props || !valueChild.props.value
+        options={{
+          overrides: {
+            a: props => {
+              const isLocal = !/^http/i.test(props.href)
+              const target = !isLocal ? '_blank' : undefined
+              const href = isLocal ? '#' : props.href
+              const onClick = !isLocal
                 ? undefined
-                : this.anchorFrom(valueChild.props.value.toLowerCase().replace(/ /g, '-'))
-            return React.createElement(
-              `h${props.level}`,
-              Object.assign({}, props, {
-                'data-markdown-anchor': anchor,
-                'data-is-href': valueChild && valueChild.props && valueChild.props.href
-              }),
-              props.children
-            )
-          },
-          image: props => {
-            const isLocal = !/^http/i.test(props.src)
-            if (isLocal && this.props.fullpath) {
-              const absoluteSrc = join(dirname(this.props.fullpath), props.src)
-              const relativeToCWD = relative(process.cwd() || process.env.PWD, absoluteSrc)
-              return <img src={relativeToCWD} />
-            } else {
-              return <img {...props} />
-            }
-          },
-          list: props => {
-            return React.createElement(
-              props.ordered ? OrderedList : UnorderedList,
-              { nested: props.depth > 0, className: props.className },
-              props.children
-            )
-          },
-          listItem: props => <ListItem className={props.className}>{props.children}</ListItem>,
-          table: props => <StructuredListWrapper className={props.className}>{props.children}</StructuredListWrapper>,
-          tableHead: props => <StructuredListHead className={props.className}>{props.children}</StructuredListHead>,
-          tableBody: props => <StructuredListBody className={props.className}>{props.children}</StructuredListBody>,
-          tableRow: props => (
-            <StructuredListRow head={props.isHeader} className={props.className}>
-              {props.children}
-            </StructuredListRow>
-          ),
-          tableCell: props => (
-            <StructuredListCell head={props.isHeader} className={props.className}>
-              {props.children}
-            </StructuredListCell>
-          )
+                : async () => {
+                    let file = props.href
+                    if (props.href.startsWith('#kuiexec?command=')) {
+                      const cmdline = decodeURIComponent(props.href.slice('#kuiexec?command='.length))
+                      if (cmdline) {
+                        return this.props.repl.pexec(cmdline)
+                      }
+                    } else if (props.href.charAt(0) === '#') {
+                      const elt = this.props.tab.querySelector(
+                        `[data-markdown-anchor="${this.anchorFrom(props.href.slice(1))}"]`
+                      )
+                      if (elt) {
+                        return elt.scrollIntoView()
+                      }
+                    } else if (this.props.fullpath) {
+                      const absoluteHref = join(dirname(this.props.fullpath), props.href)
+                      const relativeToCWD = relative(process.cwd() || process.env.PWD, absoluteHref)
+                      file = relativeToCWD
+                    }
+                    return this.props.repl.pexec(`open ${this.props.repl.encodeComponent(file)}`)
+                  }
+
+              const link = <Link {...props} href={href} target={target} onClick={onClick} />
+              return link
+            },
+            code: props => <CodeSnippet value={props.children} onCopy={this.onCopy.bind(this, props.value)} />,
+            h1: props => heading(props, 1),
+            h2: props => heading(props, 2),
+            h3: props => heading(props, 3),
+            h4: props => heading(props, 4),
+            h5: props => heading(props, 5),
+            h6: props => heading(props, 6),
+            img: props => {
+              const isLocal = !/^http/i.test(props.src)
+              if (isLocal && this.props.fullpath) {
+                const absoluteSrc = join(dirname(this.props.fullpath), props.src)
+                const relativeToCWD = relative(process.cwd() || process.env.PWD, absoluteSrc)
+                return <img src={relativeToCWD} />
+              } else {
+                return <img {...props} />
+              }
+            },
+            ul: list,
+            ol: list,
+            li: props => <ListItem className={props.className}>{props.children}</ListItem>,
+            table: props => <StructuredListWrapper className={props.className}>{props.children}</StructuredListWrapper>,
+            thead: props => <StructuredListHead className={props.className}>{props.children}</StructuredListHead>,
+            tbody: props => <StructuredListBody className={props.className}>{props.children}</StructuredListBody>,
+            tr: props => (
+              <StructuredListRow head={props.isHeader} className={props.className}>
+                {props.children}
+              </StructuredListRow>
+            ),
+            td: tableCell,
+            th: tableCell
+          }
         }}
-      />
+      >
+        {this.props.source}
+      </MarkdownToJSX>
     )
   }
 }

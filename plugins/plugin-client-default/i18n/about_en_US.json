@@ -1,6 +1,6 @@
 {
   "about": "About",
-  "about:content": "[![Kui: The CLI with a GUI twist](icons/svg/kui-wide.svg)](http://kui.tools)\n\n**Kui** is a platform for enhancing the terminal experience with visualizations. It provides users a modern alternative to ASCII terminals and web-based consoles. It provides tool developers an opportunity to unify these experiences.",
+  "about:content": "### Description\n####      Annotations is an unstructured key value map stored with a resource that      may be set by external tools to store and retrieve arbitrary metadata. They      are not queryable and should be preserved when modifying objects. More      info: http://kubernetes.io/docs/user-guide/annotations\n### Type\n&lt;map&#91;string&#93;string&gt;\n### Version\napps/v1",
   "theme": "Themes",
   "Configure": "Configure",
   "tutorial": "Getting Started",

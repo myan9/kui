@@ -44,6 +44,10 @@ const strings = i18n('plugin-kubectl')
  */
 const removeSolitaryAndTrailingPeriod = (str: string) => str.replace(/^\s*([^.]+)[.]\s*$/, '$1').trim()
 
+const escapeAngleBracket = (str: string) => str.replace('<', '&lt;').replace('>', '&gt;')
+
+const escapeSquareBracket = (str: string) => str.replace('[', '&#91;').replace(']', '&#93;')
+
 /** format a DetailedExample as markdown */
 function formatAsMarkdown({ command, docs }: { command: string; docs: string }): string {
   return `
@@ -137,10 +141,15 @@ const renderHelpUnsafe = <O extends KubeOptions>(
     splitOutUse
       .filter(_ => !_.includes('Use "kubectl options"')) // `kubectl options` is incorporated as one of the base modes of `kubectl` usage
       .map(_ =>
-        _.replace(
-          /"([^"]+)"/g,
-          (_, command) => `[${command}](#kuiexec?command=${encodeURIComponent(command)} "Execute ${command}")`
-        )
+        _.replace(/"([^"]+)"/g, (_, command) => {
+          if (_.includes('<command>')) {
+            return escapeAngleBracket(_)
+          } else {
+            // linkify the usage, e.g. Use kubectl api-resources for a complete list of supported resources.
+            const escapedCommand = escapeAngleBracket(escapeSquareBracket(command))
+            return `[${escapedCommand}](#kuiexec?command=${encodeURIComponent(command)} "Execute ${command}")`
+          }
+        })
       )
       // .map(_ => ` - ${_}`)
       .join('\n')
