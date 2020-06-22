@@ -19,7 +19,11 @@
  *
  */
 
-type ToolbarTextType = 'info' | 'success' | 'warning' | 'error'
+export type ToolbarTextType = 'info' | 'success' | 'warning' | 'error'
+
+export function isSupportedToolbarTextType(type: string): type is ToolbarTextType {
+  return type === 'info' || type === 'success' || type === 'warning' || type === 'error'
+}
 
 type ToolbarTextValue = string | Element
 
