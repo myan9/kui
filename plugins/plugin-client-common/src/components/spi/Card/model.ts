@@ -20,7 +20,13 @@ import { DropDownAction } from '../DropDown'
 
 interface Props {
   /** Place the given header node at the top of the Card */
-  header: ReactNode
+  header?: ReactNode
+
+  /** Place the given title string at the top of the Card */
+  title?: string
+
+  /** Place the given icon image at the top of the Card */
+  icon?: string
 
   /** Force children to be a required property */
   children: ReactNode

@@ -21,6 +21,7 @@ import {
   CardBody,
   CardHeader,
   CardHeaderMain,
+  CardTitle,
   Dropdown,
   DropdownItem,
   KebabToggle
@@ -73,15 +74,27 @@ export default class PatternflyCard extends React.PureComponent<Props, State> {
     )
   }
 
+  private icon () {
+   // <Brand src={this.props.icon} alt="card icon" style={{ height: '50px' }}/>
+  }
+
   public render() {
+    const needsHeader = this.props.header || this.props.actions || this.props.icon
+    
     return (
       <Card className={this.props.className}>
         {React.Children.count(this.props.children) > 0 && (
           <React.Fragment>
-            <CardHeader>
-              <CardHeaderMain>{this.props.header}</CardHeaderMain>
-              {this.props.actions && this.cardActions()}
-            </CardHeader>
+            {needsHeader && (
+              <CardHeader>
+                <CardHeaderMain>
+                  {this.props.header}
+                  {this.props.icon && this.icon()}
+                </CardHeaderMain>
+                {this.props.actions && this.cardActions()}
+              </CardHeader>
+            )}
+            {this.props.title && <CardTitle> {this.props.title} </CardTitle>}
             <CardBody>{this.props.children}</CardBody>
           </React.Fragment>
         )}
