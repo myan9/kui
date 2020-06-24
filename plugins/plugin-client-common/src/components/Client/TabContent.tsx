@@ -28,6 +28,7 @@ import WatchPane, { Height } from '../Views/WatchPane'
 
 import getSize from '../Views/Terminal/getSize'
 import ScrollableTerminal, { TerminalOptions } from '../Views/Terminal/ScrollableTerminal'
+import { Announcement } from '../Views/Terminal/Block/BlockModel'
 
 import '../../../web/css/static/split-pane.scss'
 
@@ -229,6 +230,30 @@ export default class TabContent extends React.PureComponent<Props, State> {
     )
   }
 
+  private prefixBlocks() {
+    if (
+      this.state.sessionInit === 'Done' &&
+      this.state.showSessionInitDone &&
+      this.state.sidecarWidth === Width.Closed
+    ) {
+      const response = {
+        react: (
+          <KuiContext.Consumer>
+            {config =>
+              config.loadingDone && (
+                <div className="kui--repl-message kui--session-init-done">
+                  <span className="repl-block">{config.loadingDone(this.state.tab.REPL)}</span>
+                </div>
+              )
+            }
+          </KuiContext.Consumer>
+        )
+      }
+
+      return [Announcement(response)]
+    }
+  }
+
   private terminal() {
     if (this.state.sessionInit !== 'Done') {
       return (
@@ -247,12 +272,12 @@ export default class TabContent extends React.PureComponent<Props, State> {
     } else {
       return (
         <React.Fragment>
-          {this.sessionInitDoneMessage()}
           <KuiContext.Consumer>
             {config => (
               <ScrollableTerminal
                 {...this.props}
                 tab={this.state.tab}
+                prefixBlocks={this.prefixBlocks()}
                 config={config}
                 sidecarIsVisible={this.state.sidecarWidth !== Width.Closed}
                 closeSidecar={() => this.setState({ sidecarWidth: Width.Closed })}

@@ -37,6 +37,7 @@ import {
   Active,
   Finished,
   FinishedBlock,
+  AnnouncementBlock,
   Cancelled,
   Processing,
   isActive,
@@ -76,6 +77,8 @@ type Props = TerminalOptions & {
 
   sidecarIsVisible?: boolean
   closeSidecar: () => void
+
+  prefixBlocks?: AnnouncementBlock[]
 }
 
 interface ScrollbackState {
@@ -160,10 +163,13 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     capturedValue?: string,
     sbuuid = this.allocateUUIDForScrollback()
   ): ScrollbackState {
+    const prefixBlocks: BlockModel[] = this.props.prefixBlocks
+    const activeBlock: BlockModel[] = [Active(capturedValue)]
+
     const state = {
       uuid: sbuuid,
       cleaners: [],
-      blocks: pinBlock ? [pinBlock] : [Active(capturedValue)] // <-- TODO: restore from localStorage for a given tab UUID?
+      blocks: pinBlock ? [pinBlock] : prefixBlocks ? prefixBlocks.concat(activeBlock) : activeBlock // <-- TODO: restore from localStorage for a given tab UUID?
     }
 
     eventBus.onceWithTabId('/tab/close/request', sbuuid, async () => {

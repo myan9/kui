@@ -35,9 +35,14 @@ type WithState<S extends BlockState> = { state: S }
 type WithResponse<R extends ScalarResponse> = { response: R } & WithStartTime
 type WithValue = { value: string }
 type withPin = { isPinned: boolean }
+type WithAnnouncement = { isAnnouncement: boolean }
 
 /** The canonical types of Blocks, which mix up the Traits as needed */
 type ActiveBlock = WithState<BlockState.Active> & WithCWD & Partial<WithValue>
+export type AnnouncementBlock = WithState<BlockState.ValidResponse> &
+  WithResponse<ScalarResponse> &
+  WithCWD &
+  WithAnnouncement
 type EmptyBlock = WithState<BlockState.Empty> & WithCWD
 type ErrorBlock = WithState<BlockState.Error> & WithCommand & WithResponse<Error> & WithUUID
 type OkBlock = WithState<BlockState.ValidResponse> & WithCommand & WithResponse<ScalarResponse> & WithUUID
@@ -48,7 +53,8 @@ type CancelledBlock = WithState<BlockState.Cancelled> & WithCWD & WithCommand & 
 export type FinishedBlock = OkBlock | ErrorBlock | CancelledBlock | EmptyBlock
 
 // A Block is one of the canonical types
-export type BlockModel = (ProcessingBlock | FinishedBlock | CancelledBlock | ActiveBlock) & Partial<withPin>
+export type BlockModel = (ProcessingBlock | FinishedBlock | CancelledBlock | ActiveBlock | AnnouncementBlock) &
+  Partial<withPin>
 export default BlockModel
 
 /** Capture the current working directory */
@@ -108,6 +114,22 @@ export function Active(initialValue?: string): ActiveBlock {
     state: BlockState.Active,
     value: initialValue
   }
+}
+
+/** Transform to AnnouncementBlock */
+export function Announcement(response: ScalarResponse): AnnouncementBlock {
+  return {
+    response,
+    isAnnouncement: true,
+    startTime: new Date('hi'),
+    cwd: cwd(),
+    state: BlockState.ValidResponse
+  }
+}
+
+export function isAnnouncement(block: BlockModel): block is AnnouncementBlock {
+  const blockModel = block as AnnouncementBlock
+  return blockModel.state === BlockState.ValidResponse && blockModel.isAnnouncement === true
 }
 
 /** Transform to Processing */
