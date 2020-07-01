@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as assert from 'assert'
-
 import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
 import { createNS, waitForGreen, waitForRed } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
 

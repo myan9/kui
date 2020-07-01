@@ -34,7 +34,6 @@ export type WorkerPoolState = ClusterState
  * This is the model passed back to us from the `ibmcloud` CLI.
  *
  */
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudWorkerPoolRaw {
   name: string
   sizePerZone: number

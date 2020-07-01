@@ -38,7 +38,6 @@ const codeCoverageTempDirectory = () =>
     ? join(process.env.TRAVIS_BUILD_DIR, 'packages/test/.nyc_output')
     : join(process.env.TEST_ROOT, '.nyc_output')
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface ISuite extends Suite {
   app: Application
   _kuiDestroyAfter?: boolean
@@ -83,7 +82,7 @@ async function writeCodeCoverage(app: Application) {
         // nyc.writeCoverageFile()
 
         // see https://github.com/IBM/kui/issues/3217 for some discussion
-        Object.keys(__coverage__).forEach(function(absFile) {
+        Object.keys(__coverage__).forEach(function (absFile) {
           const map = JSON.parse(require('fs').readFileSync(`${absFile}.map`))
           nyc.sourceMaps._sourceMapCache.registerMap(absFile, map)
         }, nyc)
@@ -141,7 +140,7 @@ const prepareElectron = (popup: string[]) => {
     env: {},
     chromeDriverArgs: ['--no-sandbox'],
     startTimeout: parseInt(process.env.TIMEOUT) || 60000, // see https://github.com/IBM/kui/issues/2227
-    waitTimeout: parseInt(process.env.TIMEOUT) || 60000
+    waitTimeout: parseInt(process.env.TIMEOUT) || 60000,
   }
 
   /* if (!popup && (process.env.HEADLESS !== undefined || process.env.TRAVIS_JOB_ID !== undefined)) {
@@ -244,7 +243,7 @@ export const before = (ctx: ISuite, options?: BeforeOptions): HookFunction => {
     ctx.retries(1) // don't retry the mocha.it in local testing
   }
 
-  return async function() {
+  return async function () {
     // by default, we expect not to have to destroy the app when this
     // describe is done
     ctx['_kuiDestroyAfter'] = false
@@ -329,16 +328,16 @@ export const after = (ctx: ISuite, f?: () => void): HookFunction => async () => 
   // when we're done with a test suite, look for any important
   // SEVERE errors in the chrome console logs. try to ignore
   // intentional failures as much as possible!
-  const anyFailed = ctx.tests && ctx.tests.some(test => test.state === 'failed')
+  const anyFailed = ctx.tests && ctx.tests.some((test) => test.state === 'failed')
 
   // print out log messages from the electron app, if any of the tests
   // failed
   if (anyFailed && ctx.app && ctx.app.client) {
-    ctx.app.client.getRenderProcessLogs().then(logs =>
+    ctx.app.client.getRenderProcessLogs().then((logs) =>
       logs
-        .filter(log => !/SFMono/.test(log.message))
-        .filter(log => !/fonts.gstatic/.test(log.message))
-        .forEach(log => {
+        .filter((log) => !/SFMono/.test(log.message))
+        .filter((log) => !/fonts.gstatic/.test(log.message))
+        .forEach((log) => {
           if (
             log.level === 'SEVERE' && // only console.error messages
             log.message.indexOf('The requested resource was not found') < 0 && // composer file not found
@@ -376,22 +375,22 @@ export const oops = (ctx: ISuite, wait = false) => async (err: Error) => {
         promises.push(
           await ctx.app.client
             .getHTML(Selectors.OUTPUT_LAST)
-            .then(html => {
+            .then((html) => {
               console.log('here is the output of the prior output:')
               console.log(html.replace(/<style>.*<\/style>/, ''))
             })
-            .catch(err => {
+            .catch((err) => {
               console.error('error trying to get the output of the previous block', err)
             })
         )
         promises.push(
           await ctx.app.client
             .getHTML(Selectors.PROMPT_BLOCK_FINAL)
-            .then(html => {
+            .then((html) => {
               console.log('here is the content of the last block:')
               console.log(html.replace(/<style>.*<\/style>/, ''))
             })
-            .catch(err => {
+            .catch((err) => {
               console.error('error trying to get the output of the final block', err)
             })
         )
@@ -400,8 +399,8 @@ export const oops = (ctx: ISuite, wait = false) => async (err: Error) => {
       }
 
       promises.push(
-        ctx.app.client.getMainProcessLogs().then(logs =>
-          logs.forEach(log => {
+        ctx.app.client.getMainProcessLogs().then((logs) =>
+          logs.forEach((log) => {
             if (log.indexOf('INFO:CONSOLE') < 0 && log.indexOf('FontService') < 0) {
               // don't log console messages, as these will show up in getRenderProcessLogs
               console.log('MAIN'.cyan.bold, log)
@@ -411,11 +410,11 @@ export const oops = (ctx: ISuite, wait = false) => async (err: Error) => {
       )
       promises.push(
         // filter out the "Not allowed to load local resource" font loading errors
-        ctx.app.client.getRenderProcessLogs().then(logs =>
+        ctx.app.client.getRenderProcessLogs().then((logs) =>
           logs
-            .filter(log => !/SFMono/.test(log.message))
-            .filter(log => !/fonts.gstatic/.test(log.message))
-            .forEach(log => {
+            .filter((log) => !/SFMono/.test(log.message))
+            .filter((log) => !/fonts.gstatic/.test(log.message))
+            .forEach((log) => {
               if (log.message.indexOf('%c') === -1) {
                 console.log('RENDER'.yellow.bold, log.message.red)
               } else {
@@ -430,7 +429,7 @@ export const oops = (ctx: ISuite, wait = false) => async (err: Error) => {
       promises.push(
         await ctx.app.client
           .getText(Selectors.OOPS)
-          .then(anyErrors => {
+          .then((anyErrors) => {
             if (anyErrors) {
               console.log('Error from the UI'.magenta.bold, anyErrors)
             }

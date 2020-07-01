@@ -17,7 +17,7 @@
 interface SubwindowPrefs {
   fullscreen?: boolean
   useContentSize?: boolean
-  synonymFor?: object
+  synonymFor?: Record<string, any>
   width?: number
   height?: number
   position?: () => Promise<{ x: number; y: number }>

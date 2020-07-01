@@ -18,11 +18,9 @@ import SplitPane from 'react-split-pane'
 import * as React from 'react'
 import { eventChannelUnsafe, eventBus, Tab as KuiTab, TabState, initializeSession } from '@kui-shell/core'
 
-import Alert from '../spi/Alert'
 import Icons from '../spi/Icons'
 import KuiContext from './context'
 import Confirm from '../Views/Confirm'
-import Loading from '../spi/Loading'
 import { TopTabButton } from './TabModel'
 import Width from '../Views/Sidecar/width'
 import WatchPane, { Height } from '../Views/WatchPane'
@@ -112,7 +110,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
       sidecarHasContent: false,
       watchPaneHasContent: false,
       primaryHeight: Height.NotSplit,
-      activeView: 'TerminalOnly'
+      activeView: 'TerminalOnly',
     }
   }
 
@@ -145,13 +143,13 @@ export default class TabContent extends React.PureComponent<Props, State> {
 
   private async onOffline() {
     this.setState({
-      sessionInit: 'Reinit'
+      sessionInit: 'Reinit',
     })
 
     initializeSession(this.state.tab)
       .then(() => {
         this.setState({
-          sessionInit: 'Done' as const
+          sessionInit: 'Done' as const,
         })
       })
       .catch(TabContent.onSessionInitError.bind(undefined, this.props.uuid))
@@ -178,7 +176,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         TabContent.hackResizer(state)
 
         return {
-          sessionInit: 'InProgress'
+          sessionInit: 'InProgress',
         }
       } catch (err) {
         console.error(err)
@@ -204,7 +202,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
 
   public componentWillUnmount() {
     eventBus.emit('/tab/close', this.state.tab)
-    this.cleaners.forEach(cleaner => cleaner())
+    this.cleaners.forEach((cleaner) => cleaner())
   }
 
   private defaultLoading() {
@@ -216,7 +214,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
     if (this.state.sessionInit !== 'Done') {
       return (
         <KuiContext.Consumer>
-          {config => {
+          {(config) => {
             if (this.state.sessionInit === 'Error' && config.loadingError) {
               return config.loadingError(this.state.sessionInitError)
             } else if (this.state.sessionInit === 'Reinit' && config.reinit) {
@@ -231,7 +229,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
       return (
         <React.Fragment>
           <KuiContext.Consumer>
-            {config => (
+            {(config) => (
               <ScrollableTerminal
                 {...this.props}
                 tab={this.state.tab}
@@ -241,7 +239,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
                 onClear={() => {
                   this.setState({ showSessionInitDone: false })
                 }}
-                ref={c => {
+                ref={(c) => {
                   // so that we can refocus/blur
                   this._terminal = c
                 }}
@@ -254,7 +252,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
   }
 
   private onWillChangeSize(desiredWidth: Width) {
-    this.setState(curState => {
+    this.setState((curState) => {
       const sidecarWidth = desiredWidth
       const watchPaneOpen = curState.primaryHeight === Height.Split
 
@@ -271,7 +269,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         sidecarHasContent: true,
         sidecarWidth,
         priorSidecarWidth: curState.sidecarWidth,
-        activeView
+        activeView,
       }
 
       this.updateTopTabButtons(newState)
@@ -280,7 +278,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
   }
 
   private show(activeView: CurrentlyShowing) {
-    this.setState(curState => {
+    this.setState((curState) => {
       const showSidecar = activeView === 'TerminalPlusSidecar' || activeView === 'TerminalSidecarWatcher'
       const showWatchPane = activeView === 'TerminalPlusWatcher' || activeView === 'TerminalSidecarWatcher'
 
@@ -292,7 +290,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         activeView,
         priorSidecarWidth: curState.sidecarWidth,
         primaryHeight,
-        sidecarHasContent: curState.sidecarHasContent
+        sidecarHasContent: curState.sidecarHasContent,
       }
 
       this.updateTopTabButtons(newState)
@@ -311,24 +309,24 @@ export default class TabContent extends React.PureComponent<Props, State> {
     const notWatching = this.state.activeView === 'TerminalOnly' || this.state.activeView === 'TerminalPlusSidecar'
 
     if (notWatching) {
-      this.setState(curState => {
+      this.setState((curState) => {
         const sidecarClosed = curState.sidecarWidth === Width.Closed
 
         return {
           activeView: sidecarClosed ? 'TerminalPlusWatcher' : 'TerminalSidecarWatcher',
           watchPaneHasContent: true,
-          primaryHeight: Height.Split
+          primaryHeight: Height.Split,
         }
       })
     }
   }
 
   private closeWatchPane() {
-    this.setState(curState => {
+    this.setState((curState) => {
       return {
         activeView: curState.activeView === 'TerminalSidecarWatcher' ? 'TerminalPlusSidecar' : 'TerminalOnly',
         watchPaneHasContent: false,
-        primaryHeight: Height.NotSplit
+        primaryHeight: Height.NotSplit,
       }
     })
   }
@@ -339,7 +337,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
     }
   }
 
-  private graft(node: React.ReactNode | {}, key?: number) {
+  private graft(node: React.ReactNode | Record<string, any>, key?: number) {
     if (React.isValidElement(node)) {
       // ^^^ this check avoids tsc errors
       return React.cloneElement(node, {
@@ -348,7 +346,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         active: this.props.active,
         width: this.state.sidecarWidth,
         willChangeSize: this.onWillChangeSize.bind(this),
-        willLoseFocus: this.onWillLoseFocus.bind(this)
+        willLoseFocus: this.onWillLoseFocus.bind(this),
       })
     } else {
       return node
@@ -370,7 +368,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
       // ^^^ this check avoids tsc errors
       return React.cloneElement(this.props.bottom, {
         uuid: this.props.uuid,
-        tab: this.state.tab
+        tab: this.state.tab,
       })
     } else {
       return this.props.bottom
@@ -387,12 +385,12 @@ export default class TabContent extends React.PureComponent<Props, State> {
   }
 
   public render() {
-    this.activateHandlers.forEach(handler => handler(this.props.active))
+    this.activateHandlers.forEach((handler) => handler(this.props.active))
 
     return (
       <React.Fragment>
         <div
-          ref={c => {
+          ref={(c) => {
             const tab = c as KuiTab
             this.setState({ tab })
 
@@ -407,29 +405,29 @@ export default class TabContent extends React.PureComponent<Props, State> {
                 this.activateHandlers.push(handler)
               }
               tab.offActivate = (handler: (isActive: boolean) => void) => {
-                const idx = this.activateHandlers.findIndex(_ => _ === handler)
+                const idx = this.activateHandlers.findIndex((_) => _ === handler)
                 if (idx >= 0) {
                   this.activateHandlers.splice(idx, 1)
                 }
               }
 
               tab.addClass = (cls: string) => {
-                this.setState(curState => {
+                this.setState((curState) => {
                   if (!curState.tabClassList || !curState.tabClassList[cls]) {
                     return {
-                      tabClassList: Object.assign({}, curState.tabClassList, { [cls]: true })
+                      tabClassList: Object.assign({}, curState.tabClassList, { [cls]: true }),
                     }
                   }
                 })
               }
 
               tab.removeClass = (cls: string) => {
-                this.setState(curState => {
+                this.setState((curState) => {
                   if (curState.tabClassList && curState.tabClassList[cls]) {
                     const update = Object.assign({}, curState.tabClassList)
                     delete update[cls]
                     return {
-                      tabClassList: update
+                      tabClassList: update,
                     }
                   }
                 })
@@ -467,7 +465,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
         {this.leftRightSplit()}
 
         <KuiContext.Consumer>
-          {config =>
+          {(config) =>
             config.enableWatchPane && (
               <WatchPane
                 uuid={this.props.uuid}
@@ -488,7 +486,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
   private leftRightSplit() {
     return (
       <SplitPane
-        ref={c => {
+        ref={(c) => {
           this.setState({ splitPaneImpl: c })
         }}
         split="vertical"
@@ -512,7 +510,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
    */
   private updateTopTabButtons(newState: Pick<State, 'activeView' | 'sidecarHasContent'>) {
     if (this.props.willUpdateTopTabButtons) {
-      this.props.willUpdateTopTabButtons([this.terminalButton(newState), this.sidecarButton(newState)].filter(_ => _))
+      this.props.willUpdateTopTabButtons([this.terminalButton(newState), this.sidecarButton(newState)].filter((_) => _))
     }
   }
 
@@ -536,7 +534,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
           data-active={state.activeView === 'TerminalOnly' || undefined}
           onClick={this.showIfNot.bind(this, 'TerminalOnly')}
         />
-      )
+      ),
     }
   }
 
@@ -554,7 +552,7 @@ export default class TabContent extends React.PureComponent<Props, State> {
             data-active={state.activeView === 'TerminalPlusSidecar' || undefined}
             onClick={this.showIfNot.bind(this, 'TerminalPlusSidecar')}
           />
-        )
+        ),
       }
     }
   }

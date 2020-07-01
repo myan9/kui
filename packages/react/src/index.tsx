@@ -15,7 +15,7 @@
  */
 
 /** DO NOT REMOVE; Content-Security-Policy enforcement */
-/* eslint-disable @typescript-eslint/camelcase,prefer-const */
+/* eslint-disable camelcase,prefer-const */
 declare let _kuiNonce: string
 declare let __webpack_nonce__: string
 __webpack_nonce__ = _kuiNonce
@@ -36,4 +36,4 @@ function renderMain(container: Element, isPopup: boolean, commandLine?: string[]
 }
 
 /** boot Kui! */
-import('@kui-shell/core').then(_ => _.boot(renderMain))
+import('@kui-shell/core').then((_) => _.boot(renderMain))

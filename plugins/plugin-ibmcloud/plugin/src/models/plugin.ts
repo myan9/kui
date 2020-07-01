@@ -53,7 +53,6 @@ interface Command {
   Stage: string
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudInstalledPluginRaw {
   Name: string
   Aliases: string[]
@@ -76,15 +75,15 @@ export interface InstalledPluginsRaw {
 interface AvailablePluginVersion {
   version: string
   updated: string
-  doc_url: string
-  min_cli_version: string
+  doc_url: string // eslint-disable-line camelcase
+  min_cli_version: string // eslint-disable-line camelcase
   binaries: {
     platform: string
     url: string
     checksum: string
   }[]
-  api_versions: null | string[]
-  release_notes_link: string
+  api_versions: null | string[] // eslint-disable-line camelcase
+  release_notes_link: string // eslint-disable-line camelcase
 }
 
 export interface AvailablePluginRaw {

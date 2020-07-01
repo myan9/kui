@@ -19,13 +19,11 @@ import { WithSummary } from '@kui-shell/plugin-kubectl'
 
 import apiVersion from '../controller/apiVersion'
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudInstalledRepositoryRaw {
   Name: string
   URL: string
 }
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudInstalledRepositoriesRaw {
   PluginRepos: IBMCloudInstalledRepositoryRaw[]
 }

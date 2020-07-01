@@ -31,7 +31,7 @@ const usage = (command: string) => ({
 
 export default (commandTree: Registrar) => {
   if (!inBrowser()) {
-    const quitCmd = commandTree.listen('/quit', doQuit, {
+    commandTree.listen('/quit', doQuit, {
       usage: usage('quit')
     })
   }

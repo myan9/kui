@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable camelcase */
 export const CURRENT_TAB = '.kui--tab-content.visible'
 export const TAB_N = (N: number) => `.kui--tab-content:nth-child(${N})`
 export const TAB_SELECTED_N = (N: number) => `${TAB_N(N)}.visible`

@@ -23,7 +23,7 @@ import { NodeSummary, BarColor, Bar, BarContainer } from '..'
 
 const debug = Debug('plugin-view-utilization/widgets/cluster-utilization')
 
-type Props = {}
+type Props = Record<string, any>
 
 interface State {
   cpuFrac: number
@@ -38,7 +38,7 @@ export default class ClusterUtilization extends React.PureComponent<Props, State
     this.state = {
       cpuFrac: 0,
       memFrac: 0,
-      viewLevel: 'hidden'
+      viewLevel: 'hidden',
     }
   }
 
@@ -50,14 +50,14 @@ export default class ClusterUtilization extends React.PureComponent<Props, State
       this.setState({
         cpuFrac: info.cpuFrac,
         memFrac: info.memFrac,
-        viewLevel: 'normal' // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+        viewLevel: 'normal', // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
       })
     } catch (err) {
       debug(err)
       this.setState({
         cpuFrac: 0,
         memFrac: 0,
-        viewLevel: 'hidden'
+        viewLevel: 'hidden',
       })
     }
   }

@@ -21,7 +21,7 @@ const requireAll = require('require-all')
 const mode = process.env.MODE || 'development'
 const target = process.env.TARGET || 'web'
 const inBrowser = target === 'web'
-const isWatching = !!process.argv.find(_ => /--watch/.test(_) || /webpack-dev-server/.test(_))
+const isWatching = !!process.argv.find((_) => /--watch/.test(_) || /webpack-dev-server/.test(_))
 const webCompress = process.env.WEB_COMPRESS || 'none'
 const noCompression = !inBrowser || webCompress === 'none' || isWatching
 const CompressionPlugin = !noCompression && require('compression-webpack-plugin') // could be 'brotli-webpack-plugin' if needed
@@ -36,9 +36,9 @@ const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin')
 const terserOptions = process.env.KEEP_CLASSNAMES
   ? {
       terserOptions: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        keep_classnames: true
-      }
+        // eslint-disable-next-line camelcase
+        keep_classnames: true,
+      },
     }
   : {}
 
@@ -47,11 +47,11 @@ const sassLoaderChain = [
     loader: MiniCssExtractPlugin.loader,
     options: {
       hmr: mode === 'development',
-      esModule: true
-    }
+      esModule: true,
+    },
   },
   'css-loader',
-  'sass-loader'
+  'sass-loader',
 ]
 
 const optimization = {}
@@ -99,8 +99,9 @@ const defaultConnectCSP = `http://localhost:8081 http://localhost:9953 ws://loca
 
 const contentSecurityPolicyForDevServer =
   process.env.WEBPACK_DEV_SERVER &&
-  `default-src 'none'; frame-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' file: 'nonce-kuiDefaultNonce' data: http: https:; script-src 'self' 'nonce-kuiDefaultNonce' 'strict-dynamic' 'unsafe-eval'; font-src 'self' file:; connect-src 'self' ${process
-    .env.CSP_ALLOWED_HOSTS || defaultConnectCSP}`
+  `default-src 'none'; frame-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' file: 'nonce-kuiDefaultNonce' data: http: https:; script-src 'self' 'nonce-kuiDefaultNonce' 'strict-dynamic' 'unsafe-eval'; font-src 'self' file:; connect-src 'self' ${
+    process.env.CSP_ALLOWED_HOSTS || defaultConnectCSP
+  }`
 if (contentSecurityPolicyForDevServer) {
   console.log('ContentSecurityPolicy: dev-server', contentSecurityPolicyForDevServer)
 } else {
@@ -179,7 +180,7 @@ console.log('pluginBase', pluginBase)
 const allKuiPlugins = fs.readdirSync(pluginBase)
 const kuiPluginRules = []
 const kuiPluginExternals = []
-const pluginEntries = allKuiPlugins.map(dir => {
+const pluginEntries = allKuiPlugins.map((dir) => {
   try {
     const pjson = path.join(pluginBase, dir, 'package.json')
     const { kui } = require(pjson)
@@ -189,7 +190,7 @@ const pluginEntries = allKuiPlugins.map(dir => {
     if (kui && kui.webpack) {
       if (kui.webpack.plugins) {
         const kuiPluginRequiredWebpackPlugins = kui.webpack.plugins
-        kuiPluginRequiredWebpackPlugins.forEach(_ => {
+        kuiPluginRequiredWebpackPlugins.forEach((_) => {
           if (typeof _ === 'string') {
             plugins.push(new (require(_))())
           } else {
@@ -199,17 +200,17 @@ const pluginEntries = allKuiPlugins.map(dir => {
       }
 
       if (kui.webpack.externals) {
-        kui.webpack.externals.forEach(_ => {
+        kui.webpack.externals.forEach((_) => {
           kuiPluginExternals.push(_)
         })
       }
 
       if (kui.webpack.rules) {
         if (kui.webpack.rules['file-loader']) {
-          kui.webpack.rules['file-loader'].forEach(test => {
+          kui.webpack.rules['file-loader'].forEach((test) => {
             kuiPluginRules.push({
               test: new RegExp(test.replace(/(\S)\/(\S)/g, `$1\\${path.sep}$2`)),
-              use: 'file-loader'
+              use: 'file-loader',
             })
           })
         }
@@ -233,8 +234,8 @@ plugins.push(
   new CopyPlugin({
     patterns: [
       { from: path.join(clientBase, 'icons'), to: 'icons/' },
-      { from: path.join(clientBase, 'images'), to: 'images/' }
-    ]
+      { from: path.join(clientBase, 'images'), to: 'images/' },
+    ],
   })
 )
 
@@ -256,12 +257,12 @@ if (contentSecurityPolicyForDevServer) {
 
 const htmlBuildOptions = Object.assign(
   {
-    inject: false
+    inject: false,
   },
   clientOptions,
   {
     filename: path.join(outputPath, 'index.html'),
-    template: path.join(stageDir, 'node_modules/@kui-shell/core/templates/index.ejs')
+    template: path.join(stageDir, 'node_modules/@kui-shell/core/templates/index.ejs'),
   }
 )
 
@@ -270,7 +271,7 @@ plugins.push(new MiniCssExtractPlugin())
 
 // the Kui builder plugin
 plugins.push({
-  apply: compiler => {
+  apply: (compiler) => {
     compiler.hooks.done.tap('done', () => {
       // touch the lockfile to indicate that we are done
       try {
@@ -282,7 +283,7 @@ plugins.push({
         throw err
       }
     })
-  }
+  },
 })
 
 // Notes: when !inBrowser, we want electron to pull
@@ -327,10 +328,10 @@ const externals = !inBrowser
       'webworker-threads', // wskflow
       'xml2js', // used by plugins/plugin-apache-composer/@demos/combinators/http.js
       'nyc',
-      'electron'
+      'electron',
     ]
 
-kuiPluginExternals.forEach(_ => {
+kuiPluginExternals.forEach((_) => {
   if (!inBrowser) {
     externals[_] = _
   } else {
@@ -344,7 +345,7 @@ module.exports = {
   context: stageDir,
   stats: {
     // while developing, you should set this to true
-    warnings: false
+    warnings: false,
   },
   entry,
   target,
@@ -353,19 +354,19 @@ module.exports = {
     __filename: true,
     __dirname: true,
     fs: emptyIfInBrowser,
-    // eslint-disable-next-line @typescript-eslint/camelcase
+    // eslint-disable-next-line camelcase
     child_process: emptyIfInBrowser,
     'docker-modem': emptyIfInBrowser,
-    'fs-extra': emptyIfInBrowser
+    'fs-extra': emptyIfInBrowser,
   },
   externals,
   resolve: {
-    extensions: ['.tsx', '.ts', '.js']
+    extensions: ['.tsx', '.ts', '.js'],
   },
   resolveLoader: {
     alias: {
-      'asar-friendly-node-loader': require.resolve('@kui-shell/webpack/asar-friendly-node-loader')
-    }
+      'asar-friendly-node-loader': require.resolve('@kui-shell/webpack/asar-friendly-node-loader'),
+    },
   },
   devServer: {
     headers: { 'Access-Control-Allow-Origin': '*' },
@@ -374,11 +375,11 @@ module.exports = {
     watchOptions: {
       'info-verbosity': 'verbose',
       poll: pollInterval,
-      ignored: ['**/*.d.ts', '**/*.js.map', /node_modules/, '**/clients/default/**']
+      ignored: ['**/*.d.ts', '**/*.js.map', /node_modules/, '**/clients/default/**'],
     },
     writeToDisk: !inBrowser,
     contentBase: buildDir,
-    port
+    port,
   },
   optimization,
   module: {
@@ -411,32 +412,32 @@ module.exports = {
       // ignore commonjs bits
       {
         test: new RegExp(`\\${path.sep}node_modules\\${path.sep}@kui-shell\\${path.sep}\\.*\\${path.sep}dist`),
-        use: 'ignore-loader'
+        use: 'ignore-loader',
       },
       {
         test: /\.css$/i,
         include: thisPath('web/css/static'),
-        use: sassLoaderChain
+        use: sassLoaderChain,
       },
       {
         test: /\.scss$/i,
-        use: sassLoaderChain
+        use: sassLoaderChain,
       },
       // { test: /\.css$/i, include: thisPath('@kui-shell/plugin-'), exclude: thisPath('web/css/static'), use: ['to-string-loader', 'css-loader'] },
       {
         test: /\.css$/i,
         exclude: thisPath('web/css/static'),
-        use: ['style-loader', 'css-loader']
+        use: ['style-loader', 'css-loader'],
       },
 
       {
         test: /\.(eot)$/i,
-        use: 'ignore-loader'
+        use: 'ignore-loader',
       },
 
       {
         test: /\.(ttf)$/i,
-        use: 'file-loader'
+        use: 'file-loader',
       },
 
       //
@@ -491,14 +492,14 @@ module.exports = {
       { test: /^kubectl-kui$/, use: 'shebang-loader' },
       { test: /^kubectl-wsk$/, use: 'shebang-loader' },
       { test: /^kui$/, use: 'shebang-loader' },
-      { test: /JSONStream\/index.js$/, use: 'shebang-loader' }
-    ])
+      { test: /JSONStream\/index.js$/, use: 'shebang-loader' },
+    ]),
   },
   plugins,
   output: {
     globalObject: 'self', // for monaco
     filename: '[name].[hash].bundle.js',
     publicPath: contextRoot || (inBrowser ? '/' : mode === 'production' ? '' : `${buildDir}/`),
-    path: outputPath
-  }
+    path: outputPath,
+  },
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
 import REPL from '../models/repl'
 import TabState from '../models/tab-state'
 

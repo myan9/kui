@@ -73,7 +73,10 @@ interface WithResourceVersion {
   resourceVersion: string
 }
 
-export type KubeResourceWithResourceVersion = KubeResource<{}, KubeMetadata & Required<WithResourceVersion>>
+export type KubeResourceWithResourceVersion = KubeResource<
+  Record<string, any>,
+  KubeMetadata & Required<WithResourceVersion>
+>
 
 export function hasResourceVersion(resource: KubeResource): resource is KubeResourceWithResourceVersion {
   const withVersion = resource as KubeResourceWithResourceVersion
@@ -97,13 +100,16 @@ export type KubeMetadata = Partial<WithOwnerReferences> &
     name: string
     namespace?: string
     labels?: { [key: string]: string }
-    annotations?: object
+    annotations?: Record<string, any>
     creationTimestamp?: string
     generation?: string
     generateName?: string
   }
 
-export type KubeResourceWithOwnerReferences = KubeResource<{}, KubeMetadata & Required<WithOwnerReferences>>
+export type KubeResourceWithOwnerReferences = KubeResource<
+  Record<string, any>,
+  KubeMetadata & Required<WithOwnerReferences>
+>
 
 export function hasSingleOwnerReference(resource: KubeResource): resource is KubeResourceWithOwnerReferences {
   if (!resource.metadata) {

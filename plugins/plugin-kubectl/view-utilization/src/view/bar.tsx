@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+/* eslint-disable react/prop-types */
 import * as React from 'react'
 import { getCurrentTab } from '@kui-shell/core'
 
 export const enum BarColor {
   CPU = 'var(--color-latency-0)',
   Memory = 'var(--color-latency-1)',
-  Overcommitted = 'var(--color-error)'
+  Overcommitted = 'var(--color-error)',
 }
 
 type WithFraction = { fraction: number }
@@ -49,7 +50,7 @@ export function Bar(props: BarProps) {
   const liveStyle = {
     backgroundColor: props.color,
     bodrerRight: '1px solid var(--color-stripe-02)',
-    width: fractionString(props)
+    width: fractionString(props),
   }
 
   return (
@@ -77,7 +78,7 @@ export function BarContainer(props: {
   const style = {
     display: 'flex',
     flexDirection: props.flexDirection || ('column' as const),
-    justifyContent: props.alignment || 'space-between'
+    justifyContent: props.alignment || 'space-between',
   }
 
   return props.onClick ? (

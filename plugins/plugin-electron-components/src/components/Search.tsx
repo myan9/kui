@@ -23,7 +23,7 @@ import '../../web/scss/components/Search/Search.scss'
 
 const strings = i18n('plugin-client-common', 'search')
 
-type Props = {}
+type Props = Record<string, any>
 
 interface State {
   isActive: boolean
@@ -42,12 +42,12 @@ export default class Search extends React.PureComponent<Props, State> {
 
     this.state = {
       isActive: false,
-      result: undefined
+      result: undefined,
     }
   }
 
   private initEvents() {
-    document.body.addEventListener('keydown', evt => {
+    document.body.addEventListener('keydown', (evt) => {
       if (
         !evt.defaultPrevented &&
         evt.code === 'KeyF' &&
@@ -56,7 +56,7 @@ export default class Search extends React.PureComponent<Props, State> {
         if (this.state.isActive && !!this._input && document.activeElement !== this._input) {
           this.doFocus()
         } else {
-          this.setState(curState => {
+          this.setState((curState) => {
             const isActive = !curState.isActive
             if (!isActive) {
               this.stopFindInPage()
@@ -92,7 +92,7 @@ export default class Search extends React.PureComponent<Props, State> {
         const { remote } = await import('electron')
 
         remote.getCurrentWebContents().once('found-in-page', async (event: Event, result: FoundInPageResult) => {
-          this.setState(curState => {
+          this.setState((curState) => {
             if (curState.isActive) {
               this.hack()
               return { result }

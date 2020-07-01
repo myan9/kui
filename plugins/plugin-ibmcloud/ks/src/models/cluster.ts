@@ -27,14 +27,13 @@ import apiVersion from '../controller/apiVersion'
 export const enum ClusterState {
   unsupported,
   normal,
-  active
+  active,
 }
 
 /**
  * This is the model passed back to us from the `ibmcloud` CLI.
  *
  */
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudClusterRaw {
   location: string
   dataCenter: string

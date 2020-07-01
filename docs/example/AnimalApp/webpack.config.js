@@ -17,11 +17,11 @@ const sassLoaderChain = [
     loader: MiniCssExtractPlugin.loader,
     options: {
       hmr: mode === 'development',
-      esModule: true
-    }
+      esModule: true,
+    },
   },
   'css-loader',
-  'sass-loader'
+  'sass-loader',
 ]
 
 module.exports = {
@@ -30,15 +30,15 @@ module.exports = {
       {
         test: /\.css$/i,
         include: thisPath('web/css/static'),
-        use: sassLoaderChain
+        use: sassLoaderChain,
       },
       {
         test: /\.scss$/i,
-        use: sassLoaderChain
+        use: sassLoaderChain,
       },
       {
         test: /\.(eot)$/i,
-        use: 'ignore-loader'
+        use: 'ignore-loader',
       },
       { test: /\.ico$/, use: 'file-loader' },
       { test: /\.jpg$/, use: 'file-loader' },
@@ -46,18 +46,18 @@ module.exports = {
       { test: /\.svg$/, use: 'svg-inline-loader' },
       {
         test: /\.(ttf)$/i,
-        use: 'file-loader'
+        use: 'file-loader',
       },
-      { test: /\.css$/i, exclude: thisPath('web/css/static'), use: ['style-loader', 'css-loader'] }
-    ]
+      { test: /\.css$/i, exclude: thisPath('web/css/static'), use: ['style-loader', 'css-loader'] },
+    ],
   },
   output: {
-    path: path.resolve('./dist')
+    path: path.resolve('./dist'),
   },
   node: {
     fs: 'empty',
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    child_process: 'empty'
+    // eslint-disable-next-line camelcase
+    child_process: 'empty',
   },
   externals: ['net', 'node-pty-prebuilt-multiarch'],
   devServer: {
@@ -69,18 +69,18 @@ module.exports = {
 
     // these are build artifacts, no need to watch for changes therein
     watchOptions: {
-      ignored: ['**/*.d.ts', '**/*.js.map', /node_modules/]
-    }
+      ignored: ['**/*.d.ts', '**/*.js.map', /node_modules/],
+    },
   },
   stats: {
-    warnings: false
+    warnings: false,
   },
   plugins: [
     new HtmlWebPackPlugin({
       template: './src/index.html',
-      filename: './index.html'
+      filename: './index.html',
     }),
     new MiniCssExtractPlugin(),
-    new FontConfigWebpackPlugin()
-  ]
+    new FontConfigWebpackPlugin(),
+  ],
 }

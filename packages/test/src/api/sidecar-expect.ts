@@ -52,14 +52,14 @@ export const keyToClose = async (app: Application) => {
   return closed(app)
 }
 
-export const sourceStruct = (expectedJSON: object) => async (app: Application) => {
+export const sourceStruct = (expectedJSON: Record<string, any>) => async (app: Application) => {
   return app.client
     .getText(Selectors.SIDECAR_ACTION_SOURCE)
     .then(expectStruct(expectedJSON))
     .then(() => app)
 }
 
-export const sourceSubset = (expectedJSON: object) => async (app: Application) => {
+export const sourceSubset = (expectedJSON: Record<string, any>) => async (app: Application) => {
   return app.client
     .getText(Selectors.SIDECAR_ACTION_SOURCE)
     .then(expectSubset(expectedJSON))
@@ -75,14 +75,14 @@ export const source = (expectedSource: string) => async (app: Application) => {
     .then(() => app)
 }
 
-export const result = (expectedResult: object, failFast?: boolean) => async (app: Application) => {
+export const result = (expectedResult: Record<string, any>, failFast?: boolean) => async (app: Application) => {
   return app.client
     .getText(Selectors.SIDECAR_ACTIVATION_RESULT)
     .then(expectStruct(expectedResult, undefined, failFast))
     .then(() => app)
 }
 
-export const resultSubset = (expectedResult: object, failFast?: boolean) => async (app: Application) => {
+export const resultSubset = (expectedResult: Record<string, any>, failFast?: boolean) => async (app: Application) => {
   await app.client.getText(Selectors.SIDECAR_ACTIVATION_RESULT).then(expectSubset(expectedResult, failFast))
   return app
 }
@@ -148,7 +148,7 @@ const show = (expected: string, selector: string) => async (app: Application) =>
     return app.client
       .then(() => app.client.waitForText(selector, timeout))
       .then(() => app.client.getText(selector))
-      .then(text => text === expected)
+      .then((text) => text === expected)
   }, waitTimeout)
 
   return app
@@ -169,7 +169,7 @@ export const modes = (expected: { mode: string; label?: string; dafaultMode?: bo
   app: Application
 ) =>
   Promise.all(
-    expected.map(async _ => {
+    expected.map(async (_) => {
       await app.client.waitUntil(async () => {
         const actualMode = `${Selectors.SIDECAR_MODE_BUTTON(_.mode)}`
         await app.client.waitForExist(actualMode)
@@ -232,7 +232,7 @@ export async function tableContent(app: Application, nRows: number, nCells: numb
   assert.strictEqual(nCells, cells.length, 'nCells must match')
 }
 
-export const yaml = (content: object) => async (app: Application) => {
+export const yaml = (content: Record<string, any>) => async (app: Application) => {
   await app.client.waitUntil(async () => {
     const ok: boolean = await getValueFromMonaco(app).then(expectYAMLSubset(content, false))
     return ok
@@ -252,7 +252,7 @@ export async function popupTitle(app: Application, expectedTitle: string) {
 export function form(form: Record<string, string>, idPrefix = 'kui-form') {
   return async (app: Application) => {
     await Promise.all(
-      Object.keys(form).map(key => {
+      Object.keys(form).map((key) => {
         return app.client.waitUntil(async () => {
           const expectedValue = form[key]
           const actualValue = await app.client.getValue(`${Selectors.SIDECAR_TAB_CONTENT} #${idPrefix}-${key}`)
@@ -289,7 +289,7 @@ export const showing = (
       return app.client
         .waitForText(titleSelector, timeout)
         .then(() => app.client.getText(titleSelector))
-        .then(name => {
+        .then((name) => {
           const nameMatches = expectSubstringMatchOnName
             ? name.indexOf(expectedName) >= 0 || expectedName.indexOf(name) >= 0
             : name === expectedName
@@ -297,7 +297,7 @@ export const showing = (
             if (expectedPackageName) {
               return app.client
                 .getText(Selectors.SIDECAR_PACKAGE_NAME_TITLE)
-                .then(name =>
+                .then((name) =>
                   expectSubstringMatchOnName
                     ? name.search(new RegExp(expectedPackageName, 'i')) >= 0
                     : name.toLowerCase() === expectedPackageName.toLowerCase()

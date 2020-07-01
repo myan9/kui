@@ -21,7 +21,7 @@ import { eventChannelUnsafe, getCurrentTab, wireToStandardEvents, inBrowser, i18
 import {
   getCurrentContextName,
   onKubectlConfigChangeEvents,
-  offKubectlConfigChangeEvents
+  offKubectlConfigChangeEvents,
 } from '@kui-shell/plugin-kubectl'
 
 interface State {
@@ -31,7 +31,7 @@ interface State {
 
 const strings = i18n('plugin-kubectl')
 
-export default class CurrentContext extends React.PureComponent<{}, State> {
+export default class CurrentContext extends React.PureComponent<Record<string, any>, State> {
   private handler = this.reportCurrentContext.bind(this)
 
   public constructor(props = {}) {
@@ -39,7 +39,7 @@ export default class CurrentContext extends React.PureComponent<{}, State> {
 
     this.state = {
       text: '',
-      viewLevel: 'hidden'
+      viewLevel: 'hidden',
     }
   }
 
@@ -81,13 +81,13 @@ export default class CurrentContext extends React.PureComponent<{}, State> {
       const context = await getCurrentContextName(tab)
       this.setState({
         text: this.renderName(context),
-        viewLevel: 'normal' // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+        viewLevel: 'normal', // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
       })
     } catch (err) {
       console.error(err)
       this.setState({
         text: '',
-        viewLevel: 'hidden'
+        viewLevel: 'hidden',
       })
     }
   }

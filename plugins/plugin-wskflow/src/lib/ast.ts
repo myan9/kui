@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/ban-types */
 type NodeType =
   | 'sequence'
   | 'seq'

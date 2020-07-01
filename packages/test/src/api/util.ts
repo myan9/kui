@@ -92,7 +92,7 @@ const sameStruct = (struct1: Record<string, any>, struct2: Record<string, any>, 
   return true
 }
 
-export const expectSubset = (struct1: object, failFast = true) => (str: string) => {
+export const expectSubset = (struct1: Record<string, any>, failFast = true) => (str: string) => {
   try {
     const ok = sameStruct(struct1, JSON.parse(str), true)
     if (failFast) {
@@ -106,7 +106,7 @@ export const expectSubset = (struct1: object, failFast = true) => (str: string) 
 }
 
 /** is the given struct2 the same as the given struct2 (given as a string) */
-export const expectStruct = (struct1: object, noParse = false, failFast = true) => (str: string) => {
+export const expectStruct = (struct1: Record<string, any>, noParse = false, failFast = true) => (str: string) => {
   try {
     const ok = sameStruct(struct1, noParse ? str : JSON.parse(str))
     if (failFast) {
@@ -119,7 +119,7 @@ export const expectStruct = (struct1: object, noParse = false, failFast = true) 
   }
 }
 
-export const expectYAML = (struct1: object, subset = false, failFast = true) => (str: string) => {
+export const expectYAML = (struct1: Record<string, any>, subset = false, failFast = true) => (str: string) => {
   try {
     const struct2 = safeLoad(str)
     const ok = sameStruct(struct1, struct2, subset)
@@ -137,7 +137,7 @@ export const expectYAML = (struct1: object, subset = false, failFast = true) => 
   }
 }
 
-export const expectYAMLSubset = (struct1: object, failFast = true) => expectYAML(struct1, true, failFast)
+export const expectYAMLSubset = (struct1: Record<string, any>, failFast = true) => expectYAML(struct1, true, failFast)
 
 /** is the given actual array the same as the given expected array? */
 export const expectArray = (expected: Array<string>, failFast = true, subset = false) => (
@@ -148,7 +148,7 @@ export const expectArray = (expected: Array<string>, failFast = true, subset = f
     actual = [actual]
   }
 
-  const matchFn = function(u: string, i: number) {
+  const matchFn = function (u: string, i: number) {
     return u === expected[i]
   }
 
@@ -172,7 +172,7 @@ export const getValueFromMonaco = async (app: Application) => {
     await app.client.waitForExist(selector, CLI.waitTimeout)
   } catch (err) {
     console.error('cannot find editor', err)
-    await app.client.getHTML(Selectors.SIDECAR).then(html => {
+    await app.client.getHTML(Selectors.SIDECAR).then((html) => {
       console.log('here is the content of the sidecar:')
       console.log(html)
     })
@@ -180,7 +180,7 @@ export const getValueFromMonaco = async (app: Application) => {
   }
 
   return app.client
-    .execute(selector => {
+    .execute((selector) => {
       try {
         return document.querySelector(selector)['getValueForTests']()
       } catch (err) {
@@ -188,7 +188,7 @@ export const getValueFromMonaco = async (app: Application) => {
         // intentionally returning undefined
       }
     }, selector)
-    .then(_ => _.value)
+    .then((_) => _.value)
 }
 
 export const waitForXtermInput = (app: Application, N: number) => {
@@ -235,12 +235,12 @@ export function expectSuggestionsFor(
     click = undefined,
     expectedBreadcrumb = undefined,
     sidecar: expectedIcon = undefined,
-    expectedString = undefined
+    expectedString = undefined,
   }: { click?: number; expectedBreadcrumb?: string; sidecar?: string; expectedString?: string } = {}
 ) {
   return CLI.command(cmd, this.app)
     .then(ReplExpect.errorWithPassthrough(404))
-    .then(N => {
+    .then((N) => {
       const base = `${Selectors.OUTPUT_N(N)} .user-error-available-commands .log-line`
       const availableItems = `${base} .clickable`
 
@@ -260,7 +260,7 @@ export function expectSuggestionsFor(
                 const breadcrumb = `${Selectors.OUTPUT_N(N + 1)} .bx--breadcrumb-item:last-child .bx--no-link`
                 return this.app.client
                   .getText(breadcrumb)
-                  .then(actualBreadcrumb => assert.strictEqual(actualBreadcrumb, expectedBreadcrumb))
+                  .then((actualBreadcrumb) => assert.strictEqual(actualBreadcrumb, expectedBreadcrumb))
               } else if (expectedIcon) {
                 //
                 // then wait for the sidecar to be open and showing the expected sidecar icon text
@@ -268,8 +268,8 @@ export function expectSuggestionsFor(
                 const icon = `${Selectors.SIDECAR} .sidecar-header-icon-wrapper .sidecar-header-icon`
                 return SidecarExpect.open(this.app)
                   .then(() => this.app.client.getText(icon))
-                  .then(actualIcon => actualIcon.toLowerCase())
-                  .then(actualIcon => assert.strictEqual(actualIcon, expectedIcon))
+                  .then((actualIcon) => actualIcon.toLowerCase())
+                  .then((actualIcon) => assert.strictEqual(actualIcon, expectedIcon))
               } else if (expectedString) {
                 //
                 // then wait for the given command output

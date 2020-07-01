@@ -53,7 +53,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
 
     this.state = {
       tabs: [this.newTabModel()],
-      activeIdx: 0
+      activeIdx: 0,
     }
 
     eventBus.on('/tab/new/request', () => {
@@ -106,7 +106,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
 
     if (idx >= 0 && idx < this.state.tabs.length) {
       this.setState({
-        activeIdx: idx
+        activeIdx: idx,
       })
 
       this.hackFocus()
@@ -126,7 +126,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
 
       this.setState({
         tabs: residualTabs,
-        activeIdx
+        activeIdx,
       })
 
       this.hackFocus()
@@ -159,18 +159,18 @@ export default class TabContainer extends React.PureComponent<Props, State> {
 
     const model = this.newTabModel()
 
-    this.setState(curState => ({
+    this.setState((curState) => ({
       tabs: curState.tabs.concat(model),
-      activeIdx: curState.tabs.length
+      activeIdx: curState.tabs.length,
     }))
   }
 
-  private graft(node: React.ReactNode | {}, uuid: string, key?: number) {
+  private graft(node: React.ReactNode | Record<string, any>, uuid: string, key?: number) {
     if (React.isValidElement(node)) {
       // ^^^ this check avoids tsc errors
       return React.cloneElement(node, {
         key,
-        uuid
+        uuid,
       })
     } else {
       return node
@@ -187,14 +187,14 @@ export default class TabContainer extends React.PureComponent<Props, State> {
   }
 
   private willUpdateTopTabButtons(uuid: string, buttons: TopTabButton[]) {
-    this.setState(curState => {
-      const idx = curState.tabs.findIndex(_ => _.uuid === uuid)
+    this.setState((curState) => {
+      const idx = curState.tabs.findIndex((_) => _.uuid === uuid)
       if (idx >= 0) {
         return {
           tabs: curState.tabs
             .slice(0, idx)
             .concat([curState.tabs[idx].update(buttons)])
-            .concat(curState.tabs.slice(idx + 1))
+            .concat(curState.tabs.slice(idx + 1)),
         }
       }
     })

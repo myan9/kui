@@ -16,8 +16,8 @@
 
 import * as React from 'react'
 
-import { i18n, inBrowser, REPL } from '@kui-shell/core'
-import { Kui, KuiProps, Card, ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
+import { inBrowser } from '@kui-shell/core'
+import { Kui, KuiProps, ContextWidgets, MeterWidgets } from '@kui-shell/plugin-client-common'
 
 import { CurrentGitBranch } from '@kui-shell/plugin-git'
 import { UpdateChecker } from '@kui-shell/plugin-core-support'
@@ -27,8 +27,6 @@ import { ProxyOfflineIndicator } from '@kui-shell/plugin-proxy-support'
 import { Screenshot, Search } from '@kui-shell/plugin-electron-components'
 
 import { productName } from '@kui-shell/client/config.d/name.json'
-
-const strings = i18n('client')
 
 /**
  * Format our body, with extra status stripe widgets

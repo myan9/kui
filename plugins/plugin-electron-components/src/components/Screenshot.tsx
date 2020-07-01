@@ -24,7 +24,7 @@ import '../../web/scss/components/Screenshot/Screenshot.scss'
 
 const strings = i18n('plugin-client-common', 'screenshot')
 
-type Props = {}
+type Props = Record<string, any>
 
 interface State {
   /** if the user has clicked the screenshot button an even or odd number of times */
@@ -58,7 +58,7 @@ export default class Screenshot extends React.PureComponent<Props, State> {
     super(props)
 
     this.state = {
-      isActive: false
+      isActive: false,
     }
 
     eventChannelUnsafe.on('/screenshot/element', (element: HTMLElement) => {
@@ -69,7 +69,7 @@ export default class Screenshot extends React.PureComponent<Props, State> {
   /** Transition back to a normal state, where are aren't ready to capture a screenshot */
   private deactivate() {
     if (this.cleaners) {
-      this.cleaners.forEach(cleaner => cleaner())
+      this.cleaners.forEach((cleaner) => cleaner())
       this.cleaners = undefined
     }
 
@@ -112,7 +112,7 @@ export default class Screenshot extends React.PureComponent<Props, State> {
           x: Math.round(domRect.left),
           y: Math.round(domRect.top),
           width: Math.round(domRect.width),
-          height: Math.round(domRect.height)
+          height: Math.round(domRect.height),
         }
 
         // capture a screenshot
@@ -269,7 +269,7 @@ export default class Screenshot extends React.PureComponent<Props, State> {
       const alert = {
         type: 'success' as const,
         title: strings('Screenshot'),
-        body: strings('Successfully captured a screenshot to the clipboard')
+        body: strings('Successfully captured a screenshot to the clipboard'),
       }
 
       return (
@@ -293,7 +293,7 @@ export default class Screenshot extends React.PureComponent<Props, State> {
   private onScreenshotButtonClick(evt: MouseEvent) {
     evt.preventDefault()
 
-    this.setState(curState => {
+    this.setState((curState) => {
       const isActive = !curState.isActive
 
       if (!isActive) {

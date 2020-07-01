@@ -18,8 +18,6 @@ import Debug from 'debug'
 const debug = Debug('core/plugins/preloader')
 debug('loading')
 
-/* eslint-disable @typescript-eslint/camelcase */
-
 import { PrescanModel } from './prescan'
 
 import { Tab } from '../webapp/tab'
@@ -44,7 +42,7 @@ class PreloaderRegistrarImpl extends ImplForPlugins implements PreloadRegistrar 
   }
 
   public registerModes<Resource extends MetadataBearing>(...registrations: ModeRegistration<Resource>[]): void {
-    registrations.forEach(_ => this.registerMode(_))
+    registrations.forEach((_) => this.registerMode(_))
   }
 
   public registerBadge<Resource extends MetadataBearing>(registration: BadgeRegistration<Resource>): void {
@@ -52,7 +50,7 @@ class PreloaderRegistrarImpl extends ImplForPlugins implements PreloadRegistrar 
   }
 
   public registerBadges<Resource extends MetadataBearing>(...registrations: BadgeRegistration<Resource>[]): void {
-    registrations.forEach(_ => this.registerBadge(_))
+    registrations.forEach((_) => this.registerBadge(_))
   }
 
   /** session initializers */
@@ -70,7 +68,7 @@ export default async (prescan: PrescanModel) => {
   debug('init')
 
   const jobs = Promise.all(
-    prescan.preloads.map(async module => {
+    prescan.preloads.map(async (module) => {
       // extends the capabilities of Kui
       try {
         debug('preloading capabilities.1 %s', module.path)
@@ -109,7 +107,7 @@ export default async (prescan: PrescanModel) => {
     })
     .then(() =>
       Promise.all(
-        prescan.preloads.map(async module => {
+        prescan.preloads.map(async (module) => {
           // FIXME to support field-installed plugin paths
           try {
             debug('preloading misc %s', module.path)

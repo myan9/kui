@@ -33,7 +33,7 @@ export type WorkerState = ClusterState
  *
  */
 export const enum WorkerStatus {
-  Ready
+  Ready,
 }
 
 /**
@@ -41,14 +41,13 @@ export const enum WorkerStatus {
  *
  */
 export const enum WorkerIsolation {
-  public
+  public,
 }
 
 /**
  * This is the model passed back to us from the `ibmcloud` CLI.
  *
  */
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export interface IBMCloudWorkerRaw {
   privateVlan: string
   publicVlan: string

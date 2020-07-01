@@ -63,7 +63,7 @@ const prequire = async (
   route: string,
   prescan: PrescanModel,
   registrar: Record<string, KuiPlugin>,
-  options?: object
+  options?: Record<string, any>
 ) => {
   try {
     if (!Object.prototype.hasOwnProperty.call(registrar, route)) {
@@ -72,7 +72,7 @@ const prequire = async (
       // the same plugin
       // eslint-disable-next-line no-async-promise-executor
       registrar[route] = new Promise(async (resolve, reject) => {
-        const module = prescan.flat.find(_ => _.route === route)
+        const module = prescan.flat.find((_) => _.route === route)
         if (module) {
           try {
             // NOTE ON @kui-shell relativization: this is important so that
@@ -130,7 +130,7 @@ export const makeResolver = (prescan: PrescanModel, registrar: Record<string, Ku
           try {
             const prereqs = prescan.topological[plugin]
             if (prereqs) {
-              await Promise.all(prereqs.map(route => prequire(route, prescan, registrar)))
+              await Promise.all(prereqs.map((route) => prequire(route, prescan, registrar)))
             }
 
             const loadedPlugin = prequire(plugin, prescan, registrar)
@@ -198,7 +198,7 @@ export const makeResolver = (prescan: PrescanModel, registrar: Record<string, Ku
         await resolveOne(plugin)
       } else if (prescan.catchalls.length > 0 && tryCatchalls) {
         // see if we have catchall
-        await Promise.all(prescan.catchalls.map(_ => resolveOne(_.plugin))).catch(err => {
+        await Promise.all(prescan.catchalls.map((_) => resolveOne(_.plugin))).catch((err) => {
           console.error(
             'There seems to be an inconsistency in the prescan model versus the current state of the filesystem: the prescan model refers to a catchall that cannot currently be found',
             err
@@ -211,7 +211,7 @@ export const makeResolver = (prescan: PrescanModel, registrar: Record<string, Ku
           // ensues
         })
       }
-    }
+    },
   } /* resolver */
 
   return resolver

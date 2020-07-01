@@ -16,7 +16,7 @@
 
 import { Application } from 'spectron'
 
-import { promiseEach, BadgeSpec } from '@kui-shell/core'
+import { promiseEach, BadgeSpec, Tab } from '@kui-shell/core'
 
 import * as Common from './common'
 import * as CLI from './cli'
@@ -69,8 +69,9 @@ export class TestMMR {
     const { command, testName, metadata } = this.param
     const testClickResult = this.testClickResult
 
-    describe(`mmr name ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr name ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -81,14 +82,14 @@ export class TestMMR {
       const showName = prettyName || metadata.name
       it(`should show name ${showName} ${nameHash ? ' and namehash ' + nameHash : ''} in sidecar header`, () =>
         CLI.command(command, this.app)
-          .then(res => {
+          .then((res) => {
             cmdIdx = res.count
             return res
           })
           .then(ReplExpect.ok)
           .then(SidecarExpect.open)
           .then(heroName ? SidecarExpect.heroName(showName) : SidecarExpect.name(showName))
-          .then(app => (nameHash ? SidecarExpect.namehash(nameHash) : app))
+          .then((app) => (nameHash ? SidecarExpect.namehash(nameHash) : app))
           .catch(Common.oops(this, true)))
 
       if (onclick && onclick.name) {
@@ -124,8 +125,9 @@ export class TestMMR {
     const { command, testName, metadata } = this.param
     const testClickResult = this.testClickResult
 
-    describe(`mmr namespace ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr namespace ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -134,7 +136,7 @@ export class TestMMR {
 
       it(`should show namespace ${metadata.namespace} in sidecar`, () =>
         CLI.command(command, this.app)
-          .then(res => {
+          .then((res) => {
             cmdIdx = res.count
             return res
           })
@@ -164,8 +166,9 @@ export class TestMMR {
    */
   public kind(kind: string) {
     const { command, testName } = this.param
-    describe(`mmr kind ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr kind ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -187,7 +190,7 @@ export class TestMMR {
   public badges(badges: BadgeSpec[]) {
     const { command, testName } = this.param
 
-    describe(`mmr badges ${testName || ''} ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+    describe(`mmr badges ${testName || ''} ${process.env.MOCHA_RUN_TARGET || ''}`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -195,7 +198,7 @@ export class TestMMR {
         CLI.command(command, this.app)
           .then(ReplExpect.ok)
           .then(SidecarExpect.open)
-          .then(app => Promise.all(badges.map(badge => SidecarExpect.badge(badge.title, badge.css)(app)))))
+          .then((app) => Promise.all(badges.map((badge) => SidecarExpect.badge(badge.title, badge.css)(app)))))
     })
   }
 
@@ -211,8 +214,9 @@ export class TestMMR {
   public modes(expectModes: MMRExpectMode[], defaultMode: MMRExpectMode, options?: { testWindowButtons?: boolean }) {
     const { command, testName } = this.param
 
-    describe(`mmr modes ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr modes ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -227,7 +231,7 @@ export class TestMMR {
       }
 
       const cycleTheTabs = () =>
-        expectModes.forEach(expectMode => {
+        expectModes.forEach((expectMode) => {
           it(`should switch to the ${expectMode.mode} tab`, async () => {
             try {
               if (await this.app.client.isVisible(Selectors.SIDECAR_MODE_BUTTON(expectMode.mode))) {
@@ -423,7 +427,7 @@ export class TestMMR {
     buttons: {
       mode: string
       label?: string
-      command: string | Function
+      command: string | ((tab: Tab, resource: any) => string)
       kind: 'drilldown' | 'view'
       confirm?: boolean
       expectError?: 127
@@ -431,8 +435,9 @@ export class TestMMR {
   ) {
     const { command, testName } = this.param
 
-    describe(`mmr toolbar buttons ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr toolbar buttons ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -440,10 +445,10 @@ export class TestMMR {
         CLI.command(command, this.app)
           .then(ReplExpect.ok)
           .then(SidecarExpect.open)
-          .then(app => Promise.all(buttons.map(button => SidecarExpect.button(button)(app))))
+          .then((app) => Promise.all(buttons.map((button) => SidecarExpect.button(button)(app))))
           .catch(Common.oops(this, true)))
 
-      const drilldownButtons = buttons.filter(_ => _.kind === 'drilldown')
+      const drilldownButtons = buttons.filter((_) => _.kind === 'drilldown')
       if (drilldownButtons.length > 0) {
         it(`should drilldown toolbar buttons in sidecar`, async () => {
           try {
@@ -508,8 +513,9 @@ export class TestMMR {
   public toolbarText(toolbarText: { type: string; text: string; exact?: boolean }) {
     const { command, testName } = this.param
 
-    describe(`mmr toolbar text ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr toolbar text ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -524,8 +530,9 @@ export class TestMMR {
 
   public toolbarNotExist() {
     const { command, testName } = this.param
-    describe(`mmr toolbar ${testName || command || ''} ${process.env.MOCHA_RUN_TARGET ||
-      ''}`, function(this: Common.ISuite) {
+    describe(`mmr toolbar ${testName || command || ''} ${
+      process.env.MOCHA_RUN_TARGET || ''
+    }`, function (this: Common.ISuite) {
       before(Common.before(this))
       after(Common.after(this))
 
@@ -563,7 +570,7 @@ interface TableContent {
 }
 
 interface YamlContentWithEditor {
-  content: object
+  content: Record<string, any>
   contentType: 'yaml'
   editor: true
 }

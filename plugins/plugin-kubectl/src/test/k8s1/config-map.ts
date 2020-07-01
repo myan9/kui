@@ -22,16 +22,16 @@ import {
   createNS,
   allocateNS,
   deleteNS,
-  waitTillNone
+  waitTillNone,
 } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
 
 const synonyms = ['kubectl']
 
-describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function (this: Common.ISuite) {
   before(Common.before(this))
   after(Common.after(this))
 
-  synonyms.forEach(kubectl => {
+  synonyms.forEach((kubectl) => {
     const ns: string = createNS()
     const inNamespace = `-n ${ns}`
     /** return the editor text */
@@ -40,7 +40,7 @@ describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
     }
 
     /** wait until the sidecar displays a superset of the given content */
-    const expectContent = (content: object) => {
+    const expectContent = (content: Record<string, any>) => {
       return this.app.client.waitUntil(async () => {
         const ok: boolean = await getText().then(Util.expectYAMLSubset(content, false))
 
@@ -88,7 +88,7 @@ describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       it(`should delete the configmap ${name} via ${kubectl} `, () => {
         return CLI.command(`${kubectl} delete cm ${name} ${inNamespace}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(name) }))
-          .then(selector => waitForRed(this.app, selector))
+          .then((selector) => waitForRed(this.app, selector))
           .then(() => waitTillNone('configmap', undefined, name, undefined, inNamespace))
           .catch(Common.oops(this))
       })
@@ -99,7 +99,7 @@ describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
       it(`should create a configmap ${name} via ${kubectl}`, () => {
         return CLI.command(`${kubectl} create configmap ${name} ${literals} ${inNamespace}`, this.app)
           .then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME(name) }))
-          .then(selector => waitForGreen(this.app, selector))
+          .then((selector) => waitForGreen(this.app, selector))
           .catch(Common.oops(this))
       })
     }
@@ -115,8 +115,8 @@ describe(`kubectl configmap ${process.env.MOCHA_RUN_TARGET || ''}`, function(thi
     listAndClick('yoyo')
     listAndClick('momo', {
       data: {
-        hello: 'world'
-      }
+        hello: 'world',
+      },
     })
 
     deleteIt('yoyo')

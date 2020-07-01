@@ -31,8 +31,8 @@ import ISubwindowPrefs from '../models/SubwindowPrefs'
 let nWindows = 0
 
 interface EventEmitter {
-  on(event: string, listener: Function): void
-  once(event: string, listener: Function): void
+  on(event: string, listener: (event: Electron.Event, commandLine: string[]) => void): void
+  once(event: string, listener: () => void): void
 }
 interface App extends EventEmitter {
   hide(): void
@@ -110,8 +110,8 @@ export function createWindow(
         height,
         webPreferences: {
           backgroundThrottling: false,
-          nodeIntegration: true // prior to electron 5, this was the default
-        }
+          nodeIntegration: true, // prior to electron 5, this was the default
+        },
         // titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default'
       },
       position
@@ -186,7 +186,7 @@ export function createWindow(
         const window = new BrowserWindow({
           width: size.width,
           height: size.height,
-          frame: true
+          frame: true,
         })
         fixedWindows[type] = { window, url }
         window.setPosition(position.x + 62, position.y + 62)
@@ -227,7 +227,7 @@ export function createWindow(
             event,
             url,
             options,
-            size: { width: 800, height: 600 }
+            size: { width: 800, height: 600 },
           })
         } else {
           event.preventDefault()
@@ -236,9 +236,9 @@ export function createWindow(
       }
     )
 
-    let commandContext = executeThisArgvPlease && executeThisArgvPlease.find(_ => /--command-context/.test(_))
+    let commandContext = executeThisArgvPlease && executeThisArgvPlease.find((_) => /--command-context/.test(_))
     if (commandContext) {
-      executeThisArgvPlease = executeThisArgvPlease.filter(_ => !_.match(/--command-context/))
+      executeThisArgvPlease = executeThisArgvPlease.filter((_) => !_.match(/--command-context/))
 
       // strip off the leading --, to help with URL window.location.search
       commandContext = commandContext.replace(/^--/, '')
@@ -261,7 +261,7 @@ export function createWindow(
       ),
       protocol: 'file:',
       search: commandContext ? `?${commandContext}` : '',
-      slashes: true
+      slashes: true,
     }
     debug('mainWindow::loadURL', urlSpec)
     try {
@@ -284,7 +284,7 @@ export function createWindow(
     // mainWindow.webContents.openDevTools()
 
     // Emitted when the window is closed.
-    mainWindow.once('closed', function() {
+    mainWindow.once('closed', function () {
       // Dereference the window object, usually you would store windows
       // in an array if your app supports multi windows, this is the time
       // when you should delete the corresponding element.
@@ -365,7 +365,7 @@ export function createWindow(
           channel,
           JSON.stringify({
             success: true,
-            returnValue
+            returnValue,
           })
         )
       } catch (error) {
@@ -374,7 +374,7 @@ export function createWindow(
           channel,
           JSON.stringify({
             success: false,
-            error
+            error,
           })
         )
       }
@@ -394,7 +394,7 @@ function getPositionForPopup(screen: Screen) {
     const { bounds } = screen.getPrimaryDisplay()
     return {
       x: bounds.width - popupWindowDefaults.width - 50,
-      y: Math.round((bounds.height - popupWindowDefaults.height) / 4 + (nWindows - 1) * 40)
+      y: Math.round((bounds.height - popupWindowDefaults.height) / 4 + (nWindows - 1) * 40),
     }
   }
 }
@@ -414,13 +414,13 @@ export const getCommand = (argv: string[], screen: () => Promise<Screen>): Comma
   argv = dashDash === -1 ? argv.slice(1) : argv.slice(dashDash + 1)
 
   // re: the -psn bit, opening Kui from macOS Finder adds additional argv -psn; see: https://github.com/IBM/kui/issues/382
-  argv = argv.filter(_ => _ !== '--ui' && _ !== '--no-color' && !_.match(/^-psn/))
+  argv = argv.filter((_) => _ !== '--ui' && _ !== '--no-color' && !_.match(/^-psn/))
 
   // re: argv.length === 0, this should happen for double-click launches
   const isShell =
     !process.env.KUI_POPUP &&
     (argv.length === 0 ||
-      argv.find(_ => _ === 'shell') ||
+      argv.find((_) => _ === 'shell') ||
       (process.env.RUNNING_SHELL_TEST && !process.env.KUI_TEE_TO_FILE))
 
   debug('isShell', argv, isShell)
@@ -429,7 +429,7 @@ export const getCommand = (argv: string[], screen: () => Promise<Screen>): Comma
   let subwindowPrefs: ISubwindowPrefs = {
     fullscreen: true,
     width: windowDefaults.width,
-    height: windowDefaults.height
+    height: windowDefaults.height,
   }
 
   if (isShell) {
@@ -446,7 +446,7 @@ export const getCommand = (argv: string[], screen: () => Promise<Screen>): Comma
       fullscreen: true,
       position: async () => getPositionForPopup(await screen()),
       width: popupWindowDefaults.width,
-      height: popupWindowDefaults.height
+      height: popupWindowDefaults.height,
     }
   }
 
@@ -500,7 +500,7 @@ export async function initElectron(
       const child = spawn(Electron.toString(), args, {
         stdio: debug.enabled ? 'inherit' : 'ignore',
         env,
-        detached: true // needed on windows to separate this process into its own process group
+        detached: true, // needed on windows to separate this process into its own process group
       })
 
       if (!debug.enabled) {
@@ -545,7 +545,7 @@ export async function initElectron(
   })
 
   // Quit when all windows are closed.
-  app.on('window-all-closed', function() {
+  app.on('window-all-closed', function () {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin' || isRunningHeadless) {
@@ -556,7 +556,7 @@ export async function initElectron(
     }
   })
 
-  app.on('activate', function() {
+  app.on('activate', function () {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (nWindows === 0) {

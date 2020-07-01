@@ -2,6 +2,7 @@
   "semi": false,
   "printWidth": 120,
   "singleQuote": true,
+  "trailing-comma": "none",
   "overrides": [
     {
       "files": "*.html",

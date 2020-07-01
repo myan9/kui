@@ -30,7 +30,7 @@ export enum Media {
   Unknown,
   Headless,
   Electron,
-  Browser
+  Browser,
 }
 
 /** map from provider to credentials */
@@ -127,7 +127,7 @@ export function inSandbox() {
  * provider
  *
  */
-export const setHasAuth = (provider: string, creds: object): void => {
+export const setHasAuth = (provider: string, creds: Record<string, any>): void => {
   debug('setHasAuth', provider, creds)
   state.validCredentials[provider] = creds
 }

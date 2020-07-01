@@ -22,7 +22,7 @@ import {
   KubeContext,
   getCurrentDefaultNamespace,
   onKubectlConfigChangeEvents,
-  offKubectlConfigChangeEvents
+  offKubectlConfigChangeEvents,
 } from '@kui-shell/plugin-kubectl'
 
 interface State {
@@ -32,7 +32,7 @@ interface State {
 
 const strings = i18n('plugin-kubectl')
 
-export default class CurrentNamespace extends React.PureComponent<{}, State> {
+export default class CurrentNamespace extends React.PureComponent<Record<string, any>, State> {
   private handler = this.reportCurrentNamespace.bind(this)
 
   public constructor(props = {}) {
@@ -40,7 +40,7 @@ export default class CurrentNamespace extends React.PureComponent<{}, State> {
 
     this.state = {
       text: '',
-      viewLevel: 'hidden'
+      viewLevel: 'hidden',
     }
   }
 
@@ -64,7 +64,7 @@ export default class CurrentNamespace extends React.PureComponent<{}, State> {
       if (ns) {
         this.setState({
           text: ns,
-          viewLevel: 'normal' // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+          viewLevel: 'normal', // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
         })
       }
     } catch (err) {
@@ -72,7 +72,7 @@ export default class CurrentNamespace extends React.PureComponent<{}, State> {
 
       this.setState({
         text: '',
-        viewLevel: 'hidden' // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
+        viewLevel: 'hidden', // only show normally if we succeed; see https://github.com/IBM/kui/issues/3537
       })
     }
   }
