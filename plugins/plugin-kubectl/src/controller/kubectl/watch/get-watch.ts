@@ -97,7 +97,7 @@ class KubectlWatcher implements Abortable, Watcher {
   private leftover: string
 
   /** the pty job we spawned to capture --watch output */
-  private ptyJob: Abortable
+  private ptyJob: Abortable[] = []
 
   /** the table push API */
   private pusher: WatchPusher
@@ -119,8 +119,8 @@ class KubectlWatcher implements Abortable, Watcher {
   public abort() {
     // we abort the associated pty, if we have one
     if (this.ptyJob) {
-      this.ptyJob.abort()
-      this.ptyJob = undefined
+      this.ptyJob.forEach(job => job.abort())
+      this.ptyJob = []
     }
   }
 
@@ -201,9 +201,10 @@ class KubectlWatcher implements Abortable, Watcher {
     // in response, we return a consumer of Streamable output; we only
     // handle string data types in this case
     debug('onPTYInit')
-    this.ptyJob = ptyJob
+    this.ptyJob.push(ptyJob)
 
     return async (_: Streamable) => {
+      console.error('onPTYInit', _)
       if (typeof _ === 'string') {
         // <-- strings flowing out of the PTY
         // debug('streaming pty output', _)
@@ -263,18 +264,7 @@ class KubectlWatcher implements Abortable, Watcher {
     }
   }
 
-  /**
-   * Our impl of the `Watcher` API. This is the callback we will
-   * receive from the table UI when it is ready for us to start
-   * injecting updates to the table.
-   *
-   * We handle it by firing off a PTY to watch for subsequent changes
-   * via `kubectl get --watch`.
-   *
-   */
-  public async init(pusher: WatchPusher) {
-    this.pusher = pusher
-
+  private tableWatchInit() {
     // here, we initiate a kubectl watch, using a schema of our
     // choosing; we ask the PTY to stream output back to us, by using
     // the `onInit` API
@@ -294,6 +284,48 @@ class KubectlWatcher implements Abortable, Watcher {
     }).catch(err => {
       debug('pty error', err)
     })
+  }
+
+  private onPTYEventInit(ptyJob: Abortable) {
+    debug('onPTYEventInit')
+    this.ptyJob.push(ptyJob) // array of pty job
+
+    return async (_: Streamable) => {
+      if (typeof _ === 'string') {
+        const lines = _.split('\n').filter(x => x)
+        if (lines) {
+          this.pusher.footer(lines)
+        }
+      }
+    }
+  }
+
+  private eventWatchInit() {
+    const command = `kubectl get events --watch --no-headers -o jsonpath='{.message}{"\\n"}'`
+
+    this.args.REPL.qexec(`sendtopty ${command}`, this.args.block, undefined, {
+      quiet: true,
+      replSilence: true,
+      echo: false,
+      onInit: this.onPTYEventInit.bind(this) // <-- the PTY will call us back when it's ready to stream
+    }).catch(err => {
+      debug('pty error', err)
+    })
+  }
+
+  /**
+   * Our impl of the `Watcher` API. This is the callback we will
+   * receive from the table UI when it is ready for us to start
+   * injecting updates to the table.
+   *
+   * We handle it by firing off a PTY to watch for subsequent changes
+   * via `kubectl get --watch`.
+   *
+   */
+  public async init(pusher: WatchPusher) {
+    this.pusher = pusher
+    this.tableWatchInit()
+    this.eventWatchInit()
   }
 }
 

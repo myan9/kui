@@ -77,6 +77,7 @@ export type Props<T extends KuiTable = KuiTable> = PaginationConfiguration & {
 export type State = ToolbarProps & {
   headers: DataTableHeader[]
   rows: NamedDataTableRow[]
+  footer: string[]
 
   page: number
   pageSize: number
@@ -110,11 +111,12 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
 
     try {
       // assemble the data model
-      const { headers, rows } = kui2carbon(this.props.response)
+      const { headers, rows, footer } = kui2carbon(this.props.response)
 
       this.state = {
         headers,
         rows,
+        footer,
         asGrid: this.props.asGrid,
         page: 1,
         pageSize: this.defaultPageSize
@@ -150,6 +152,12 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
      * (this.props.paginate === true || this.state.rows.length > this.props.paginate)
      * )
      */
+  }
+
+  private bottomStream() {
+    if (this.state.footer) {
+      return <Toolbar stream={this.state.footer.slice(-2)} />
+    }
   }
 
   private bottomToolbar() {
@@ -248,6 +256,15 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
     )
   }
 
+  private bottom() {
+    return (
+      <React.Fragment>
+        {this.bottomStream()}
+        {this.bottomToolbar()}
+      </React.Fragment>
+    )
+  }
+
   public render() {
     if (!this.state) {
       return <div className="oops">Internal Error</div>
@@ -257,7 +274,7 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
       return this.props.response.style === TableStyle.Light || this.props.asGrid ? (
         <div className={className}>{this.content(true)}</div>
       ) : (
-        <Card header={this.topToolbar()} footer={this.bottomToolbar()} className={className}>
+        <Card header={this.topToolbar()} footer={this.bottom()} className={className}>
           {this.content()}
         </Card>
       )
