@@ -96,6 +96,8 @@ class KubectlWatcher implements Abortable, Watcher {
    */
   private leftover: string
 
+  private eventLeftover: string
+
   /** the pty job we spawned to capture --watch output */
   private ptyJob: Abortable[] = []
 
@@ -166,6 +168,29 @@ class KubectlWatcher implements Abortable, Watcher {
     })
   }
 
+  /**
+   * Watch events for the user-formatted rows for the so-named resources in the
+   * given namespace.
+   *
+   */
+  private getEventsForNamespace(apiVersion: string, kind: string, namespace: string, rowNames: string[]) {
+    const filter = `--field-selector=involvedObject.kind=${kind}`
+    const output = `--no-headers -o jsonpath='{.involvedObject.name}{"|"}{.message}{"|\\n"}'`
+    const getCommand = `${getCommandFromArgs(this.args)} get events -w -n ${namespace} ${filter} ${output}`.replace(
+      /^k(\s)/,
+      'kubectl$1'
+    )
+
+    this.args.REPL.qexec(`sendtopty ${getCommand}`, this.args.block, undefined, {
+      quiet: true,
+      replSilence: true,
+      echo: false,
+      onInit: this.onPTYEventInit.bind(this, rowNames) // <-- the PTY will call us back when it's ready to stream
+    }).catch(err => {
+      debug('pty event watcher error', err)
+    })
+  }
+
   /** Get rows as specified by user's -o */
   private async getRowsForUser(rows: Pair[][]): Promise<void | Table> {
     const kind = rows[0][1].value
@@ -192,6 +217,24 @@ class KubectlWatcher implements Abortable, Watcher {
   }
 
   /**
+   * For each namesapce, spawn an event watcher for `rows`
+   * @param rows is the inital kubectl resources being watched
+   */
+  private async eventWatchInit(rows: Pair[][]) {
+    const kind = rows[0][1].value
+    const apiVersion = rows[0][2].value // FIXME: not used by event watcher currently
+
+    const groups = this.groupByNamespace(rows)
+
+    await Promise.all(
+      Object.keys(groups).map(namespace => {
+        const rowNames = groups[namespace].map(group => group[0].value)
+        this.getEventsForNamespace(apiVersion, kind, namespace, rowNames)
+      })
+    )
+  }
+
+  /**
    * Our impl of the `onInit` streaming PTY API: the PTY calls us with
    * the PTY job (so that we can abort it, if we want). In return, we
    * give it a stream into which it pump data.
@@ -204,7 +247,6 @@ class KubectlWatcher implements Abortable, Watcher {
     this.ptyJob.push(ptyJob)
 
     return async (_: Streamable) => {
-      console.error('onPTYInit', _)
       if (typeof _ === 'string') {
         // <-- strings flowing out of the PTY
         // debug('streaming pty output', _)
@@ -227,6 +269,9 @@ class KubectlWatcher implements Abortable, Watcher {
         const preprocessed = preprocessTable(rawData, this.nCols)
         this.leftover = preprocessed.leftover === '\n' ? undefined : preprocessed.leftover
         const { rows } = preprocessed
+
+        // FIXME: if we already have event watcher watching for this kind, namespace, and rows, don't spawn new watcher
+        this.eventWatchInit(rows)
 
         // now process the full rows into table view updates
         const table = await this.getRowsForUser(rows)
@@ -264,7 +309,44 @@ class KubectlWatcher implements Abortable, Watcher {
     }
   }
 
-  private tableWatchInit() {
+  private onPTYEventInit(rowNames: string[], ptyJob: Abortable) {
+    debug('onPTYEventInit')
+    this.ptyJob.push(ptyJob)
+
+    return async (_: Streamable) => {
+      if (typeof _ === 'string') {
+        const rawData = this.eventLeftover ? this.eventLeftover + _ : _
+        this.eventLeftover = undefined
+
+        // here is where we turn the raw data into tabular data
+        const preprocessed = preprocessTable(rawData, 2)
+        console.error('rawData', rawData)
+        this.eventLeftover = preprocessed.leftover === '\n' ? undefined : preprocessed.leftover
+        const rows = preprocessed.rows
+          .filter(row => !rowNames || rowNames.includes(row[0].value))
+          .map(row => {
+            return `${row[0].value}: ${row[1].value}`
+          })
+
+        if (rows) {
+          this.pusher.footer(rows)
+        }
+      }
+    }
+  }
+
+  /**
+   * Our impl of the `Watcher` API. This is the callback we will
+   * receive from the table UI when it is ready for us to start
+   * injecting updates to the table.
+   *
+   * We handle it by firing off a PTY to watch for subsequent changes
+   * via `kubectl get --watch`.
+   *
+   */
+  public async init(pusher: WatchPusher) {
+    this.pusher = pusher
+
     // here, we initiate a kubectl watch, using a schema of our
     // choosing; we ask the PTY to stream output back to us, by using
     // the `onInit` API
@@ -284,48 +366,6 @@ class KubectlWatcher implements Abortable, Watcher {
     }).catch(err => {
       debug('pty error', err)
     })
-  }
-
-  private onPTYEventInit(ptyJob: Abortable) {
-    debug('onPTYEventInit')
-    this.ptyJob.push(ptyJob) // array of pty job
-
-    return async (_: Streamable) => {
-      if (typeof _ === 'string') {
-        const lines = _.split('\n').filter(x => x)
-        if (lines) {
-          this.pusher.footer(lines)
-        }
-      }
-    }
-  }
-
-  private eventWatchInit() {
-    const command = `kubectl get events --watch --no-headers -o jsonpath='{.message}{"\\n"}'`
-
-    this.args.REPL.qexec(`sendtopty ${command}`, this.args.block, undefined, {
-      quiet: true,
-      replSilence: true,
-      echo: false,
-      onInit: this.onPTYEventInit.bind(this) // <-- the PTY will call us back when it's ready to stream
-    }).catch(err => {
-      debug('pty error', err)
-    })
-  }
-
-  /**
-   * Our impl of the `Watcher` API. This is the callback we will
-   * receive from the table UI when it is ready for us to start
-   * injecting updates to the table.
-   *
-   * We handle it by firing off a PTY to watch for subsequent changes
-   * via `kubectl get --watch`.
-   *
-   */
-  public async init(pusher: WatchPusher) {
-    this.pusher = pusher
-    this.tableWatchInit()
-    this.eventWatchInit()
   }
 }
 
