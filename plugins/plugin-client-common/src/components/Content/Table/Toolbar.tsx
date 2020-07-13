@@ -159,9 +159,9 @@ export default class Toolbar extends React.PureComponent<Props> {
 
   private messageStream() {
     if (this.props.stream) {
-      return this.props.stream.map((_, idx) => (
-        <div key={idx} className="kui--data-table-footer-messages kui--inverted-color-context">
-          <div className="kui--data-table-footer-message">{_}</div>
+      return this.props.stream.map((message, idx) => (
+        <div key={`${message}-${idx}`} className="kui--data-table-footer-messages kui--inverted-color-context">
+          <div className="kui--data-table-footer-message">{message}</div>
         </div>
       ))
     }

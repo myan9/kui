@@ -102,6 +102,8 @@ class KubectlWatcher implements Abortable, Watcher {
 
   private eventLeftover: string
 
+  private maxAgoLength = 0
+
   /** the pty job we spawned to capture --watch output */
   private ptyJob: Abortable[] = []
 
@@ -284,15 +286,27 @@ class KubectlWatcher implements Abortable, Watcher {
         this.eventLeftover = preprocessed.leftover === '\n' ? undefined : preprocessed.leftover
 
         // format the row as `[ago] involvedObject.name: message`
-        const agos = preprocessed.rows.map(row =>
-          strings(
-            'ago',
-            prettyPrintDuration(Date.now() - new Date(row[0].value).getTime(), { compact: true }).toString()
-          )
-        )
+        const sortedRows = preprocessed.rows.filter(notEmpty).sort((rowA, rowB) => {
+          const lastSeenA = new Date(rowA[0].value).getTime()
+          const lastSeenB = new Date(rowB[0].value).getTime()
+          return lastSeenA - lastSeenB
+        })
+
+        const agos = sortedRows.map(row => {
+          const ago = Date.now() - new Date(row[0].value).getTime()
+
+          return strings('ago', prettyPrintDuration(ago >= 0 ? ago : 0, { compact: true }).toString())
+        })
+
         const maxAgoLength = agos.reduce((max, ago) => Math.max(max, ago.length), 0)
-        const rows = preprocessed.rows.map((row, idx) => {
-          return `${`\`[${agos[idx]}]\``.padStart(maxAgoLength + 4, '\u00a0')} **${row[1].value}**: ${row[2].value}`
+        if (maxAgoLength > this.maxAgoLength) {
+          this.maxAgoLength = maxAgoLength
+        }
+
+        const rows = sortedRows.map((row, idx) => {
+          return `${`\`[${agos[idx]}]\``.padStart(this.maxAgoLength + 4, '\u00a0')} **${row[1].value}**: ${
+            row[2].value
+          }`
         })
 
         if (rows) {
