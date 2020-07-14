@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+import { Application } from 'spectron'
 import { Common, CLI, ReplExpect, Selectors } from '@kui-shell/test'
-import { createNS, allocateNS, deleteNS } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
+import { createNS, allocateNS, deleteNS, waitForGreen } from '@kui-shell/plugin-kubectl/tests/lib/k8s/utils'
 
 import { readFileSync } from 'fs'
 import { dirname, join } from 'path'
@@ -30,8 +31,14 @@ if (process.env.NEEDS_OC) {
   commands.push('oc')
 }
 
+const currentEventCount = async (app: Application, outputCount: number): Promise<number> => {
+  const events = await app.client.elements(Selectors.TABLE_FOOTER(outputCount))
+  const res = !events || !events.value ? 0 : events.value.length
+  return res
+}
+
 commands.forEach(command => {
-  describe(`kubectl events footer ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+  describe(`${command} get pods watch events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
     before(Common.before(this))
     after(Common.after(this))
 
@@ -45,12 +52,6 @@ commands.forEach(command => {
         .catch(Common.oops(this, true))
     })
 
-    const currentEventCount = async (outputCount: number): Promise<number> => {
-      const events = await this.app.client.elements(Selectors.TABLE_FOOTER(outputCount))
-      const res = !events || !events.value ? 0 : events.value.length
-      return res
-    }
-
     it('should open a table watcher and expect at least one event, since we just created the resource', async () => {
       try {
         const res = await CLI.command(`${command} get pods --watch ${inNamespace}`, this.app)
@@ -61,10 +62,43 @@ commands.forEach(command => {
 
         console.log('wait for events')
         await this.app.client.waitUntil(async () => {
-          return (await currentEventCount(res.count)) > 0
+          return (await currentEventCount(this.app, res.count)) > 0
         })
       } catch (err) {
         return Common.oops(this, true)(err)
+      }
+    })
+
+    deleteNS(this, ns)
+  })
+
+  describe(`${command} create pod watch events ${process.env.MOCHA_RUN_TARGET || ''}`, function(this: Common.ISuite) {
+    before(Common.before(this))
+    after(Common.after(this))
+
+    const ns: string = createNS()
+    const inNamespace = `-n ${ns}`
+    allocateNS(this, ns)
+
+    it(`should create sample pod from URL via ${command} and expect at least one event, since we just created the resource`, async () => {
+      try {
+        const res = await CLI.command(
+          `${command} create -f https://raw.githubusercontent.com/kubernetes/examples/master/staging/pod ${inNamespace}`,
+          this.app
+        )
+
+        console.log('wait for pods to come up')
+        const selector = await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('nginx') })(res)
+
+        // wait for the badge to become green
+        await waitForGreen(this.app, selector)
+
+        console.log('wait for events')
+        await this.app.client.waitUntil(async () => {
+          return (await currentEventCount(this.app, res.count)) > 0
+        })
+      } catch (err) {
+        await Common.oops(this, true)(err)
       }
     })
 
