@@ -70,7 +70,7 @@ export default function renderCell(kuiRow: KuiRow, justUpdated: boolean, tab: Ta
     // className for the td
     const cellClassName =
       cidx === 0
-        ? 'entity-name ' + (kuiRow.outerCSS || '')
+        ? kuiRow.outerCSS || ''
         : (key === 'NAME' ? 'kui--entity-name-secondary ' : key === 'STATUS' ? 'kui--status-cell' : '') +
           (kuiRow.attributes[cidx - 1].outerCSS || '')
 

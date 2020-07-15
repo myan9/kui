@@ -139,7 +139,13 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
         : getBreadcrumbsFromTable(this.props.response, this.props.prefixBreadcrumbs)
 
     if (breadcrumbs.length > 0) {
-      return <Toolbar className="kui--data-table-toolbar-top" breadcrumbs={breadcrumbs.length > 0 && breadcrumbs} />
+      return (
+        <Toolbar
+          className="kui--data-table-toolbar-top"
+          repl={this.props.repl}
+          breadcrumbs={breadcrumbs.length > 0 && breadcrumbs}
+        />
+      )
     }
   }
 
@@ -156,7 +162,7 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
   }
 
   private footerLines() {
-    const nRows = this.props.isPartOfMiniSplit ? -1 : -2
+    const nRows = this.props.isPartOfMiniSplit && this.state.rows.length !== 1 ? -1 : -2
     return this.state.footer ? this.state.footer.slice(nRows) : undefined
   }
 

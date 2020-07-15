@@ -235,6 +235,7 @@ class KubectlWatcher implements Abortable, Watcher {
    *
    */
   private getRowsForNamespace(
+    args: Arguments,
     apiVersion: string,
     kind: string,
     namespace: string,
@@ -244,7 +245,8 @@ class KubectlWatcher implements Abortable, Watcher {
       ' '
     )} -n ${namespace} ${this.output ? `-o ${this.output}` : ''}`
 
-    return this.args.REPL.qexec<Table>(getCommand).catch((err: CodedError) => {
+    console.error('getrows', args.execOptions)
+    return this.args.REPL.qexec<Table>(getCommand, undefined, undefined, args.execOptions).catch((err: CodedError) => {
       if (err.code !== 404) {
         console.error(err)
       }
@@ -258,7 +260,7 @@ class KubectlWatcher implements Abortable, Watcher {
   }
 
   /** Get rows as specified by user's -o */
-  private async getRowsForUser(rows: Pair[][]): Promise<void | Table> {
+  private async getRowsForUser(rows: Pair[][], args: Arguments): Promise<void | Table> {
     const kind = rows[0][1].value
     const apiVersion = rows[0][2].value
 
@@ -268,7 +270,7 @@ class KubectlWatcher implements Abortable, Watcher {
       await Promise.all(
         Object.keys(groups).map(namespace => {
           const rowNames = groups[namespace].map(group => group[0].value)
-          return this.getRowsForNamespace(apiVersion, kind, namespace, rowNames)
+          return this.getRowsForNamespace(args, apiVersion, kind, namespace, rowNames)
         })
       )
     ).filter(notEmpty)
@@ -319,7 +321,7 @@ class KubectlWatcher implements Abortable, Watcher {
         const { rows } = preprocessed
 
         // now process the full rows into table view updates
-        const table = await this.getRowsForUser(rows)
+        const table = await this.getRowsForUser(rows, this.args)
 
         if (table) {
           // in case the initial get was empty, we add the header to the
@@ -392,12 +394,15 @@ class KubectlWatcher implements Abortable, Watcher {
     const cmd = getCommandFromArgs(this.args)
     const namespace = await getNamespace(this.args)
     const kindByUser = this.args.argvNoOptions[this.args.argvNoOptions.indexOf('get') + 1]
-    const getWithResourceName = this.args.argvNoOptions.indexOf(kindByUser) !== this.args.argvNoOptions.length - 1
+    const kindIdx = this.args.argvNoOptions.indexOf(kindByUser)
+    const getKindWithoutName = kindIdx === this.args.argvNoOptions.length - 1
+    const getWithOneName = kindIdx === this.args.argvNoOptions.length - 2
 
-    if (getWithResourceName || getLabel(this.args) || this.args.parsedOptions['field-selector']) {
+    if (!(getKindWithoutName || getWithOneName) || getLabel(this.args) || this.args.parsedOptions['field-selector']) {
       debug('event watch not support')
     } else {
-      const eventWatcher = new EventWatcher(this.args, cmd, kindByUser, undefined, namespace, false, this.pusher)
+      const name = getWithOneName ? this.args.argvNoOptions[kindIdx + 1] : undefined
+      const eventWatcher = new EventWatcher(this.args, cmd, kindByUser, name, namespace, false, this.pusher)
       eventWatcher.init()
       this.ptyJob.push(eventWatcher)
     }
@@ -416,35 +421,39 @@ export default async function doGetWatchTable(args: Arguments<KubeOptions>): Pro
     const cmd = args.command
       .replace(/^k(\s)/, 'kubectl$1')
       .replace(/--watch=true|-w=true|--watch-only=true|--watch|-w|--watch-only/g, '') // strip --watch
-    const initialTable = await args.REPL.qexec<Table>(cmd).catch((err: CodedError) => {
-      if (err.code !== 404) {
-        throw err
-      } else {
-        // otherwise, we want parity with the (admittedly kinda odd) kubectl behavior:
-        //
-        // a) kubectl get <kind> <name> -w -> then <name> does not exist; fail fast
-        // b) kubectl get <kind> -w -n <ns> -> then <ns> does not exist; enter poll mode
-        // c) kubectl get <kind> -w -> then <kind> does not exist; fail fast
-        //
-        const argv = args.argvNoOptions
-        const idx = argv.indexOf('get') + 1
-        const kind = argv[idx] // <-- <kind>
-        const name = argv[idx + 1] // <-- <name>
 
-        if (/doesn't have a resource type/i.test(err.message)) {
-          // case c, e.g. error: the server doesn't have a resource type "foo"
-          throw err
-        } else if (kind && name) {
-          // case a
+    const singleResourceTable = args.argvNoOptions.indexOf('get') === args.argvNoOptions.length - 3
+    const initialTable = await args.REPL.qexec<Table>(cmd, undefined, undefined, { singleResourceTable }).catch(
+      (err: CodedError) => {
+        if (err.code !== 404) {
           throw err
         } else {
-          // case b
-          return {
-            body: []
-          } as Table
+          // otherwise, we want parity with the (admittedly kinda odd) kubectl behavior:
+          //
+          // a) kubectl get <kind> <name> -w -> then <name> does not exist; fail fast
+          // b) kubectl get <kind> -w -n <ns> -> then <ns> does not exist; enter poll mode
+          // c) kubectl get <kind> -w -> then <kind> does not exist; fail fast
+          //
+          const argv = args.argvNoOptions
+          const idx = argv.indexOf('get') + 1
+          const kind = argv[idx] // <-- <kind>
+          const name = argv[idx + 1] // <-- <name>
+
+          if (/doesn't have a resource type/i.test(err.message)) {
+            // case c, e.g. error: the server doesn't have a resource type "foo"
+            throw err
+          } else if (kind && name) {
+            // case a
+            throw err
+          } else {
+            // case b
+            return {
+              body: []
+            } as Table
+          }
         }
       }
-    })
+    )
 
     if (typeof initialTable === 'string') {
       // then this clearly is not watchable... this could happen if
@@ -460,7 +469,7 @@ export default async function doGetWatchTable(args: Arguments<KubeOptions>): Pro
         title:
           initialTable.title ||
           (await getKind(getCommandFromArgs(args), args, args.argvNoOptions[args.argvNoOptions.indexOf('get') + 1])),
-        watch: new KubectlWatcher(args) // <-- our watcher
+        watch: new KubectlWatcher(Object.assign({}, args, { execOptions: { singleResourceTable } })) // <-- our watcher
       }
     }
   } catch (err) {

@@ -38,6 +38,7 @@ export default {
   PodInitializing: TrafficLight.Yellow,
   Initialized: TrafficLight.Yellow,
   Terminating: TrafficLight.Yellow,
+  Progressing: TrafficLight.Yellow,
   ImagePullBackOff: TrafficLight.Red,
   ErrImagePull: TrafficLight.Red,
   Error: TrafficLight.Red,

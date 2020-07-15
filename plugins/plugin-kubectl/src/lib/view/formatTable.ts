@@ -406,6 +406,61 @@ function withNotFound(table: Table, stderr: string) {
   return table
 }
 
+async function overrideExperimentTable(
+  args: Arguments,
+  verb: string,
+  entityType: string,
+  command: string,
+  preTables: Pair[][]
+) {
+  const userAskForSingleResource = args.execOptions.singleResourceTable
+  const headerColsWithoutName = [
+    { key: 'TRAFFIC SPLIT', value: 'TRAFFIC SPLIT' },
+    { key: 'MESSAGE', value: 'MESSAGE' },
+    { key: 'STATUS', value: 'STATUS' }
+  ]
+  const headerCols = userAskForSingleResource
+    ? headerColsWithoutName
+    : [{ key: 'NAME', value: 'NAME' }].concat(headerColsWithoutName)
+
+  const newPreTables = preTables.map((pairs, idx) => {
+    if (idx === 0) {
+      return headerCols.map(({ key }) => ({ key, value: key }))
+    } else {
+      const name = pairs[0]
+      const status = { key: 'STATUS', value: pairs[1].value }
+      const message = { key: 'MESSAGE', value: pairs[2].value }
+      const split = { key: 'TRAFFIC SPLIT', value: `${pairs[4].value}/${pairs[6].value}` }
+
+      const colWithoutName = [split, message, status]
+      return userAskForSingleResource ? colWithoutName : [name].concat(colWithoutName)
+    }
+  })
+
+  const table = await formatTable(command, verb, entityType, args, newPreTables)
+
+  if (userAskForSingleResource && Array.isArray(table.breadcrumbs)) {
+    const name = preTables[1][0].value
+    const baseline = preTables[1][3].value
+    const candidate = preTables[1][5].value
+    table.breadcrumbs = [{ label: name, command: `${args.command} -o yaml` }]
+    table.title = `${baseline} vs ${candidate}`
+  }
+
+  table.body.forEach(({ attributes }) => {
+    const status = attributes.find(({ key }) => key === 'STATUS')
+    const message = attributes.find(({ key }) => key === 'MESSAGE')
+
+    if (message.value.toLowerCase().includes('fail')) {
+      status.css = cssForValue.Failed
+    } else if (message.value.toLowerCase().includes('success')) {
+      status.css = cssForValue.SuccessfulCreate
+    }
+  })
+
+  return table
+}
+
 /**
  * Display the given string as a REPL table
  *
@@ -430,7 +485,11 @@ export const stringToTable = async <O extends KubeOptions>(
   } else if (preTables && preTables.length >= 1) {
     // try use display this as a table
     if (preTables.length === 1) {
-      const T = await formatTable(command, verb, entityType, args, preTables[0], nameColumn)
+      const T =
+        entityType !== 'Experiment'
+          ? await formatTable(command, verb, entityType, args, preTables[0], nameColumn)
+          : await overrideExperimentTable(args, verb, entityType, command, preTables[0])
+
       if (args.execOptions.filter) {
         T.body = args.execOptions.filter(T.body)
       }

@@ -85,6 +85,8 @@ export interface ExecOptions {
   showHeader?: boolean
   alreadyWatching?: boolean
 
+  singleResourceTable?: boolean // did user ask for a single resource table?
+
   createOutputStream?: StreamableFactory
   stdout?: (str: Streamable) => any // eslint-disable-line @typescript-eslint/no-explicit-any
   stderr?: (str: string) => any // eslint-disable-line @typescript-eslint/no-explicit-any
