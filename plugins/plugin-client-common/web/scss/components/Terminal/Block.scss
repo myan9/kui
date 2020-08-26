@@ -119,6 +119,11 @@
         padding: 0;
       }
     }
+
+    .repl-result-else {
+      font-family: var(--font-sans-serif);
+      font-size: 0.75rem;
+    }
   }
   .kui--repl-block-right-element {
     color: var(--color-text-02);
