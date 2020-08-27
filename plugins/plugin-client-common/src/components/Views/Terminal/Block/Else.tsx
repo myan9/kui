@@ -46,7 +46,7 @@ export default class Else extends React.PureComponent<Props> {
     )
 
     return (
-      <span className="repl-result-else">
+      <span className="kui--repl-result-else">
         {drilldownText} {drilldownLink}
       </span>
     )
