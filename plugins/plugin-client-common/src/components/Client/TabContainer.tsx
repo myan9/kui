@@ -147,7 +147,8 @@ export default class TabContainer extends React.PureComponent<Props, State> {
       undefined,
       evt.cmdline,
       evt.onClose,
-      evt.exec
+      evt.exec,
+      evt.file
     )
     this.listenForTabClose(model)
     return model
@@ -276,6 +277,7 @@ export default class TabContainer extends React.PureComponent<Props, State> {
         {this.state.tabs.map((_, idx) => (
           <TabContent
             {...this.props}
+            snapshotBuffer={_.snapshotBuffer}
             key={_.uuid}
             uuid={_.uuid}
             active={idx === this.state.activeIdx}

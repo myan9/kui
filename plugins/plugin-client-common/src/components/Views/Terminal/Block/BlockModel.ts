@@ -19,6 +19,7 @@ import {
   CommandCompleteEvent,
   ScalarResponse,
   SnapshotBlock,
+  SnapshottedEvent,
   UsageError,
   ExecType,
   isElsewhereCommentaryResponse,
@@ -260,6 +261,48 @@ export function Finished(
       state: BlockState.ValidResponse
     }
   }
+}
+
+/**
+ * SnapshotSplit: captures the split uuid and blocks in a split
+ *
+ */
+type SnapshotSplit = {
+  uuid: string
+  blocks: BlockModel[]
+}
+
+/**
+ * Snapshot: captures the split-level snapshots across the entire
+ * session.
+ *
+ */
+export type SnapshotV2 = {
+  layout: 'single' | 'side-by-side' | 'three-splits' | 'four-splits' | 'five-splits' | 'six-splits'
+  splits: SnapshotSplit[]
+}
+
+/** Schema for a record of onclick (startEvent, completeEvent) pairs */
+export interface ClickSnapshot {
+  startEvents: Record<string, SnapshottedEvent<CommandStartEvent>[]>
+  completeEvents: Record<string, SnapshottedEvent<CommandCompleteEvent>[]>
+}
+
+export interface SerializedSnapshot {
+  apiVersion: 'kui-shell/v1'
+  kind: 'Snapshot'
+  spec: SnapshotV2 & {
+    clicks: ClickSnapshot
+    preferReExecute?: boolean
+    title?: string
+    description?: string
+  }
+}
+
+/** @return wether or not the given `raw` json is an instance of SerializedSnapshot */
+export function isSerializedSnapshot(raw: Record<string, any>): raw is SerializedSnapshot {
+  const model = raw as SerializedSnapshot
+  return model.apiVersion === 'kui-shell/v1' && model.kind === 'Snapshot' && Array.isArray(model.spec.splits)
 }
 
 export function snapshot(block: BlockModel): SnapshotBlock {

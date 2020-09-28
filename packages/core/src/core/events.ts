@@ -72,6 +72,9 @@ export interface NewTabRequestEvent {
   /** Optionally execute a command in the new tab */
   cmdline?: string
 
+  /** Optionally open a snapshot file in the new tab */
+  file?: Buffer
+
   /** Execute the command line with qexec or pexec? Default: pexec. */
   exec?: 'pexec' | 'qexec'
 

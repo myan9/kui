@@ -36,7 +36,8 @@ export default class TabModel {
     private readonly _buttons: TopTabButton[] = [],
     private readonly _initialCommandLine?: string,
     private readonly _onClose?: string,
-    private readonly _exec?: NewTabRequestEvent['exec']
+    private readonly _exec?: NewTabRequestEvent['exec'],
+    private readonly _snapshotBuffer?: Buffer
   ) {
     this._state.capture()
 
@@ -73,7 +74,22 @@ export default class TabModel {
     return this._exec
   }
 
+  public get snapshotBuffer() {
+    return this._snapshotBuffer
+  }
+
   public update(buttons: TopTabButton[]) {
-    return new TabModel(this.uuid, undefined, undefined, this.title, this.state, buttons, undefined, this.onClose)
+    return new TabModel(
+      this.uuid,
+      undefined,
+      undefined,
+      this.title,
+      this.state,
+      buttons,
+      undefined,
+      this.onClose,
+      undefined,
+      this._snapshotBuffer
+    )
   }
 }

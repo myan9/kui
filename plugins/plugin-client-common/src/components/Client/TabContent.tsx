@@ -50,6 +50,7 @@ type Props = TabContentOptions &
   WithTabUUID & {
     active: boolean
     state: TabState
+    snapshotBuffer?: Buffer
     willUpdateTopTabButtons?: (buttons: TopTabButton[]) => void
   }
 

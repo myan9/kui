@@ -55,6 +55,7 @@ import {
   isOutputOnly,
   isProcessing,
   isPresentedElsewhere,
+  isSerializedSnapshot,
   hasStartEvent,
   hasCommand,
   snapshot,
@@ -93,6 +94,8 @@ type Props = TerminalOptions & {
 
   /** tab model */
   tab: KuiTab
+
+  snapshotBuffer?: Buffer
 
   /** handler for terminal clear */
   onClear?: () => void
@@ -176,7 +179,43 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     this.initClipboardEvents()
     this.state = {
       focusedIdx: 0,
-      splits: [this.scrollbackWithWelcome()]
+      splits: this.props.snapshotBuffer ? this.restoreFromSnapshot() : [this.scrollbackWithWelcome()]
+    }
+  }
+
+  // private getNSplit() {
+  //   switch (this.props.snapshot.spec.layout) {
+  //     case 'single':
+  //       return 1
+  //     case 'side-by-side':
+  //       return 2
+  //     case 'three-splits':
+  //       return 3
+  //     case 'four-splits':
+  //       return 4
+  //     case 'five-splits':
+  //       return 5
+  //     case 'six-splits':
+  //       return 6
+  //   }
+  // }
+
+  /** restore the splits and blocks from snapshot */
+  private restoreFromSnapshot() {
+    const snapshot = JSON.parse(Buffer.from(this.props.snapshotBuffer).toString())
+    if (!isSerializedSnapshot(snapshot)) {
+      console.error('invalid snapshot', snapshot)
+      throw new Error('Invalid snapshot')
+    } else {
+      console.error('snapshot', snapshot)
+      const splits = snapshot.spec.splits.map(split => {
+        const scrollback = this.scrollback(split.uuid) // TODO, maybe pass the uuid and opts? forgot to record opts in the snapshot model
+        scrollback.blocks = split.blocks
+        return scrollback
+      })
+
+      console.error('splits', splits)
+      return splits
     }
   }
 
