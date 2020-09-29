@@ -35,7 +35,8 @@ import {
   isOfflineClient,
   isNewSplitRequest,
   isWatchable,
-  SnapshotRequestEvent
+  SnapshotRequestEvent,
+  SerializedSnapshot
 } from '@kui-shell/core'
 
 import Block from './Block'
@@ -60,7 +61,8 @@ import {
   hasCommand,
   snapshot,
   hasUUID,
-  BlockModel
+  BlockModel,
+  isWithCompleteEvent
 } from './Block/BlockModel'
 
 import isInViewport from './visible'
@@ -179,8 +181,10 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     this.initClipboardEvents()
     this.state = {
       focusedIdx: 0,
-      splits: this.props.snapshotBuffer ? this.restoreFromSnapshot() : [this.scrollbackWithWelcome()]
+      splits: this.props.snapshotBuffer ? this.restoreSplits() : [this.scrollbackWithWelcome()]
     }
+
+    this.initSnapshotEvents()
   }
 
   // private getNSplit() {
@@ -201,17 +205,32 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
   // }
 
   /** restore the splits and blocks from snapshot */
-  private restoreFromSnapshot() {
-    const snapshot = JSON.parse(Buffer.from(this.props.snapshotBuffer).toString())
-    if (!isSerializedSnapshot(snapshot)) {
-      console.error('invalid snapshot', snapshot)
+  private restoreSplits() {
+    const model = JSON.parse(Buffer.from(this.props.snapshotBuffer).toString())
+    if (!isSerializedSnapshot(model)) {
+      console.error('invalid snapshot', model)
       throw new Error('Invalid snapshot')
     } else {
-      console.error('snapshot', snapshot)
-      const splits = snapshot.spec.splits.map(split => {
-        const scrollback = this.scrollback(split.uuid) // TODO, maybe pass the uuid and opts? forgot to record opts in the snapshot model
-        scrollback.blocks = split.blocks
-        return scrollback
+      console.error('snapshot', model)
+      const splits = model.spec.splits.map(split => {
+        const newScrollback = this.scrollback() // TODO, maybe pass the uuid and opts? forgot to record opts in the snapshot model
+
+        const restoreBlocks: BlockModel[] = split.blocks.map(block => {
+          // tab alignment
+          const startEvent = hasStartEvent(block)
+            ? Object.assign(block.startEvent, { tab: newScrollback.facade })
+            : undefined
+
+          const completeEvent = isWithCompleteEvent(block)
+            ? Object.assign(block.completeEvent, { tab: newScrollback.facade })
+            : undefined
+
+          return Object.assign({}, block, { startEvent, completeEvent })
+        })
+
+        newScrollback.blocks = restoreBlocks.concat([Active()])
+
+        return newScrollback
       })
 
       console.error('splits', splits)
@@ -232,6 +251,54 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     const cut = onCut.bind(this)
     document.addEventListener('cut', cut)
     this.cleaners.push(() => document.removeEventListener('cut', cut))
+  }
+
+  /** Listen for snapshot request events */
+  private initSnapshotEvents() {
+    const onSnapshot = (evt: SnapshotRequestEvent) => {
+      const splits = this.state.splits.map(({ blocks, uuid }) => {
+        const { filter = () => true } = evt
+        const snapshotBlocks = blocks
+          .filter(_ => hasStartEvent(_) && filter(_.startEvent) && _.startEvent.route !== '/split')
+          .map(snapshot)
+          .filter(_ => _)
+
+        return {
+          uuid,
+          blocks: snapshotBlocks
+        }
+      })
+
+      // TODO: clicks
+      const { title, description, preferReExecute } = evt.opts
+      const serializedSnapshot: SerializedSnapshot = {
+        apiVersion: 'kui-shell/v1',
+        kind: 'Snapshot',
+        spec: {
+          title,
+          description,
+          preferReExecute,
+          splits
+        }
+      }
+
+      const replacer = (key: string, value: any) => {
+        if (key === 'tab') {
+          return undefined
+        } else if (key === 'block') {
+          return undefined
+        } else {
+          return value
+        }
+      }
+
+      const data = JSON.stringify(serializedSnapshot, replacer)
+
+      evt.cb(Buffer.from(data))
+    }
+
+    eventBus.onSnapshotRequest(onSnapshot)
+    this.cleaners.push(() => eventBus.offSnapshotRequest(onSnapshot))
   }
 
   /** add welcome blocks at the top of scrollback */
@@ -333,25 +400,6 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
     // associate a tab facade with the split
     this.tabFor(state)
-
-    const onSnapshot = (evt: SnapshotRequestEvent) => {
-      const scrollbackIdx = this.findSplit(this.state, sbuuid)
-      if (scrollbackIdx < 0) {
-        throw new Error('Invalid state')
-      } else {
-        const { blocks } = this.state.splits[scrollbackIdx]
-        const { filter = () => true } = evt
-        evt.cb(
-          blocks
-            .filter(_ => hasStartEvent(_) && filter(_.startEvent))
-            .map(snapshot)
-            .filter(_ => _)
-        )
-      }
-    }
-    eventBus.emitAddSnapshotable()
-    eventBus.onSnapshotRequest(onSnapshot)
-    state.cleaners.push(() => eventBus.offSnapshotRequest(onSnapshot))
 
     const onTabCloseRequest = async () => {
       // async, to allow for e.g. command completion events to finish
@@ -783,7 +831,6 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
    */
   private removeSplit(sbuuid: string) {
     this.setState(curState => {
-      eventBus.emitRemoveSnapshotable()
       eventBus.emitTabLayoutChange(this.props.tab.uuid)
 
       const idx = this.findSplit(this.state, sbuuid)
@@ -842,7 +889,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
    * using the giving ScrollbackState mutator.
    *
    */
-  private splice(sbuuid: string, mutator: (state: ScrollbackState) => Pick<ScrollbackState, 'blocks'>) {
+  protected splice(sbuuid: string, mutator: (state: ScrollbackState) => Pick<ScrollbackState, 'blocks'>) {
     this.setState(curState => this.spliceMutate(curState, sbuuid, mutator))
   }
 

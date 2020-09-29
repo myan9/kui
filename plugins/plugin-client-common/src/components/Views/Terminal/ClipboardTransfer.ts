@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { v4 } from 'uuid'
-import { eventBus, CommandStartEvent, CommandCompleteEvent, ScalarResponse, SnapshotBlock } from '@kui-shell/core'
+import { eventBus, CommandStartEvent } from '@kui-shell/core'
 import ScrollableTerminal, { getSelectionText } from './ScrollableTerminal'
+import BlockModel, { isSerializedSnapshot } from './Block/BlockModel'
 
 interface ClipboardTransfer {
   apiVersion: 'kui-shell/v1'
   kind: 'ClipboardTransfer'
-  blocks: SnapshotBlock[]
+  blocks: BlockModel[]
 }
 
 function isClipboardTransfer(transfer: Record<string, any>): transfer is ClipboardTransfer {
@@ -94,18 +94,12 @@ export function onPaste(this: ScrollableTerminal, evt: ClipboardEvent) {
         evt.preventDefault()
 
         // the target split
-        const { uuid, facade } = this.state.splits[target.scrollbackIdx]
-
-        // update the events to retarget them to our target split
-        const { startEvent, completeEvent } = transfer.blocks[0]
-        const execUUID = v4()
-        const retarget = { execUUID, tab: facade }
-        const start = Object.assign(startEvent, retarget)
-        const complete = Object.assign(completeEvent, retarget) as CommandCompleteEvent<ScalarResponse>
-
-        // finally, fire the events off
-        this.onExecStart(uuid, false, start, target.insertionIdx)
-        this.onExecEnd(uuid, false, complete, target.insertionIdx)
+        const { uuid } = this.state.splits[target.scrollbackIdx]
+        this.splice(uuid, scrollback => {
+          return {
+            blocks: scrollback.blocks.concat(transfer.blocks[0])
+          }
+        })
       }
     } catch (err) {
       console.error(err)
@@ -127,17 +121,25 @@ export function onCopy(this: ScrollableTerminal, evt: ClipboardEvent, onSuccess?
       filter: (evt: CommandStartEvent) => {
         return evt.execUUID === target.execUUID
       },
-      cb: async (blocks: SnapshotBlock[]) => {
-        if (blocks.length > 0) {
-          const transfer: ClipboardTransfer = {
-            apiVersion: 'kui-shell/v1',
-            kind: 'ClipboardTransfer',
-            blocks
-          }
-          navigator.clipboard.writeText(JSON.stringify(transfer))
+      cb: async (snapshotBuffer: Buffer) => {
+        const snapshot = JSON.parse(Buffer.from(snapshotBuffer).toString())
+        if (!isSerializedSnapshot(snapshot)) {
+          console.error('invalid snapshot', snapshot)
+          throw new Error('Invalid snapshot')
+        } else {
+          const blocks = snapshot.spec.splits[0].blocks
+          if (blocks.length > 1) {
+            const transfer: ClipboardTransfer = {
+              apiVersion: 'kui-shell/v1',
+              kind: 'ClipboardTransfer',
+              blocks
+            }
 
-          if (typeof onSuccess === 'function') {
-            onSuccess(target)
+            navigator.clipboard.writeText(JSON.stringify(transfer))
+
+            if (typeof onSuccess === 'function') {
+              onSuccess(target)
+            }
           }
         }
       }

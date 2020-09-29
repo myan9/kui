@@ -69,7 +69,7 @@ describe(`snapshot and replay ${process.env.MOCHA_RUN_TARGET || ''}`, function(t
     await this.app.client.waitForExist(Selectors.STATUS_STRIPE_TYPE('default'))
   })
 
-  it('should freshen the snapshot', async () => {
+  xit('should freshen the snapshot', async () => {
     try {
       unlinkSync('/tmp/test.bak.kui')
     } catch (err) {

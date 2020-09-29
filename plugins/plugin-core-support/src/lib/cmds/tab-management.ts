@@ -49,6 +49,7 @@ function closeTab(tab: Tab, closeAllSplits: boolean) {
 
 /** Load snapshot model from disk */
 async function loadSnapshotBuffer(REPL: Arguments['REPL'], filepath: string): Promise<Buffer> {
+  console.error('filepath', filepath)
   return Buffer.from(
     (await REPL.rexec<{ data: string }>(`vfs fstat ${REPL.encodeComponent(filepath)} --with-data`)).content.data
   )

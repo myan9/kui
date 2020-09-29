@@ -23,13 +23,7 @@ import { ScalarResponse } from '../models/entity'
 import MultiModalResponse from '../models/mmr/types'
 import NavResponse from '../models/NavResponse'
 import Tab, { getPrimaryTabId } from '../webapp/tab'
-import {
-  CommandStartEvent,
-  CommandCompleteEvent,
-  CommandStartHandler,
-  CommandCompleteHandler,
-  SnapshotBlock
-} from '../repl/events'
+import { CommandStartEvent, CommandCompleteEvent, CommandStartHandler, CommandCompleteHandler } from '../repl/events'
 
 const eventChannelUnsafe = new EventEmitter()
 eventChannelUnsafe.setMaxListeners(100)
@@ -41,9 +35,17 @@ export type StatusStripeChangeEvent = {
   message?: string
 }
 
+interface SnapshotOptions {
+  title?: string
+  description?: string
+  preferReExecute?: boolean
+  shallow?: boolean
+}
+
 export type SnapshotRequestEvent = {
-  cb: (snapshot: SnapshotBlock[]) => void
+  cb: (snapshot: Buffer) => void
   filter?: (evt: CommandStartEvent) => boolean
+  opts?: SnapshotOptions
 }
 
 export type TabLayoutChangeEvent = { isSidecarNowHidden: boolean }
@@ -142,16 +144,6 @@ class WriteEventBus extends EventBusBase {
     }
   }
 
-  /** Indicate a new snapshotable element */
-  public emitAddSnapshotable(): void {
-    this.eventBus.emit('/snapshot/element/add')
-  }
-
-  /** Indicate a snapshotable element no longer exists */
-  public emitRemoveSnapshotable(): void {
-    this.eventBus.emit('/snapshot/element/remove')
-  }
-
   /** Request a Snapshot of the given Tab */
   public emitSnapshotRequest(evt: SnapshotRequestEvent): void {
     this.eventBus.emit('/snapshot/request', evt)
@@ -182,11 +174,6 @@ class ReadEventBus extends WriteEventBus {
 
   public off(channel: string, listener: any) {
     return this.eventBus.off(channel, listener)
-  }
-
-  /** Listen for snapshotable elements coming and going */
-  public onAddSnapshotable(listener: () => void) {
-    this.eventBus.on('/snapshot/element/add', listener)
   }
 
   public onRemoveSnapshotable(listener: () => void) {

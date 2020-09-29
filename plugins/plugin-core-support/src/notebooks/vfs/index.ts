@@ -17,10 +17,8 @@
 import TrieSearch from 'trie-search'
 import * as micromatch from 'micromatch'
 import { basename, dirname, join } from 'path'
-import { Arguments, CodedError, flatten } from '@kui-shell/core'
+import { Arguments, CodedError, flatten, SerializedSnapshot } from '@kui-shell/core'
 import { FStat, VFS, mount } from '@kui-shell/plugin-bash-like/fs'
-
-import { SerializedSnapshot } from '../../lib/cmds/replay'
 
 interface Tutorial {
   name: string

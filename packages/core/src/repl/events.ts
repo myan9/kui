@@ -61,6 +61,23 @@ export type SnapshottedEvent<E extends CommandStartEvent | CommandCompleteEvent>
   tab: E['tab']['uuid']
 }
 
+/** Schema for a record of onclick (startEvent, completeEvent) pairs */
+export interface ClickSnapshot {
+  startEvents: Record<string, SnapshottedEvent<CommandStartEvent>[]>
+  completeEvents: Record<string, SnapshottedEvent<CommandCompleteEvent>[]>
+}
+
+export interface SerializedSnapshot {
+  apiVersion: 'kui-shell/v1'
+  kind: 'Snapshot'
+  spec: {
+    clicks?: ClickSnapshot
+    preferReExecute?: boolean
+    title?: string
+    description?: string
+  }
+}
+
 /**
  * SnapshotBlock: captures the start and complete of the command
  * execution.

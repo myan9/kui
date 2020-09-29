@@ -18,7 +18,7 @@ import {
   CommandStartEvent,
   CommandCompleteEvent,
   ScalarResponse,
-  SnapshotBlock,
+  SerializedSnapshot,
   SnapshottedEvent,
   UsageError,
   ExecType,
@@ -267,7 +267,7 @@ export function Finished(
  * SnapshotSplit: captures the split uuid and blocks in a split
  *
  */
-type SnapshotSplit = {
+export type SnapshotSplit = {
   uuid: string
   blocks: BlockModel[]
 }
@@ -278,7 +278,7 @@ type SnapshotSplit = {
  *
  */
 export type SnapshotV2 = {
-  layout: 'single' | 'side-by-side' | 'three-splits' | 'four-splits' | 'five-splits' | 'six-splits'
+  layout?: 'single' | 'side-by-side' | 'three-splits' | 'four-splits' | 'five-splits' | 'six-splits'
   splits: SnapshotSplit[]
 }
 
@@ -288,24 +288,17 @@ export interface ClickSnapshot {
   completeEvents: Record<string, SnapshottedEvent<CommandCompleteEvent>[]>
 }
 
-export interface SerializedSnapshot {
-  apiVersion: 'kui-shell/v1'
-  kind: 'Snapshot'
-  spec: SnapshotV2 & {
-    clicks: ClickSnapshot
-    preferReExecute?: boolean
-    title?: string
-    description?: string
-  }
+export type Snapshot = SerializedSnapshot & {
+  spec: SnapshotV2
 }
 
 /** @return wether or not the given `raw` json is an instance of SerializedSnapshot */
-export function isSerializedSnapshot(raw: Record<string, any>): raw is SerializedSnapshot {
-  const model = raw as SerializedSnapshot
+export function isSerializedSnapshot(raw: Record<string, any>): raw is Snapshot {
+  const model = raw as Snapshot
   return model.apiVersion === 'kui-shell/v1' && model.kind === 'Snapshot' && Array.isArray(model.spec.splits)
 }
 
-export function snapshot(block: BlockModel): SnapshotBlock {
+export function snapshot(block: BlockModel): BlockModel {
   if (!isAnnouncement(block) && (isOops(block) || isOk(block))) {
     const execOptions = Object.assign(
       {},
@@ -324,22 +317,25 @@ export function snapshot(block: BlockModel): SnapshotBlock {
      * and issue: https://github.com/IBM/kui/issues/5452
      *
      */
-    const response =
-      block.completeEvent.response && isWatchable(block.completeEvent.response)
-        ? Object.assign({}, block.completeEvent.response, { watch: undefined })
-        : block.completeEvent.response
-
-    return {
-      startTime: new Date(block.startTime).getTime(),
-      startEvent: Object.assign({}, block.startEvent, { tab: block.startEvent.tab.uuid }),
-      completeEvent: Object.assign(
-        {},
-        block.completeEvent,
-        { execOptions, evaluatorOptions },
-        { tab: block.completeEvent.tab.uuid },
-        { response }
-      )
+    const excludeWatchable = (response: CommandCompleteEvent['response']) => {
+      if (response && isWatchable(response)) {
+        return Object.assign({}, response, { watch: undefined })
+      } else {
+        return response
+      }
     }
+
+    const startEvent = Object.assign({}, block.startEvent, { tab: block.startEvent.tab.uuid })
+
+    const completeEvent = Object.assign(
+      {},
+      block.completeEvent,
+      { execOptions, evaluatorOptions },
+      { tab: block.completeEvent.tab.uuid },
+      { response: excludeWatchable(block.completeEvent.response) }
+    )
+
+    return Object.assign(block, { response: excludeWatchable(block.response), startEvent, completeEvent })
   }
 }
 
