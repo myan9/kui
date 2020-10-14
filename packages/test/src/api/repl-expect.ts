@@ -149,7 +149,7 @@ export const ok = async (res: AppAndCount) =>
   expectOK(res, { passthrough: true })
     .then(N => res.app.client.elements(Selectors.LIST_RESULTS_BY_NAME_N(N, res.splitIndex)))
     .then(elts => assert.strictEqual(elts.value.length, 0))
-    .then(() => res.app)
+    .then(() => res)
 
 export const error = (statusCode: number | string, expect?: string) => async (res: AppAndCount) =>
   expectOK(res, {
@@ -261,8 +261,16 @@ export const okWithOnly = (entityName: string) => async (res: AppAndCount) =>
 // FIXME: okWithAtLeast??
 export const okWith = (entityName: string) => async (res: AppAndCount) => expectOK(res, { expectArray: [entityName] })
 
+/** expect only ok, and no result value */
+export const onlyOk = async (res: AppAndCount) =>
+  expectOK(res, { passthrough: true })
+    .then(N => res.app.client.elements(Selectors.LIST_RESULTS_BY_NAME_N(N, res.splitIndex)))
+    .then(elts => assert.strictEqual(elts.value.length, 0))
+    .then(() => res)
+
+
 /** expect just ok, and no result value */
-export const justOK = async (res: AppAndCount) => expectOK(res, { expectJustOK: true }).then(() => res.app)
+export const justOK = async (res: AppAndCount) => expectOK(res, { expectJustOK: true }).then(() => res)
 
 /** Expect the given number of terminal splits in the current tab, and check whether the last split has inverse colors */
 export function splitCount(expectedSplitCount: number, inverseColors = false, expectedSplitIndex?: number) {

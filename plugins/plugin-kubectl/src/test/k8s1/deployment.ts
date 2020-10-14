@@ -39,10 +39,12 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
   const createIt = () => {
     it('should create deployment from local file', async () => {
       try {
-        const selector = await CLI.command(
+        const res = await CLI.command(
           `kubectl create -f ${ROOT}/data/k8s/deployment.yaml ${inNamespace}`,
           this.app
-        ).then(ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('myapp') }))
+        )
+        
+        const selector = await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('myapp') })(res)
 
         /* const selectorPrefix = selector.replace(Selectors.BY_NAME('myapp'), '')
 
@@ -56,7 +58,7 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
         await this.app.client.moveToObject(`${selector} [data-value="myapp"].clickable`)
         await this.app.client.click(`${selector} [data-value="myapp"].clickable`)
 
-        await SidecarExpect.open(this.app)
+        await SidecarExpect.open(res)
           .then(SidecarExpect.mode(defaultModeForGet))
           .then(SidecarExpect.showing('myapp', undefined, undefined, ns))
       } catch (err) {
@@ -68,9 +70,8 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
   const listIt = () => {
     it('should list deployments', async () => {
       try {
-        const selector = await CLI.command(`kubectl get deployment ${inNamespace}`, this.app).then(
-          ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('myapp') })
-        )
+        const res = await CLI.command(`kubectl get deployment ${inNamespace}`, this.app)
+        const selector = await ReplExpect.okWithCustom({ selector: Selectors.BY_NAME('myapp') })(res)
 
         await waitForGreen(this.app, selector)
 
@@ -84,16 +85,15 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
             .then((title: string) => assert.ok(title === 'DEPLOYMENT'))
         }
 
-        await SidecarExpect.open(this.app)
+        await SidecarExpect.open(res)
           .then(SidecarExpect.mode(defaultModeForGet))
           .then(SidecarExpect.showing('myapp', undefined, undefined, ns))
-          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('summary')))
-          .then(() => this.app)
-          .then(SidecarExpect.yaml({ Name: 'myapp' }))
+          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED(res.count, 'summary')))
+          .then(() => SidecarExpect.yaml({ Name: 'myapp' })(res))
           .then(() => new Promise(resolve => setTimeout(resolve, 1000)))
-          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('pods')))
-          .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('pods')))
-          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED('pods')))
+          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON(res.count, 'pods')))
+          .then(() => this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'pods')))
+          .then(() => this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON_SELECTED(res.count,'pods')))
           .then(() => this.app.client.waitForExist(`${Selectors.SIDECAR_TAB_CONTENT} .bx--data-table`))
           .then(async () => {
             if (singletonTablesHaveTitle) {
@@ -112,23 +112,24 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
   const getPods = () => {
     it('should list pods in deployment, then navigate using Show Owner Reference button', async () => {
       try {
-        const selector = await CLI.command(`kubectl get pod -lapp=drone-app ${inNamespace}`, this.app).then(
-          ReplExpect.okWithCustom({ selector: Selectors.LIST_RESULT_FIRST })
-        )
+        res = await CLI.command(`kubectl get pod -lapp=drone-app ${inNamespace}`, this.app)
+        const selector = await ReplExpect.okWithCustom({ selector: Selectors.LIST_RESULT_FIRST })(res)
 
         await this.app.client.click(selector)
 
-        await SidecarExpect.open(this.app)
+        await SidecarExpect.open(res)
           .then(SidecarExpect.showing('myapp', undefined, undefined, ns))
           .then(SidecarExpect.button({ mode: 'ownerReference', label: 'Show Owner Reference' }))
 
-        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('ownerReference'))
-        await SidecarExpect.open(this.app)
-          .then(SidecarExpect.kind('ReplicaSet'))
-          .then(SidecarExpect.button({ mode: 'ownerReference', label: 'Show Owner Reference' }))
+        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'ownerReference'))
+        await SidecarExpect.open(res)
+          .then(async (res) => {
+            await SidecarExpect.kind('ReplicaSet')(res)
+            await SidecarExpect.button({ mode: 'ownerReference', label: 'Show Owner Reference' })(res)
+          })   
 
-        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('ownerReference'))
-        await SidecarExpect.open(this.app).then(SidecarExpect.kind('Deployment'))
+        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'ownerReference'))
+        await SidecarExpect.open(res).then(SidecarExpect.kind('Deployment'))
       } catch (err) {
         return Common.oops(this, true)(err)
       }
@@ -144,10 +145,10 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
     })
   }
 
-  const deleteItByClickingOnButton = () => {
+  const deleteItByClickingOnButton = (res: ReplExpect.AppAndCount) => {
     it('should delete the deployment by clicking on the sidecar delete button', async () => {
       try {
-        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('delete'))
+        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'delete'))
         await this.app.client.waitForExist('#confirm-dialog')
         await this.app.client.click('#confirm-dialog .bx--btn--danger')
         await waitTillNone('deployment', undefined, 'myapp', undefined, inNamespace)
@@ -164,11 +165,12 @@ describe(`kubectl deployment ${process.env.MOCHA_RUN_TARGET || ''}`, function(th
 
   createIt()
   listIt()
+  let res: ReplExpect.AppAndCount
   getPods()
   deleteItByName()
 
   createIt()
-  deleteItByClickingOnButton()
+  deleteItByClickingOnButton(res)
 
   deleteNS(this, ns)
 })

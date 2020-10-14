@@ -36,6 +36,7 @@ commands.forEach(command => {
     after(Common.after(this))
 
     const ns: string = createNS()
+    let res: ReplExpect.AppAndCount
 
     /**
      * Interact with the Raw tab
@@ -124,6 +125,10 @@ commands.forEach(command => {
       return CLI.command(`${command} get pod nginx -n ${ns} -o yaml`, this.app)
         .then(ReplExpect.justOK)
         .then(SidecarExpect.open)
+        .then(appAndCount => {
+          res = appAndCount
+          return appAndCount
+        })
         .then(SidecarExpect.mode(defaultModeForGet))
         .then(SidecarExpect.showingTopNav('nginx'))
         .catch(Common.oops(this, true))
@@ -138,8 +143,8 @@ commands.forEach(command => {
     // click delete button
     it('should initiate deletion of the pod via sidecar deletion button', async () => {
       try {
-        await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('delete'))
-        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('delete'))
+        await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON(res.count, 'delete'))
+        await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'delete'))
 
         // wait for delete confirmation popup
         await this.app.client.waitForExist('#confirm-dialog .bx--btn--danger')

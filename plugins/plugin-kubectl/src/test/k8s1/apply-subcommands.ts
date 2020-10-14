@@ -60,8 +60,8 @@ commands.forEach(command => {
           .then(SidecarExpect.open)
           .then(SidecarExpect.showing(podName, undefined, undefined, ns))
           .then(SidecarExpect.mode(lastAppliedMode))
-          .then(async () => {
-            const actualText = await Util.getValueFromMonaco(this.app)
+          .then(async (res) => {
+            const actualText = await Util.getValueFromMonaco(res)
             const labelsLineIdx = actualText.split(/\n/).indexOf('  labels:')
 
             // +2 here because nth-child is indexed from 1, and we want the line after that
@@ -72,9 +72,9 @@ commands.forEach(command => {
             await new Promise(resolve => setTimeout(resolve, 2000))
             await this.app.client.keys(`${Keys.End}${Keys.ENTER}${key}: ${value}${Keys.ENTER}`)
             await new Promise(resolve => setTimeout(resolve, 2000))
-            await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON('Save'))
-            await SidecarExpect.toolbarAlert({ type: 'success', text: 'Successfully Applied', exact: false })(this.app)
-            await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON('Save'), 10000, true)
+            await this.app.client.click(Selectors.SIDECAR_MODE_BUTTON(res.count, 'Save'))
+            await SidecarExpect.toolbarAlert({ type: 'success', text: 'Successfully Applied', exact: false })(res)
+            await this.app.client.waitForVisible(Selectors.SIDECAR_MODE_BUTTON(res.count, 'Save'), 10000, true)
           })
           .catch(Common.oops(this, true)))
     }
@@ -87,8 +87,8 @@ commands.forEach(command => {
           .then(SidecarExpect.open)
           .then(SidecarExpect.showing(podName, undefined, undefined, ns))
           .then(SidecarExpect.mode(lastAppliedMode))
-          .then(async () => {
-            const actualText = await Util.getValueFromMonaco(this.app)
+          .then(async (res) => {
+            const actualText = await Util.getValueFromMonaco(res)
             assert.ok(actualText.indexOf(expectString) !== -1)
           })
           .catch(Common.oops(this, true)))
