@@ -284,6 +284,11 @@ export function isHidden(block: BlockModel): boolean {
   return isWithCompleteEvent(block) && block.completeEvent.execOptions && block.completeEvent.execOptions.echo === false
 }
 
+/** @return whether this block was asked to be incognito */
+export function isHidden(block: BlockModel): boolean {
+  return isWithCompleteEvent(block) && block.completeEvent.execOptions.echo === false
+}
+
 /** @return whether the block is from replay */
 export function isReplay(block: BlockModel): boolean {
   return (isProcessing(block) || isWithCompleteEvent(block)) && block.isReplay
