@@ -774,8 +774,6 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       return new Error(strings('No more splits allowed'))
     } else {
       const newScrollback = this.scrollback(undefined, request.spec.options)
-      request.spec.ok.props.tab = () => newScrollback.facade
-      request.spec.ok.props.tabUUID = newScrollback.uuid
 
       this.setState(({ splits }) => {
         // this says: 1) place the split at the end; and 2) focus the
@@ -796,6 +794,8 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
           splits: newSplits
         }
       })
+
+      return request.spec.ok
     }
   }
 
