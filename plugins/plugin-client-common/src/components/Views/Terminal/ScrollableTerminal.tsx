@@ -747,8 +747,6 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       return new Error(strings('No more splits allowed'))
     } else {
       const newScrollback = this.scrollback(undefined, request.spec.options)
-      request.spec.ok.props.tab = () => newScrollback.facade
-      request.spec.ok.props.tabUUID = newScrollback.uuid
 
       this.setState(({ splits }) => {
         // this says: 1) place the split at the end; and 2) focus the
@@ -769,6 +767,8 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
           splits: newSplits
         }
       })
+
+      return request.spec.ok
     }
   }
 
@@ -850,30 +850,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
         curState.splits[idx].cleaners.forEach(cleaner => cleaner())
 
         // splice out this split from the list of all splits in this tab
-        const splits1 = curState.splits.slice(0, idx).concat(curState.splits.slice(idx + 1))
-
-        // update other splits to remove any "created split" messages
-        // that pertain to the split that we are about to remove
-        const splits = splits1.map(scrollback => {
-          // filter out the relevant "created split" blocks
-          const blocks = scrollback.blocks.filter(_ => {
-            const isPertainingToThisSplit =
-              isOk(_) &&
-              isTabLayoutModificationResponse(_.response) &&
-              isNewSplitRequest(_.response) &&
-              _.response.spec.ok.props.tabUUID === sbuuid
-
-            return !isPertainingToThisSplit
-          })
-
-          // did we filter any blocks out?
-          const removedSomething = blocks.length !== scrollback.blocks.length
-
-          return Object.assign({}, scrollback, {
-            blocks,
-            focusedBlockIdx: removedSomething ? blocks.length - 1 : scrollback.focusedBlockIdx
-          })
-        })
+        const splits = curState.splits.slice(0, idx).concat(curState.splits.slice(idx + 1))
 
         if (splits.length === 0) {
           // the last split was removed; notify parent
