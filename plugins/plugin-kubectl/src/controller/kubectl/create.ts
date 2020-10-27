@@ -33,6 +33,7 @@ export const doCreate = (verb: string, command = 'kubectl') => async (args: Argu
   if (isUsage(args)) {
     return doHelp(command, args)
   } else {
+    // FIXME: -k doesn't work
     const kuiSourceRef = getSourceRefs(args)
     const table = await doExecWithStatus(verb, FinalState.OnlineLike, command)(args)
     if (isTable(table)) {

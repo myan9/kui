@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-import { Arguments, WithSourceReferences } from '@kui-shell/core'
+import { Arguments, WithSourceReferences, flatten } from '@kui-shell/core'
 
-import fetchFile from '../../lib/util/fetch-file'
-import { KubeOptions, fileOfWithDetail, isTableRequest } from './options'
+import { fetch, fetchFileKustomize } from '../../lib/util/fetch-file'
+import { KubeOptions, kustomizeOf, fileOfWithDetail, isTableRequest } from './options'
+
+/**
+ * @param kusto a kustomize file spec
+ *
+ */
+interface Kustomization {
+  resources?: string[]
+}
 
 /**
  * Fetch any references to --file sources, so that the views can show
@@ -28,15 +36,45 @@ export default async function withSourceRefs(
   args: Arguments<KubeOptions>
 ): Promise<WithSourceReferences['kuiSourceRef']> {
   const { filepath, isFor } = fileOfWithDetail(args)
+  const kusto = kustomizeOf(args)
 
   if (filepath && isTableRequest(args)) {
     try {
-      const data = (await fetchFile(args.REPL, filepath))[0]
-      return {
-        templates: [{ filepath, data, isFor, kind: 'source', contentType: 'yaml' }]
-      }
+      const files = await fetch(args.REPL, filepath)
+      console.error('withSourceRefs', files)
+
+      const templates = files.map(({ data, filepath }) => {
+        return { filepath, data: data.toString(), isFor, kind: 'source' as const, contentType: 'yaml' }
+      })
+
+      return { templates }
     } catch (err) {
       console.error('Error fetching source ref', err)
+    }
+  } else if (kusto) {
+    const [{ safeLoad }, { join }, raw] = await Promise.all([
+      import('js-yaml'),
+      import('path'),
+      fetchFileKustomize(args.REPL, kusto)
+    ])
+
+    const kustomization: Kustomization = safeLoad(raw.data)
+    if (kustomization.resources) {
+      const files = flatten(
+        await Promise.all(
+          kustomization.resources.map(resource => {
+            return fetch(args.REPL, raw.dir ? join(raw.dir, resource) : resource)
+          })
+        )
+      )
+
+      const templates = files.map(({ data, filepath }) => {
+        return { filepath, data: data.toString(), isFor, kind: 'source' as const, contentType: 'yaml' }
+      })
+
+      const customization = { filepath: kusto, data: raw.data.toString(), isFor: 'f' }
+      console.error('customization', customization)
+      return { templates, customization }
     }
   }
 }

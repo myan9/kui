@@ -260,10 +260,14 @@ export abstract class InputProvider<S extends State = State> extends React.PureC
         <div className="repl-input-sourceref">
           <div className="repl-context"></div>
           <Accordion
-            names={sourceRef.templates.map(_ => basename(_.filepath))}
+            names={sourceRef.templates
+              .map(_ => basename(_.filepath))
+              .concat(sourceRef.customization ? [basename(sourceRef.customization.filepath)] : [])}
             isWidthConstrained={this.props.isWidthConstrained}
             tab={this.props.tab}
-            content={sourceRef.templates.map(_ => this.sourceRefContent(_.data, _.contentType))}
+            content={sourceRef.templates
+              .map(_ => this.sourceRefContent(_.data, _.contentType))
+              .concat(sourceRef.customization ? [this.sourceRefContent(sourceRef.customization.data, 'yaml')] : [])}
           />
         </div>
       )

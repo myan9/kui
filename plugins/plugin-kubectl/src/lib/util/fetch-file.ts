@@ -16,7 +16,7 @@
 
 import Debug from 'debug'
 import needle from 'needle'
-import { REPL, inBrowser, isHeadless, hasProxy, CodedError, i18n } from '@kui-shell/core'
+import { REPL, inBrowser, isHeadless, hasProxy, CodedError, i18n, flatten } from '@kui-shell/core'
 
 const strings = i18n('plugin-kubectl')
 const debug = Debug('plugin-kubectl/util/fetch-file')
@@ -101,51 +101,132 @@ async function _needle({ qexec }: REPL, method: 'get', url: string): Promise<{ s
   }
 }
 
+interface FetchedFile {
+  data: string | Buffer
+  filepath: string
+}
+
 /**
  * Either fetch a remote file or read a local one
  *
  */
-export function fetchFile(repl: REPL, url: string): Promise<(string | Buffer)[]> {
-  debug('fetchFile', url)
+export async function fetchFile(repl: REPL, url: string): Promise<string | Buffer> {
+  console.error('fetchFile', url)
 
-  const urls = url.split(/,/)
+  if (url.match(/http(s)?:\/\//)) {
+    debug('fetch remote', url)
+    const fetchOnce = () => _needle(repl, 'get', url).then(_ => _.body)
 
-  return Promise.all(
-    urls.map(async url => {
-      if (url.match(/http(s)?:\/\//)) {
-        debug('fetch remote', url)
-        const fetchOnce = () => _needle(repl, 'get', url).then(_ => _.body)
-
-        const retry = (delay: number) => async (err: Error) => {
-          if (/timeout/.test(err.message) || /hang up/.test(err.message) || /hangup/.test(err.message)) {
-            debug('retrying', err)
-            await new Promise(resolve => setTimeout(resolve, delay))
-            return fetchOnce()
-          } else {
-            throw err
-          }
-        }
-
-        // fetch with three retries
+    const retry = (delay: number) => async (err: Error) => {
+      if (/timeout/.test(err.message) || /hang up/.test(err.message) || /hangup/.test(err.message)) {
+        debug('retrying', err)
+        await new Promise(resolve => setTimeout(resolve, delay))
         return fetchOnce()
-          .catch(retry(500))
-          .catch(retry(1000))
-          .catch(retry(5000))
       } else {
-        const filepath = url
-        debug('fetch local', filepath)
-        const stats = (await repl.rexec<{ data: string }>(`vfs fstat ${repl.encodeComponent(filepath)} --with-data`))
-          .content
-        return stats.data
+        throw err
       }
-    })
-  )
+    }
+
+    // fetch with three retries
+    return fetchOnce()
+      .catch(retry(500))
+      .catch(retry(1000))
+      .catch(retry(5000))
+  } else {
+    const filepath = url
+    const stats = (
+      await repl.rexec<{ data: string; isDirectory?: boolean }>(
+        `vfs fstat ${repl.encodeComponent(filepath)} --with-data`
+      )
+    ).content
+
+    return stats.data
+  }
+}
+
+/**
+ * Either fetch a remote file or read a local one
+ *
+ */
+export async function fetchDirectory(repl: REPL, url: string): Promise<FetchedFile[]> {
+  console.error('fetchDirectory', url)
+
+  if (url.match(/http(s)?:\/\//)) {
+    console.error('fetch remote direcotry', url)
+  } else {
+    const filepath = url
+    const stats = (
+      await repl.rexec<{ data: string; path: string; dirent: { isDirectory?: boolean } }[]>(
+        `vfs ls ${repl.encodeComponent(filepath)}*.yaml --with-data`
+      )
+    ).content
+
+    const filesInNestedDir = flatten(
+      await Promise.all(stats.filter(_ => _.dirent.isDirectory).map(_ => fetchDirectory(repl, _.path)))
+    )
+
+    const files = await Promise.all(
+      stats
+        .filter(_ => !_.dirent.isDirectory)
+        .map(async _ => ({
+          data: await fetchFile(repl, _.path),
+          filepath: _.path
+        }))
+    )
+
+    return filesInNestedDir.concat(files)
+  }
+}
+
+export async function fetch(repl: REPL, url: string): Promise<FetchedFile[]> {
+  console.error('fetch', url)
+  const urls = url.split(/,/)
+  if (urls.length !== 1) {
+    return flatten(await Promise.all(urls.map(_ => fetch(repl, _))))
+  } else {
+    // FIXME: remote -> isDir, or not
+    if (url.match(/http(s)?:\/\//)) {
+      debug('fetch remote', url)
+      const fetchOnce = () => _needle(repl, 'get', url).then(_ => _.body)
+
+      const retry = (delay: number) => async (err: Error) => {
+        if (/timeout/.test(err.message) || /hang up/.test(err.message) || /hangup/.test(err.message)) {
+          debug('retrying', err)
+          await new Promise(resolve => setTimeout(resolve, delay))
+          return fetchOnce()
+        } else {
+          throw err
+        }
+      }
+
+      // fetch with three retries
+      const data = await fetchOnce()
+        .catch(retry(500))
+        .catch(retry(1000))
+        .catch(retry(5000))
+
+      return [{ data, filepath: url }]
+    } else {
+      const filepath = url
+      const stats = (
+        await repl.rexec<{ data: string; isDirectory?: boolean }>(
+          `vfs fstat ${repl.encodeComponent(filepath)} --with-data`
+        )
+      ).content
+
+      if (stats.isDirectory) {
+        return fetchDirectory(repl, filepath)
+      } else {
+        return [{ data: await fetchFile(repl, filepath), filepath }]
+      }
+    }
+  }
 }
 
 /** same as fetchFile, but returning a string rather than a Buffer */
 export async function fetchFileString(repl: REPL, url: string): Promise<string[]> {
-  const files = await fetchFile(repl, url)
-  return files.map(_ => _.toString())
+  const files = await fetch(repl, url)
+  return files.map(({ data }) => data.toString())
 }
 
 export async function fetchFileKustomize(repl: REPL, url: string): Promise<{ data: string; dir?: string }> {

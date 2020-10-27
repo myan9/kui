@@ -121,7 +121,7 @@ const usage = (command: string) => ({
  */
 async function getResourcesReferencedByFile(file: string, args: Arguments<FinalStateOptions>): Promise<ResourceRef[]> {
   const [{ safeLoadAll }, raw] = await Promise.all([import('js-yaml'), fetchFile(args.REPL, file)])
-
+  console.error('raw', raw)
   const namespaceFromCommandLine = await getNamespace(args)
 
   const models: KubeResource[] = safeLoadAll(raw)
@@ -157,6 +157,8 @@ async function getResourcesReferencedByKustomize(
   ])
 
   const kustomization: Kustomization = safeLoad(raw.data)
+
+  console.error('getResourcesReferencedByKustomize', raw)
   if (kustomization.resources) {
     const files = await Promise.all(
       kustomization.resources.map(resource => {
@@ -170,6 +172,7 @@ async function getResourcesReferencedByKustomize(
         .map(async resource => {
           const { apiVersion, kind, metadata } = resource
           const { group, version } = versionOf(apiVersion)
+          console.error('resource', resource)
           return {
             group,
             version,
