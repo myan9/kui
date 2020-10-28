@@ -248,28 +248,28 @@ export abstract class InputProvider<S extends State = State> extends React.PureC
   }
 
   /** If contained in the model, present the sources associated with this Input operation */
-  protected sourceRef() {
-    const { model } = this.props
+  // protected sourceRef() {
+  //   const { model } = this.props
 
-    if (model && isWithCompleteEvent(model) && isTable(model.response) && hasSourceReferences(model.response)) {
-      const sourceRef = model.response.kuiSourceRef
-      return (
-        <div className="repl-input-sourceref">
-          <div className="repl-context"></div>
-          <Accordion
-            names={sourceRef.templates.map(_ => basename(_.filepath))}
-            isWidthConstrained={this.props.isWidthConstrained}
-            tab={this.props.tab}
-            content={sourceRef.templates.map(_ => this.sourceRefContent(_.data, _.contentType))}
-          />
-        </div>
-      )
-    }
+  //   if (model && isWithCompleteEvent(model) && isTable(model.response) && hasSourceReferences(model.response)) {
+  //     const sourceRef = model.response.kuiSourceRef
+  //     return (
+  //       <div className="repl-input-sourceref">
+  //         <div className="repl-context"></div>
+  //         <Accordion
+  //           names={sourceRef.templates.map(_ => basename(_.filepath))}
+  //           isWidthConstrained={this.props.isWidthConstrained}
+  //           tab={this.props.tab}
+  //           content={sourceRef.templates.map(_ => this.sourceRefContent(_.data, _.contentType))}
+  //         />
+  //       </div>
+  //     )
+  //   }
 
     // if (this.state.sourceRef) {
     //      return 'hi'
     //    }
-  }
+  // }
 
   public render() {
     return (
@@ -283,7 +283,7 @@ export abstract class InputProvider<S extends State = State> extends React.PureC
           </div>
           {this.state && this.state.tabCompletion && this.state.tabCompletion.render()}
         </div>
-        {this.sourceRef()}
+        {/* {this.sourceRef()} */}
       </React.Fragment>
     )
   }

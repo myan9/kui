@@ -24,6 +24,9 @@ $accordion--spacing: 0.125rem;
 
 @mixin AccordionContentBody {
   @include Accordion {
+    .bx--accordion__content {
+      @content;
+    }
     .pf-c-accordion__expanded-content-body {
       @content;
     }

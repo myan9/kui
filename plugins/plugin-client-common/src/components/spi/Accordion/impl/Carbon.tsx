@@ -34,24 +34,25 @@ export default class CarbonAccordion extends React.PureComponent<Props, State> {
     super(props)
 
     this.state = {
-      expandedIdx: -1
+      expandedIdx: this.props.items.findIndex(_ => _.expandedByDefault)
     }
   }
 
   public render() {
     return (
       <Accordion className={`kui--accordion ${this.props.isWidthConstrained ? 'flex-fill' : ''}`}>
-        {this.props.names.map((name, idx) => (
+        {this.props.items.map((item, idx) => (
           <AccordionItem
             className={'kui--accordion-item'}
+            open={this.state.expandedIdx === idx}
             key={idx}
-            title={this.state.expandedIdx !== idx ? strings('Show X', name) : strings('Hide X', name)}
+            title={item.label || (this.state.expandedIdx !== idx ? strings('Show X', item.name) : strings('Hide X', item.name))}
             onClick={() => {
               this.setState(curState => ({ expandedIdx: curState.expandedIdx !== idx ? idx : -1 }))
               eventBus.emitTabLayoutChange(getPrimaryTabId(this.props.tab))
             }}
           >
-            {this.props.content[idx]}
+            {item.content}
           </AccordionItem>
         ))}
       </Accordion>

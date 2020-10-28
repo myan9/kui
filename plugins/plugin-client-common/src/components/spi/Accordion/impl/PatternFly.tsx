@@ -34,7 +34,7 @@ export default class PatternFlyAccordion extends React.PureComponent<Props, Stat
     super(props)
 
     this.state = {
-      expandedIdx: -1
+      expandedIdx: this.props.items.findIndex(_ => _.expandedByDefault)
     }
   }
 
@@ -44,7 +44,7 @@ export default class PatternFlyAccordion extends React.PureComponent<Props, Stat
         asDefinitionList={false}
         className={`kui--accordion ${this.props.isWidthConstrained ? 'flex-fill' : ''}`}
       >
-        {this.props.names.map((name, idx) => (
+        {this.props.items.map((item, idx) => (
           <AccordionItem key={idx}>
             <AccordionToggle
               id={idx.toString()}
@@ -54,9 +54,11 @@ export default class PatternFlyAccordion extends React.PureComponent<Props, Stat
               }}
               isExpanded={this.state.expandedIdx === idx}
             >
-              {this.state.expandedIdx !== idx ? strings('Show X', name) : strings('Hide X', name)}
+              {item.label || (this.state.expandedIdx !== idx ? strings('Show X', item.name) : strings('Hide X', item.name))}
             </AccordionToggle>
-            <AccordionContent isHidden={this.state.expandedIdx !== idx}>{this.props.content[idx]}</AccordionContent>
+            <AccordionContent isHidden={this.state.expandedIdx !== idx}>
+              {item.content}
+            </AccordionContent>
           </AccordionItem>
         ))}
       </Accordion>

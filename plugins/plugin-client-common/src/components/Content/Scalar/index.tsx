@@ -44,6 +44,7 @@ import renderTable from '../Table'
 import Markdown from '../Markdown'
 import { KuiContext } from '../../../'
 import RadioTableSpi from '../../spi/RadioTable'
+import Accordion from '../../spi/Accordion'
 import { Maximizable } from '../../Views/Sidecar/width'
 import LocationProps from '../../Views/Sidecar/Location'
 import { BlockViewTraits } from '../../Views/Terminal/Block'
@@ -155,7 +156,8 @@ export default class Scalar extends React.PureComponent<Props, State> {
         const renderGrid =
           (isLargeTable || isLargeMiniTable) &&
           (response.allowedPresentations === undefined || response.allowedPresentations.indexOf('grid') >= 0)
-        return renderTable(
+        
+          const table = renderTable(
           tab,
           tab.REPL,
           response,
@@ -169,6 +171,14 @@ export default class Scalar extends React.PureComponent<Props, State> {
         // ^^^ Notes: typescript doesn't like this, and i don't know why:
         // "is not assignable to type IntrinsicAttributes..."
         // <PaginatedTable {...props} />
+
+        return (
+          <Accordion
+            items={[{ label: 'Resource as Applied', name: 'Resource as Applied', expandedByDefault: true, content: table }]}
+            isWidthConstrained={this.props.isWidthConstrained}
+            tab={this.props.tab}
+          />
+        )
       } else if (isMixedResponse(response)) {
         return (
           <React.Fragment>

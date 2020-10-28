@@ -18,8 +18,12 @@ import { Tab } from '@kui-shell/core'
 
 interface Props {
   className?: string
-  names: string[]
-  content: React.ReactNode[]
+  items: {
+    name: string
+    content: React.ReactNode
+    expandedByDefault?: boolean 
+    label?: string
+  }[]
   isWidthConstrained?: boolean
   tab: Tab
 }
