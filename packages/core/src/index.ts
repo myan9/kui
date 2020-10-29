@@ -51,6 +51,7 @@ export {
   isScalarResponse,
   MetadataNamedResource,
   MixedResponse,
+  MixedResponsePart,
   isMixedResponse,
   RawResponse,
   hasSourceReferences,
