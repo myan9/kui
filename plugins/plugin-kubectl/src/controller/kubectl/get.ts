@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  Arguments,
-  CodedError,
-  KResponse,
-  MultiModalResponse,
-  MixedResponsePart,
-  Registrar,
-  isHeadless,
-  i18n,
-  isMixedResponse,
-  isTable
-} from '@kui-shell/core'
+import { Arguments, CodedError, KResponse, MultiModalResponse, Registrar, isHeadless, i18n } from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -36,16 +25,7 @@ import commandPrefix from '../command-prefix'
 import doGetWatchTable from './watch/get-watch'
 import extractAppAndName from '../../lib/util/name'
 import { isUsage, doHelp } from '../../lib/util/help'
-import {
-  KubeOptions,
-  kustomizeOf,
-  isEntityRequest,
-  isTableRequest,
-  fileOf,
-  formatOf,
-  isWatchRequest,
-  getNamespace
-} from './options'
+import { KubeOptions, isEntityRequest, isTableRequest, fileOf, formatOf, isWatchRequest, getNamespace } from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse, computeDurations } from '../../lib/view/formatTable'
 import {
   KubeResource,
@@ -211,7 +191,6 @@ export async function doGetAsMMR(
  *
  */
 async function doGetCustom(args: Arguments<KubeOptions>, response: RawResponse): Promise<string> {
-  console.error('doGetCustom', response.content.stdout.trim())
   return response.content.stdout.trim()
 }
 
@@ -326,47 +305,7 @@ export function viewTransformer(args: Arguments<KubeOptions>, response: KubeReso
   }
 }
 
-/** transform kustomize resposne to MMR mode */
-function kustoResponseToMode(response: KubeResource) {
-  const asMode = (table: MixedResponsePart | KubeResource) => {
-    if (isTable(table)) {
-      return {
-        mode: table.title,
-        label: table.title,
-        content: table
-      }
-    } else {
-      throw new Error('kustomize content not support')
-    }
-  }
-
-  if (isMixedResponse(response)) {
-    return response.map(asMode)
-  } else {
-    return asMode(response)
-  }
-}
-
-/** KubeResource -> MultiModalResponse view transformer */
-function getViewTransfomer(args: Arguments<KubeOptions>, response: KubeResource) {
-  if (kustomizeOf(args)) {
-    try {
-      return {
-        kind: 'Resources' as const,
-        metadata: {
-          name: 'kustomize'
-        },
-        modes: kustoResponseToMode(response)
-      }
-    } catch (err) {
-      return response
-    }
-  } else {
-    return viewTransformer(args, response)
-  }
-}
-
-export const getFlags = Object.assign({}, flags, { viewTransformer: getViewTransfomer })
+export const getFlags = Object.assign({}, flags, { viewTransformer })
 
 /** Register a command listener */
 export function getter(registrar: Registrar, command: string, cli = command) {

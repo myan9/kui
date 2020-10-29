@@ -15,72 +15,70 @@
  */
 
 import { resolve, basename } from 'path'
-import { Arguments, Menu, Registrar, i18n } from '@kui-shell/core'
+import { Arguments, Registrar, expandHomeDir } from '@kui-shell/core'
 
 import flags from './flags'
-import { kindPartOf } from './fqn'
 import { KubeOptions } from './options'
 import { doExecWithStdout } from './exec'
 import commandPrefix from '../command-prefix'
-import { KubeResource } from '../../lib/model/resource'
+import { fetchFileKustomize } from '../../lib/util/fetch-file'
 
 import { isUsage, doHelp } from '../../lib/util/help'
 
-const strings = i18n('plugin-kubectl', 'kustomize')
-
-function groupByKind(resources: KubeResource[], rawFull: string): Menu[] {
-  const rawSplit = rawFull.split(/---/)
-
-  const groups = resources.reduce((groups, resource, idx) => {
-    const key = kindPartOf(resource)
-    const group = groups[key]
-    if (!group) {
-      groups[key] = {
-        label: key,
-        items: []
-      }
-    }
-
-    groups[key].items.push({
-      mode: resource.metadata.name,
-      content: rawSplit[idx].replace(/^\n/, ''),
-      contentType: 'yaml'
-    })
-    return groups
-  }, {} as Record<string, Menu>)
-
-  const rawMenu: Menu = {
-    label: strings('Raw Data'),
-    items: [
-      {
-        mode: 'YAML',
-        content: rawFull,
-        contentType: 'yaml'
-      }
-    ]
-  }
-
-  return Object.values(groups).concat([rawMenu])
+/**
+ * Tilde expansion of the positional filepath parameter.
+ *
+ */
+function prepare(args: Arguments<KubeOptions>): string {
+  const idx = args.argvNoOptions.indexOf('kustomize')
+  const filepath = args.argvNoOptions[idx + 1]
+  return args.command.replace(new RegExp(`(\\s)${filepath}(\\b)`), `$1${expandHomeDir(filepath)}$2`)
 }
 
-export const doKustomize = (command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
+const doKustomize = (command = 'kubectl') => async (args: Arguments<KubeOptions>) => {
   if (isUsage(args)) {
     return doHelp(command, args)
   } else {
-    const [yaml, { safeLoadAll }] = await Promise.all([doExecWithStdout(args, undefined, command), import('js-yaml')])
+    const raw = await doExecWithStdout(args, prepare, command)
+
     try {
-      const resources = safeLoadAll(yaml)
-      const inputFile = resolve(args.argvNoOptions[args.argvNoOptions.indexOf('kustomize') + 1])
+      const inputFile = resolve(expandHomeDir(args.argvNoOptions[args.argvNoOptions.indexOf('kustomize') + 1]))
+      const yaml = await fetchFileKustomize(args.REPL, inputFile)
+
+      const yamlMode = {
+        mode: 'yaml',
+        label: 'Kustomization.yaml',
+        content: yaml.data,
+        contentType: 'yaml'
+      }
+
+      const rawMode = {
+        mode: 'raw',
+        label: 'Raw',
+        content: raw,
+        contentType: 'yaml'
+      }
+
+      const applyButton = {
+        mode: 'apply',
+        label: 'Apply',
+        kind: 'drilldown' as const,
+        command: `${command} apply -k ${inputFile}`
+      }
 
       return {
-        apiVersion: 'kui-shell/v1',
-        kind: 'NavResponse',
-        breadcrumbs: [{ label: 'kustomize' }, { label: basename(inputFile), command: `open ${inputFile}` }],
-        menus: groupByKind(resources, yaml)
+        kind: 'Kustomize',
+        metadata: {
+          name: basename(inputFile)
+        },
+        onclick: {
+          name: `open ${inputFile}`
+        },
+        modes: [rawMode, yamlMode, applyButton]
       }
     } catch (err) {
       console.error('error preparing kustomize response', err)
-      return yaml
+      return raw
     }
   }
 }
