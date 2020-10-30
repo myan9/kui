@@ -89,6 +89,7 @@ export function doExecWithStdout<O extends KubeOptions>(
   prepare: Prepare<O> = NoPrepare,
   exec?: string
 ): Promise<string> {
+  console.error('doExecWithStdout', args, prepare, exec)
   return doExecWithoutPty(args, prepare, exec).then(_ => _.content.stdout)
 }
 

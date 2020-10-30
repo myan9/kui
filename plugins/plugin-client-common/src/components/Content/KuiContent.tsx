@@ -22,6 +22,7 @@ import {
   ParsedOptions,
   Tab as KuiTab,
   Content,
+  isDiffStringContent,
   isHTML,
   isRadioTable,
   isReactProvider,
@@ -30,6 +31,7 @@ import {
   isCommandStringContent,
   isFunctionContent,
   isScalarContent,
+  isTreeViewResponse,
   MultiModalResponse,
   ToolbarProps
 } from '@kui-shell/core'
@@ -40,6 +42,7 @@ import renderTable from './Table'
 import Markdown from './Markdown'
 import HTMLString from './HTMLString'
 import HTMLDom from './Scalar/HTMLDom'
+import TreeView from '../Views/TreeView'
 import { KuiContext } from '../../'
 import RadioTableSpi from '../spi/RadioTable'
 
@@ -104,6 +107,18 @@ export default class KuiMMRContent extends React.Component<KuiMMRProps, State> {
           />
         )
       }
+    } else if (isDiffStringContent(mode)) {
+      return (
+        <Editor
+          content={mode}
+          readOnly={false}
+          sizeToFit
+          willUpdateToolbar={willUpdateToolbar}
+          response={response}
+          repl={tab.REPL}
+          tabUUID={tab.uuid}
+        />
+      )
     } else if (isCommandStringContent(mode)) {
       return <Eval {...this.props} command={mode.contentFrom} contentType={mode.contentType} />
     } else if (isFunctionContent(mode)) {
@@ -126,6 +141,15 @@ export default class KuiMMRContent extends React.Component<KuiMMRProps, State> {
         // ^^^ Notes: typescript doesn't like this, and i don't know why:
         // "is not assignable to type IntrinsicAttributes..."
         // <PaginatedTable {...props} />
+      } else if (isTreeViewResponse(mode.content)) {
+        return (
+          <TreeView
+            tab={this.props.tab}
+            data={mode.content.data}
+            response={this.props.response}
+            args={this.props.args}
+          />
+        )
       } else if (isHTML(mode.content)) {
         return <HTMLDom content={mode.content} />
       } else {

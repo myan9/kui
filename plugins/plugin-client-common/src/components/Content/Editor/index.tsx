@@ -21,9 +21,11 @@ import { IDisposable, editor as Monaco, Range } from 'monaco-editor'
 import { File, isFile } from '@kui-shell/plugin-bash-like/fs'
 import {
   Button,
+  DiffStringContent,
   REPL,
   SaveError,
   StringContent,
+  isStringWithOptionalContentType,
   ToolbarText,
   ToolbarProps,
   MultiModalResponse,
@@ -48,7 +50,7 @@ type Props = MonacoOptions &
   ToolbarProps & {
     tabUUID: string
     repl: REPL
-    content: StringContent
+    content: StringContent | DiffStringContent
     response: File | MultiModalResponse
 
     /** Use a light theme? Default: false */
@@ -59,7 +61,7 @@ type Props = MonacoOptions &
   }
 
 interface State {
-  editor: Monaco.ICodeEditor
+  editor: Monaco.IEditor
   wrapper: HTMLDivElement
   subscription?: IDisposable
   toolbarText?: ToolbarText
@@ -280,6 +282,82 @@ export default class Editor extends React.PureComponent<Props, State> {
   private static initMonaco(props: Props, state: State): Partial<State> {
     const cleaners = []
 
+    const createEditor = (
+      options: Monaco.IStandaloneEditorConstructionOptions | Monaco.IDiffEditorConstructionOptions
+    ) => {
+      if (isStringWithOptionalContentType(props.content)) {
+        const editor = Monaco.create(state.wrapper, options)
+        editor['clearDecorations'] = () => {
+          // debug('clearing decorations', editor['__cloudshell_decorations'])
+          const none = [{ range: new Range(1, 1, 1, 1), options: {} }]
+          editor['__cloudshell_decorations'] = editor.deltaDecorations(editor['__cloudshell_decorations'] || [], none)
+        }
+
+        state.wrapper['getValueForTests'] = () => {
+          return editor.getValue()
+        }
+
+        if (props.sizeToFit) {
+          const sizeToFit = (
+            width?: number,
+            height = Math.min(0.4 * window.innerHeight, Math.max(250, editor.getContentHeight()))
+          ) => {
+            // if we know 1) the height of the content won't change, and
+            // 2) we are running in "simple" mode (this is mostly the case
+            // for inline editor components, as opposed to editor
+            // components that are intended to fill the full view), then:
+            // size the height to fit the content
+            state.wrapper.style.flexBasis = height + 'px'
+          }
+          sizeToFit()
+
+          const observer = new ResizeObserver(entries => {
+            sizeToFit(entries[0].contentRect.width, entries[0].contentRect.height)
+            editor.layout()
+          })
+          observer.observe(state.wrapper)
+          cleaners.push(() => observer.disconnect())
+
+          const onTabLayoutChange = () => sizeToFit()
+          eventBus.onTabLayoutChange(props.tabUUID, onTabLayoutChange)
+          cleaners.push(() => eventBus.offTabLayoutChange(props.tabUUID, onTabLayoutChange))
+        } else {
+          const onTabLayoutChange = () => {
+            editor.layout()
+          }
+          eventBus.onTabLayoutChange(props.tabUUID, onTabLayoutChange)
+          cleaners.push(() => eventBus.offTabLayoutChange(props.tabUUID, onTabLayoutChange))
+        }
+
+        // FIXME
+        // const subscription = Editor.subscribeToChanges(props, editor, options.readOnly)
+        // cleaners.push(() => subscription.dispose())
+
+        cleaners.push(() => {
+          editor.dispose()
+          const model = editor.getModel()
+          if (model) {
+            model.dispose()
+          }
+        })
+
+        return editor
+      } else {
+        const original = Monaco.createModel(props.content.content.original)
+        const modified = Monaco.createModel(props.content.content.modified)
+        const diffEditor = Monaco.createDiffEditor(state.wrapper, options)
+        diffEditor.setModel({ original, modified })
+
+        const onTabLayoutChange = () => {
+          diffEditor.layout()
+        }
+        eventBus.onTabLayoutChange(props.tabUUID, onTabLayoutChange)
+        cleaners.push(() => eventBus.offTabLayoutChange(props.tabUUID, onTabLayoutChange))
+
+        return diffEditor
+      }
+    }
+
     try {
       // here we instantiate an editor widget
       const providedOptions = {
@@ -302,70 +380,19 @@ export default class Editor extends React.PureComponent<Props, State> {
         providedOptions,
         overrides
       )
-      const editor = Monaco.create(state.wrapper, options)
+
+      const editor = createEditor(options)
 
       const onZoom = () => {
         editor.updateOptions({ fontSize: getKuiFontSize() })
       }
+
       eventChannelUnsafe.on('/zoom', onZoom)
       cleaners.push(() => eventChannelUnsafe.off('/zoom', onZoom))
-
-      if (props.sizeToFit) {
-        const sizeToFit = (
-          width?: number,
-          height = Math.min(0.4 * window.innerHeight, Math.max(250, editor.getContentHeight()))
-        ) => {
-          // if we know 1) the height of the content won't change, and
-          // 2) we are running in "simple" mode (this is mostly the case
-          // for inline editor components, as opposed to editor
-          // components that are intended to fill the full view), then:
-          // size the height to fit the content
-          state.wrapper.style.flexBasis = height + 'px'
-        }
-        sizeToFit()
-
-        const observer = new ResizeObserver(entries => {
-          sizeToFit(entries[0].contentRect.width, entries[0].contentRect.height)
-          editor.layout()
-        })
-        observer.observe(state.wrapper)
-        cleaners.push(() => observer.disconnect())
-
-        const onTabLayoutChange = () => sizeToFit()
-        eventBus.onTabLayoutChange(props.tabUUID, onTabLayoutChange)
-        cleaners.push(() => eventBus.offTabLayoutChange(props.tabUUID, onTabLayoutChange))
-      } else {
-        const onTabLayoutChange = () => {
-          editor.layout()
-        }
-        eventBus.onTabLayoutChange(props.tabUUID, onTabLayoutChange)
-        cleaners.push(() => eventBus.offTabLayoutChange(props.tabUUID, onTabLayoutChange))
-      }
-
-      editor['clearDecorations'] = () => {
-        // debug('clearing decorations', editor['__cloudshell_decorations'])
-        const none = [{ range: new Range(1, 1, 1, 1), options: {} }]
-        editor['__cloudshell_decorations'] = editor.deltaDecorations(editor['__cloudshell_decorations'] || [], none)
-      }
-
-      state.wrapper['getValueForTests'] = () => {
-        return editor.getValue()
-      }
 
       if (!options.readOnly) {
         setTimeout(() => editor.focus())
       }
-
-      const subscription = Editor.subscribeToChanges(props, editor, options.readOnly)
-      cleaners.push(() => subscription.dispose())
-
-      cleaners.push(() => {
-        editor.dispose()
-        const model = editor.getModel()
-        if (model) {
-          model.dispose()
-        }
-      })
 
       return {
         editor,

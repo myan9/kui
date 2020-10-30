@@ -23,6 +23,7 @@ import { isHTML } from '../../util/types'
 import { ModeOrButton, Button } from './types'
 import { ToolbarText } from '../../webapp/views/toolbar-text'
 import { Editable } from '../editable'
+import { TreeViewResponse, isTreeViewResponse } from '../TreeViewResponse'
 
 /**
  * A `ScalarResource` is Any kind of resource that is directly
@@ -30,7 +31,7 @@ import { Editable } from '../editable'
  * function call.
  *
  */
-export type ScalarResource = string | HTMLElement | Table
+export type ScalarResource = string | HTMLElement | Table | TreeViewResponse
 export interface ScalarContent<T = ScalarResource> {
   content: T
 }
@@ -56,7 +57,8 @@ export function isScalarContent<T extends MetadataBearing>(entity: ScalarLike<T>
   const content = (entity as ScalarContent).content
   return (
     isReactProvider(entity) ||
-    (content !== undefined && (typeof content === 'string' || isTable(content) || isHTML(content)))
+    (content !== undefined &&
+      (typeof content === 'string' || isTable(content) || isTreeViewResponse(content) || isHTML(content)))
   )
 }
 
@@ -102,6 +104,30 @@ export function isStringWithOptionalContentType<T extends MetadataBearing>(
     str &&
     typeof str.content === 'string' &&
     (str.contentType === undefined || typeof str.contentType === 'string')
+  )
+}
+
+export type DiffStringContent<ContentType = SupportedStringContent> = {
+  content: {
+    original: string
+    modified: string
+  }
+} & WithOptionalContentType<ContentType> &
+  Partial<Editable>
+
+export function isDiffStringContent<T extends MetadataBearing>(
+  entity: Entity | Content<T> | MetadataBearing | ModeOrButton<T>
+): entity is DiffStringContent {
+  const diff = entity as DiffStringContent
+
+  return !!(
+    diff &&
+    diff.content &&
+    diff.content.original &&
+    diff.content.modified &&
+    typeof diff.content.original === 'string' &&
+    typeof diff.content.modified === 'string' &&
+    (diff.contentType === undefined || typeof diff.contentType === 'string')
   )
 }
 
@@ -169,6 +195,7 @@ export function isCommandStringContent<T extends MetadataBearing>(
 export type Content<T extends MetadataBearing = MetadataBearing> =
   | ScalarContent
   | StringContent
+  | DiffStringContent
   | FunctionContent<T>
   | CommandStringContent
   | ReactProvider
