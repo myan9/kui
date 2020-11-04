@@ -18,7 +18,7 @@ import { Arguments, ExecOptions, ParsedOptions } from '@kui-shell/core'
 
 import { FinalState } from '../../lib/model/states'
 import { getCurrentDefaultNamespace } from './contexts'
-
+import { isEvent, KubeResource, isCrudableKubeResource, isNamespaced } from '../../lib/model/resource'
 type EntityFormat = 'yaml' | 'json'
 type TableFormat = 'wide' | string // want: 'custom-columns-file=' | 'custom-columns='
 type CustomFormat = string // want: 'go-template' | 'go-template-file' | 'jsonpath' | 'jsonpath-file'
@@ -142,6 +142,15 @@ export function getLabelForArgv(args: Arguments<KubeOptions>) {
   } else {
     return ''
   }
+}
+
+/**
+ * @return whether the given resource might possibly have events;
+ * since Events never have Events, we can exclude those always
+ *
+ */
+export function hasEvents(resource: KubeResource): boolean {
+  return isCrudableKubeResource(resource) && !isEvent(resource) && isNamespaced(resource)
 }
 
 /**

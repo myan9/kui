@@ -356,8 +356,9 @@ export default class Editor extends React.PureComponent<Props, State> {
         setTimeout(() => editor.focus())
       }
 
-      const subscription = Editor.subscribeToChanges(props, editor, options.readOnly)
-      cleaners.push(() => subscription.dispose())
+      // FIXME!!!
+      // const subscription = Editor.subscribeToChanges(props, editor, options.readOnly)
+      // cleaners.push(() => subscription.dispose())
 
       cleaners.push(() => {
         editor.dispose()

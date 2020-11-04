@@ -30,6 +30,7 @@ import {
   isCommandStringContent,
   isFunctionContent,
   isScalarContent,
+  isTreeViewResponse,
   MultiModalResponse,
   ToolbarProps
 } from '@kui-shell/core'
@@ -42,6 +43,7 @@ import HTMLString from './HTMLString'
 import HTMLDom from './Scalar/HTMLDom'
 import { KuiContext } from '../../'
 import RadioTableSpi from '../spi/RadioTable'
+import TreeView from '../Views/TreeView'
 
 export type KuiMMRProps = ToolbarProps & {
   tab: KuiTab
@@ -126,6 +128,15 @@ export default class KuiMMRContent extends React.Component<KuiMMRProps, State> {
         // ^^^ Notes: typescript doesn't like this, and i don't know why:
         // "is not assignable to type IntrinsicAttributes..."
         // <PaginatedTable {...props} />
+      } else if (isTreeViewResponse(mode.content)) {
+        return (
+          <TreeView
+            tab={this.props.tab}
+            data={mode.content.data}
+            response={this.props.response}
+            args={this.props.args}
+          />
+        )
       } else if (isHTML(mode.content)) {
         return <HTMLDom content={mode.content} />
       } else {

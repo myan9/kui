@@ -179,6 +179,7 @@ export {
   MultiModalResponse
 } from './models/mmr/types'
 export { Editable, EditableSpec, SaveError } from './models/editable'
+export { TreeViewResponse, isTreeViewResponse, TreeViewDataItem } from './models/TreeViewResponse'
 export {
   Breadcrumb,
   NavResponse,

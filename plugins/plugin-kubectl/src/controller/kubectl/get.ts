@@ -14,28 +14,56 @@
  * limitations under the License.
  */
 
-import { Arguments, CodedError, KResponse, MultiModalResponse, Registrar, isHeadless, i18n } from '@kui-shell/core'
+import { basename, join } from 'path'
+import {
+  Arguments,
+  CodedError,
+  KResponse,
+  MultiModalResponse,
+  Registrar,
+  isHeadless,
+  i18n,
+  Button,
+  TreeViewResponse,
+  TreeViewDataItem,
+  isTable
+} from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
 import { getKind } from './explain'
 import { RawResponse } from './response'
-import { kindAndNamespaceOf } from './fqn'
+import { kindAndNamespaceOf, kindPartOf } from './fqn'
 import commandPrefix from '../command-prefix'
 import doGetWatchTable from './watch/get-watch'
 import extractAppAndName from '../../lib/util/name'
+import { getCommandFromArgs } from '../../lib/util/util'
 import { isUsage, doHelp } from '../../lib/util/help'
-import { KubeOptions, isEntityRequest, isTableRequest, fileOf, formatOf, isWatchRequest, getNamespace } from './options'
+import {
+  hasEvents,
+  KubeOptions,
+  isEntityRequest,
+  isTableRequest,
+  fileOf,
+  fileOfWithDetail,
+  formatOf,
+  isWatchRequest,
+  getNamespace,
+  withKubeconfigFrom
+} from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse, computeDurations } from '../../lib/view/formatTable'
 import {
   KubeResource,
   isKubeResource,
   isKubeItems,
   sameResourceVersion,
-  hasResourceVersion
+  hasResourceVersion,
+  KubeStatus
 } from '../../lib/model/resource'
+import { names } from 'debug'
 
 const strings = i18n('plugin-kubectl')
+const KEYSEPARATER = '---'
 
 /**
  * For now, we handle watch ourselves, so strip these options off the command line
@@ -227,6 +255,319 @@ const overrideEventCommand = (args: Arguments<KubeOptions>, output: string) => {
 }
 
 /**
+ * fetch raw files from `filepath`
+ */
+async function fetchRawFiles(args: Arguments<KubeOptions>, filepath: string) {
+  const path = args.REPL.encodeComponent(filepath)
+  const resourceStats = (
+    await args.REPL.rexec<{ data?: string; isDirectory?: boolean }>(`vfs fstat ${path} --with-data`)
+  ).content
+
+  if (resourceStats.isDirectory) {
+    return args.REPL.rexec<{ path: string }[]>(`vfs ls ${join(path, '/**/*.yaml')} --with-data`)
+      .then(_ => _.content)
+      .then(_ =>
+        Promise.all(
+          _.map(({ path }) =>
+            args.REPL.rexec<{ data: string }>(`vfs fstat ${path} --with-data`).then(_ => _.content.data)
+          )
+        )
+      )
+      .then(_ => _.join('---\n'))
+  } else {
+    return resourceStats.data
+  }
+}
+function joinKey(keys: string[]) {
+  return keys.join(KEYSEPARATER)
+}
+
+type BucketValue = {
+  raw: TreeViewDataItem["content"]
+  status?: string[]
+  ready?: string
+  eventArgs?: TreeViewDataItem["eventArgs"]
+}
+
+type Bucket = {
+  [key: string]: BucketValue
+}
+
+interface Buckets {
+  all: Bucket
+  labels: Bucket
+  labeledResources: Bucket
+  kind: Bucket
+  name: Bucket
+}
+
+function getCommandThatProducesEvents(args: Arguments<KubeOptions>, namespace: string): string {
+  const cmd = getCommandFromArgs(args)
+  const output = `--no-headers -o jsonpath='{.lastTimestamp}{"|"}{.involvedObject.name}{"|"}{.message}{"|"}{.involvedObject.apiVersion}{"|"}{.involvedObject.kind}{"|\\n"}'`
+  const command = withKubeconfigFrom(
+    args,
+    `${cmd} get events -w -n ${namespace} ${output}`.replace(/^k(\s)/, 'kubectl$1')
+  )
+
+  return command
+}
+
+async function categorizeResources(resources: KubeResource[], args:Arguments<KubeOptions>, namespace: string) {
+  const { safeDump } = await import('js-yaml')
+
+  const buckets: Buckets = {
+    all: {},
+    labels: {},
+    labeledResources: {},
+    kind: {},
+    name: {}
+  }
+
+  const unlabeled = {}
+
+  await Promise.all(
+    resources.map(async resource => {
+      const kind = kindPartOf(resource)
+      const _kind = resource.kind
+      const version = resource.apiVersion
+      const name = resource.metadata.name
+      const status = resource.status && resource.status.phase
+      const raw = await safeDump(resource)
+
+      const eventCmd = hasEvents(resource)
+        ? getCommandThatProducesEvents(args, namespace)
+        : undefined
+
+
+      const append = (bucket: Bucket, key?: string) => {
+        const eventArgs = eventCmd
+          ? { command: eventCmd, name: [name], kind: [_kind], version: [version] }
+          : undefined
+        
+        if (!key) {
+          return Object.assign(bucket, { raw, status: [status], eventArgs })
+        } else if (!bucket[key]) {
+          return Object.assign(bucket, { [key]: {raw, status: [status], eventArgs} })
+        } else {
+          bucket[key].raw = !bucket[key].raw ? raw : `${bucket[key].raw}---\n${raw}`
+          bucket[key].status.push(status)
+
+          if (eventCmd) {
+            bucket[key].eventArgs.kind.push(_kind)
+            bucket[key].eventArgs.name.push(name)
+            bucket[key].eventArgs.version.push(version)
+          }
+        }
+      }
+
+      const addToAll = (key: string) => {
+        append(buckets.all, key)  
+      }
+
+      const addToLabels = (key: string) => {
+        append(buckets.labels, key)
+      }
+
+      const addToKind = (key: string) => {
+        append(buckets.kind, key)
+      }
+
+      const addToLabeledResources = (key: string) => {
+        append(buckets.labeledResources, key)
+      }
+
+      const addToName = (name: string) => {
+        append(buckets.name, name)
+      }
+      
+      addToAll('all')
+      if (resource.metadata.labels) {
+        Object.entries(resource.metadata.labels).map(([labelKey, labelValue]) => {
+          let label = labelKey
+          if (labelKey === 'app') {
+            label = labelValue
+            addToLabels(label)
+          } else if (labelKey === 'name') {
+            label = 'unlabeled'
+            append(unlabeled)
+          } else {
+            addToLabels(label)
+            addToLabeledResources(joinKey([labelKey, labelValue]))
+          }
+
+          addToKind(joinKey([label, kind]))
+          addToName(joinKey([label, kind, name]))
+        })
+      } else {
+        append(unlabeled)
+        addToKind(joinKey(['unlabeled', kind]))
+        addToName(joinKey(['unlabeled', kind, name]))
+      }
+    })
+  )
+
+  // Add unlabeled now to make sure it shows up at the end of the labels
+  if (Object.keys(unlabeled).length !== 0) {
+    Object.assign(buckets.labels, { unlabeled })
+  }
+
+  return buckets
+}
+
+/**
+ * This is the function to put and categorize raw input into buckets
+ *
+ */
+async function categorizeRaw(raw: string, args: Arguments<KubeOptions>, namespace: string): Promise<Buckets> {
+  const { safeLoadAll } = await import('js-yaml')
+  const resources: KubeResource[] = await safeLoadAll(raw)
+  return categorizeResources(resources, args, namespace)
+}
+
+/**
+ * This is the function to transform buckets into `TreeViewDataItem[]`
+ *
+ */
+function transformBucketsToTree(buckets: Buckets, doStatus?: boolean): TreeViewResponse['data'] {
+  const levels = Object.keys(buckets)
+
+  const next = (buckets: Buckets, idx: number, findNextBucketByKey?: string) => {
+    const findNextBucket = (idx: number, filterKey: string) => {
+      if (levels[idx]) {
+        if (!filterKey) {
+          return Object.entries(buckets[levels[idx]])
+        } else if (levels[idx + 1]) {
+            return Object.entries(buckets[levels[idx + 1]]).filter(([key]) =>
+              key.includes(`${filterKey}${KEYSEPARATER}`)
+            )
+        }
+      }
+    }
+
+    const nextBucket = findNextBucket(idx, findNextBucketByKey)
+
+    return !nextBucket || nextBucket.length === 0
+      ? undefined
+      : nextBucket.map(([key, value]: [string, BucketValue]) => {
+          const _name = key.split(KEYSEPARATER)
+          return {
+            name: strings(_name[_name.length - 1]),
+            id: key,
+            content: value.raw,
+            eventArgs: value.eventArgs, // FIXME
+            status: value.status
+              ? value.status.includes('Offline') 
+              : 'Offline'
+                  ? value.status.includes('Pending')
+                  ? 'Pending'
+                  : 'Running' 
+              : undefined,
+            contentType: 'yaml' as const,
+            children: next(buckets, idx + 1, key)
+          }
+        })
+  }
+
+  const data = [
+    {
+      name: strings('All Resources'),
+      content: buckets.all.all.raw,
+      status: 'Online' as const, //FIXME, transform to function
+      eventArgs: buckets.all.all.eventArgs, 
+      // k get events -w -n ns, event.involvedObject: { kind: { pod: [1,2], ha: [name]}}
+      contentType: 'yaml' as const,
+      defaultExpanded: true,
+      children: next(buckets, 1)
+    }
+  ]
+
+  return data
+}
+
+/**
+ * This is the function to fetch templates as `MultiModalMode` with `TreeViewRespons`:
+ * 1. it fetches raw inputs in a directory or a single file
+ * 2. it categorizes and puts the raw inputs into four buckets
+ * 3. it transforms the buckets into `TreeViewResponse` and returns a `MultiModalMode`
+ *
+ */
+async function getTemplates(args: Arguments<KubeOptions>, filepath: string, namespace: string) {
+  const raw = await fetchRawFiles(args, filepath)
+  const buckets = await categorizeRaw(raw, args, namespace)
+  const tree = transformBucketsToTree(buckets)
+
+  return {
+    mode: 'sources',
+    label: strings('sources'),
+    content: {
+      apiVersion: 'kui-shell/v1' as const,
+      kind: 'TreeViewResponse' as const,
+      data: tree
+    }
+  }
+}
+
+/**
+ * This is the function to present the deployed resources as `MultiModalMode` with `TreeViewRespons`:
+ * 1. it categorizes and puts the resources into four buckets
+ * 3. it transforms the buckets into `TreeViewResponse` and returns a `MultiModalMode`
+ *
+ */
+async function getDeployedResources(args: Arguments<KubeOptions>, resource: KubeResource, namespace: string) {
+  if (isKubeResource(resource)) {
+    // FIXME: single file use case is not considered both here and getTemplates
+    if (isKubeItems(resource)) {
+      const buckets = await categorizeResources(resource.items, args, namespace)
+      console.error('buckets', buckets)
+      const tree = transformBucketsToTree(buckets, true)
+      return {
+        mode: 'deployed resources',
+        label: strings('deployed resources'),
+        content: {
+          apiVersion: 'kui-shell/v1' as const,
+          kind: 'TreeViewResponse' as const,
+          data: tree
+        }
+      }
+    }
+  }
+}
+
+/**
+ * This is the handler of `kubectl get if`, which returns
+ * `MultiModalResponse` with three tabs:
+ * 1. tree of templates
+ * 2. tree of applied resources (TODO)
+ * 3. tree of apply-dry-run resources (TODO)
+ *
+ */
+async function doGetTreeAsMMR(args: Arguments<KubeOptions>, filepath: string, response: KubeResource) {
+  const namespace = await getNamespace(args)
+
+  const applyButton: Button = {
+    mode: 'apply',
+    label: 'Apply',
+    kind: 'drilldown' as const,
+    command: args.command.replace(' get ', ' apply ')
+  }
+
+  return {
+    kind: 'Resources',
+    metadata: {
+      name: basename(filepath),
+      namespace
+    },
+    onclick: {
+      kind: `open ${filepath}`,
+      name: `open ${filepath}`,
+      namespace: `kubectl get ns ${namespace} -o yaml`
+    },
+    modes: [await getTemplates(args, filepath, namespace), await getDeployedResources(args, response, namespace), applyButton]
+      .filter(_ => _)
+  }
+}
+
+/**
  * This is the main handler for `kubectl get`. Here, we act as a
  * dispatcher: in `kubectl` a `get` can mean either get-as-table,
  * get-as-entity, or get-as-custom, depending on the `-o` flag.
@@ -242,8 +583,9 @@ export const doGet = (command: string) =>
 
     // first, we do the raw exec of the given command
     const isTableReq = isTableRequest(args)
+    const isGetFileReq = fileOf(args)
     const fullKind =
-      isTableReq && !fileOf(args) // <-- don't call getKind for `get -f`
+      isTableReq && !isGetFileReq // <-- don't call getKind for `get -f`
         ? getKind(command, args, args.argvNoOptions[args.argvNoOptions.indexOf('get') + 1])
         : undefined
 
@@ -273,6 +615,12 @@ export const doGet = (command: string) =>
       if (!args.execOptions.data) {
         args.execOptions.data = { limit: args.parsedOptions.limit }
       }
+    }
+
+    if (isGetFileReq) {
+      // FIXME: consider other command cases, like exisitng -o yaml
+      args.command = `${args.command} -o yaml`
+      args.parsedOptions.o = 'yaml'
     }
 
     const response = await rawGet(args, command)
@@ -305,7 +653,17 @@ export function viewTransformer(args: Arguments<KubeOptions>, response: KubeReso
   }
 }
 
-export const getFlags = Object.assign({}, flags, { viewTransformer })
+/** KubeResource -> MultiModalResponse view transformer for `kubectl get` */
+function viewTransformerForGet(args: Arguments<KubeOptions>, response: KubeResource) {
+  const fileOf = fileOfWithDetail(args)
+  if (fileOf.filepath) {
+    return doGetTreeAsMMR(args, fileOf.filepath, response)
+  } else {
+    return viewTransformer(args, response)
+  }
+}
+
+export const getFlags = Object.assign({}, flags, { viewTransformer: viewTransformerForGet })
 
 /** Register a command listener */
 export function getter(registrar: Registrar, command: string, cli = command) {
