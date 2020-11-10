@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-import { Arguments, CodedError, KResponse, MultiModalResponse, Registrar, isHeadless, i18n } from '@kui-shell/core'
+import { basename } from 'path'
+import {
+  Arguments,
+  Button,
+  CodedError,
+  KResponse,
+  MultiModalResponse,
+  Registrar,
+  isHeadless,
+  i18n
+} from '@kui-shell/core'
 
 import flags from './flags'
 import { exec } from './exec'
@@ -24,8 +34,18 @@ import { kindAndNamespaceOf } from './fqn'
 import commandPrefix from '../command-prefix'
 import doGetWatchTable from './watch/get-watch'
 import extractAppAndName from '../../lib/util/name'
+import { getSources, getDeployedResources } from '../../lib/util/tree'
 import { isUsage, doHelp } from '../../lib/util/help'
-import { KubeOptions, isEntityRequest, isTableRequest, fileOf, formatOf, isWatchRequest, getNamespace } from './options'
+import {
+  KubeOptions,
+  isEntityRequest,
+  isTableRequest,
+  fileOf,
+  formatOf,
+  isWatchRequest,
+  getNamespace,
+  fileOfWithDetail
+} from './options'
 import { stringToTable, KubeTableResponse, isKubeTableResponse, computeDurations } from '../../lib/view/formatTable'
 import {
   KubeResource,
@@ -137,6 +157,39 @@ function toolbarText(resource: KubeResource) {
 }
 
 /**
+ * This is the handler of `kubectl get if`, which returns
+ * `MultiModalResponse` with three tabs:
+ * 1. tree of templates
+ * 2. tree of applied resources (TODO)
+ * 3. tree of apply-dry-run resources (TODO)
+ *
+ */
+async function doGetTreeAsMMR(args: Arguments<KubeOptions>, filepath: string, response: KubeResource) {
+  const namespace = await getNamespace(args)
+
+  const applyButton: Button = {
+    mode: 'apply',
+    label: 'Apply',
+    kind: 'drilldown' as const,
+    command: args.command.replace(' get ', ' apply ')
+  }
+
+  return {
+    kind: 'Resources',
+    metadata: {
+      name: basename(filepath),
+      namespace
+    },
+    onclick: {
+      kind: `open ${filepath}`,
+      name: `open ${filepath}`,
+      namespace: `kubectl get ns ${namespace} -o yaml`
+    },
+    modes: [await getSources(args, filepath), await getDeployedResources(response), applyButton].filter(_ => _)
+  }
+}
+
+/**
  * `kubectl get` as entity response
  *
  */
@@ -242,8 +295,9 @@ export const doGet = (command: string) =>
 
     // first, we do the raw exec of the given command
     const isTableReq = isTableRequest(args)
+    const isGetFileReq = fileOf(args)
     const fullKind =
-      isTableReq && !fileOf(args) // <-- don't call getKind for `get -f`
+      isTableReq && !isGetFileReq // <-- don't call getKind for `get -f`
         ? getKind(command, args, args.argvNoOptions[args.argvNoOptions.indexOf('get') + 1])
         : undefined
 
@@ -275,6 +329,11 @@ export const doGet = (command: string) =>
       }
     }
 
+    if (isGetFileReq && !formatOf(args)) {
+      args.command = `${args.command} -o yaml`
+      args.parsedOptions.o = 'yaml'
+    }
+
     const response = await rawGet(args, command)
 
     if (isKubeTableResponse(response)) {
@@ -286,7 +345,7 @@ export const doGet = (command: string) =>
       throw err
     } else if (response.content.wasSentToPty) {
       return response.content.stdout
-    } else if (isEntityRequest(args)) {
+    } else if (isEntityRequest(args) && !(isGetFileReq && !formatOf(args))) {
       // case 1: get-as-entity
       return doGetAsEntity(args, response)
     } else if (isTableReq) {
@@ -305,7 +364,17 @@ export function viewTransformer(args: Arguments<KubeOptions>, response: KubeReso
   }
 }
 
-export const getFlags = Object.assign({}, flags, { viewTransformer })
+/** KubeResource -> MultiModalResponse view transformer for `kubectl get` */
+function viewTransformerForGet(args: Arguments<KubeOptions>, response: KubeResource) {
+  const fileOf = fileOfWithDetail(args)
+  if (fileOf.filepath) {
+    return doGetTreeAsMMR(args, fileOf.filepath, response)
+  } else {
+    return viewTransformer(args, response)
+  }
+}
+
+export const getFlags = Object.assign({}, flags, { viewTransformer: viewTransformerForGet })
 
 /** Register a command listener */
 export function getter(registrar: Registrar, command: string, cli = command) {

@@ -15,12 +15,12 @@
  */
 
 import React from 'react'
-import { TreeView } from '@patternfly/react-core'
 
 import { MultiModalResponse, Tab, TreeItem, TreeResponse } from '@kui-shell/core'
-import Editor from '../Content/Editor'
+import TreeView from '../spi/TreeView'
+import Editor from './Editor'
 
-import '../../../web/scss/components/TreeView/PatternFly.scss'
+import '../../../web/scss/components/Tree/index.scss'
 
 interface Props {
   response: MultiModalResponse
@@ -36,6 +36,7 @@ export default class KuiTreeView extends React.PureComponent<Props, State> {
   public constructor(props) {
     super(props)
 
+    console.error('data', this.props.data)
     this.state = {
       activeItems: [this.props.data[0]]
     }
@@ -75,8 +76,8 @@ export default class KuiTreeView extends React.PureComponent<Props, State> {
 
   public render() {
     return (
-      <div className="kui--treeview">
-        <div className="kui--treeview-nav-and-body">
+      <div className="kui--tree">
+        <div className="kui--tree-nav-and-body">
           {this.tree()}
           {this.editor()}
         </div>

@@ -399,11 +399,16 @@ export class TestMMR {
                 if (node.contentType === 'text/plain') {
                   await SidecarExpect.textPlainContentFromMonaco(node.content)({ app: this.app, count })
                 } else if (node.contentType === 'yaml') {
+                  let idx = 0
                   await this.app.client.waitUntil(async () => {
                     const actualText = await this.app.client.getText(
                       `${Selectors.SIDECAR(count)} .monaco-editor .view-lines`
                     )
-                    return actualText.replace(/\s+$/, '') === node.content
+
+                    if (++idx > 5) {
+                      console.error(`still waiting for text actualValue=${actualText}\n expected=${node.content}`)
+                    }
+                    return actualText.replace(/\s+$/, '').includes(node.content)
                   }, 20000)
                 }
 
@@ -497,7 +502,7 @@ export class TestMMR {
               const promptSelector = Selectors.PROMPT_N(count + 1 + index)
 
               if (!button.expectError) {
-                await ReplExpect.ok({ app, count: count + 1 + index })
+                await ReplExpect.okWithAny({ app, count: count + 1 + index })
               } else {
                 await ReplExpect.error(button.expectError)
               }

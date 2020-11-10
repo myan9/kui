@@ -40,6 +40,11 @@ export function fileOfWithDetail(
   }
 }
 
+/** @return the -R or --recursive option */
+export function isRecursive(args: Arguments<KubeOptions>) {
+  return args.parsedOptions.R || args.parsedOptions.recursive
+}
+
 /** @return the -k or --kustomize option */
 export function kustomizeOf(args: Arguments<KubeOptions>): string {
   return args.parsedOptions.k || args.parsedOptions.kustomize

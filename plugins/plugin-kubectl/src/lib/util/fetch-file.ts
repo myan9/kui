@@ -21,7 +21,7 @@ import { REPL, inBrowser, isHeadless, hasProxy, CodedError, i18n } from '@kui-sh
 const strings = i18n('plugin-kubectl')
 const debug = Debug('plugin-kubectl/util/fetch-file')
 
-async function _needle({ qexec }: REPL, method: 'get', url: string): Promise<{ statusCode: number; body: string }> {
+export async function _needle({ qexec }: REPL, method: 'get', url: string): Promise<{ statusCode: number; body: string }> {
   if (isHeadless()) {
     debug('fetch via needle', needle)
     return needle(method, url, { follow_max: 10 }).then(_ => ({ statusCode: _.statusCode, body: _.body }))
