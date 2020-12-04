@@ -20,6 +20,13 @@ import { Button } from './mmr/types'
 import { ToolbarText } from '../webapp/views/toolbar-text'
 import { CommandCompleteEvent, CommandStartEvent } from '../repl/events'
 
+export enum ModificationState {
+  ADDED,
+  DELETED,
+  CHANGED,
+  UNCHANGED
+}
+
 export type TreeItem = {
   /**
    * Unique string to distinguish a tree item.
@@ -44,17 +51,12 @@ export type TreeItem = {
   /** content of a tree item */
   content: string
 
+  customizedBadge?: string
   /** modifed content of a tree item */
   modifiedContent?: string
 
-  /** diff: will this item be added by later operations? */
-  willBeAdded?: boolean
-
-  /** diff: will this item be deleted by later operations ? */
-  willBeDeleted?: boolean
-
-  /** diff: will this item be modified by later operations ? */
-  willBeModified?: boolean
+  /** diff of the tree node */
+  modification?: ModificationState
 
   /** type of the tree item content */
   contentType: SupportedStringContent
