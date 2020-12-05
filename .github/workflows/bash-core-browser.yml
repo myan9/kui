@@ -1,0 +1,44 @@
+name: bash, core-browser
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Run Tests
+      env:
+        CLIENT: default
+        CSP_ALLOWED_HOSTS: "http://localhost:8081 ws://localhost:8081 http://localhost:9953 ws://localhost:9080 http://localhost:9080 ws://localhost:9081 http://localhost:9081 ws://localhost:9082 http://localhost:9082 ws://localhost:9084 http://localhost:9084"
+        KUI_USE_PROXY: true
+        MOCHA_RUN_TARGET: webpack
+        NO_OPT: true
+        NEEDS_BASH_PREP: true
+        NEEDS_GIT: true
+        NEEDS_MINIO: true
+        TRAVIS_HOME: ${{ github.workspace }}
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_OS_NAME: linux
+        TRAVIS_CPU_ARCH: amd64
+        WEBPACK_CLIENT_URL: "http://localhost:9080/"        
+        WINDOW_WIDTH: 1400
+        WINDOW_HEIGHT: 1050
+        RUNNING_KUI_TEST: true 
+      run: ./tools/travis/install.sh && npx concurrently -n CORE,SUP1,EDIT,SUP2,BASH 'npm run test1 core' 'npm run test2 core-support' 'npm run test3 editor' 'npm run test4 core-support2' 'npm run test5 bash-like'

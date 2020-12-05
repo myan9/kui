@@ -1,0 +1,49 @@
+name: "k8s2-chaos browser"
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Run Tests
+      env:
+        CLIENT: default
+        CSP_ALLOWED_HOSTS: "http://localhost:8081 ws://localhost:8081 http://localhost:9953 ws://localhost:9080 http://localhost:9080 ws://localhost:9081 http://localhost:9081 ws://localhost:9082 http://localhost:9082 ws://localhost:9084 http://localhost:9084"
+        KUI_USE_PROXY: true
+        MOCHA_RUN_TARGET: webpack
+        NO_OPT: true
+        NEEDS_K8S: true
+        NEEDS_OC: true
+        NEEDS_TOP: true
+        TRAVIS_CHAOS_TESTING: true
+        TRAVIS_HOME: ${{ github.workspace }}
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_OS_NAME: linux
+        TRAVIS_CPU_ARCH: amd64
+        TRAVIS_KUBE_SERVER_VERSION: 17
+        TRAVIS_KUBE_VERSION: 1.18.3
+        TRAVIS_HELM_VERSION: 3.3.4
+        TRAVIS_OC_VERISON: 4.3.3
+        WEBPACK_CLIENT_URL: "http://localhost:9080/"
+        WINDOW_WIDTH: 1400
+        WINDOW_HEIGHT: 1050
+        RUNNING_KUI_TEST: true
+      run: ./tools/travis/install.sh && npx concurrently -n K8S2 'npm run test1 k8s2'

@@ -1,0 +1,43 @@
+name: bash-electron
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Run Tests
+      env:
+        BUILD_ENV: production
+        CLIENT: default
+        MOCHA_RUN_TARGET: electron
+        NEEDS_BASH_PREP: true
+        NEEDS_GIT: true
+        NO_OPT: true
+        NO_INSTALLER: true
+        TRAVIS_HOME: ${{ github.workspace }}
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_OS_NAME: linux
+        TRAVIS_CPU_ARCH: amd64
+        TEST_FROM_BUILD: ${{ github.workspace }}/dist/electron/Kui-linux-x64/Kui
+        WINDOW_WIDTH: 1400
+        WINDOW_HEIGHT: 1050
+        RUNNING_KUI_TEST: true
+      run: ./tools/travis/install.sh && npm run test1 bash-like-wait && npm run test1 bash-like

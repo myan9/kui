@@ -1,0 +1,41 @@
+name: api-electron
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Run Tests
+      env:
+        BUILD_ENV: production
+        CLIENT: test
+        MOCHA_RUN_TARGET: electron
+        NO_OPT: true
+        NO_INSTALLER: true
+        TRAVIS_HOME: ${{ github.workspace }}
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_OS_NAME: linux
+        TRAVIS_CPU_ARCH: amd64
+        WINDOW_WIDTH: 1400
+        WINDOW_HEIGHT: 1050
+        RUNNING_KUI_TEST: true
+      run: ./tools/travis/install.sh && npm run testv2 api-popup && npx concurrently -n API1,API2 'npm run test1 api1' 'npm run test2 api2'
+

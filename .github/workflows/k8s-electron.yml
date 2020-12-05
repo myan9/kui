@@ -1,0 +1,50 @@
+name: k8s, k8s-popup, k8s1, logs, helm-electron
+
+on: [push, pull_request]
+#on:
+#  push:
+#    branches: [ master ]
+#  pull_request:
+#    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Run Tests
+      env:
+        BUILD_ENV: production
+        CLIENT: default
+        MOCHA_RUN_TARGET: electron
+        NEEDS_K8S: true
+        NEEDS_OC: true
+        NEEDS_TOP: true
+        NEEDS_HELM: true
+        NO_OPT: true
+        NO_INSTALLER: true
+        TRAVIS_HOME: ${{ github.workspace }}
+        TRAVIS_BUILD_DIR: ${{ github.workspace }}
+        TEST_FROM_BUILD: "${{ github.workspace }}/dist/electron/Kui-linux-x64/Kui"
+        KUI_DIST_PATH: "${{ github.workspace }}/dist/electron/Kui-linux-x64/Kui"
+        TRAVIS_JOB_ID: ${{ github.run_id }}
+        TRAVIS_OS_NAME: linux
+        TRAVIS_CPU_ARCH: amd64
+        TRAVIS_KUBE_SERVER_VERSION: 17
+        TRAVIS_KUBE_VERSION: 1.18.3
+        TRAVIS_HELM_VERSION: 3.3.4
+        TRAVIS_OC_VERISON: 4.3.3
+        WINDOW_WIDTH: 1400
+        WINDOW_HEIGHT: 1050
+        RUNNING_KUI_TEST: true
+      run: ./tools/travis/install.sh && npx concurrently -n K8S 'npm run test1 k8s k8s-popup' && npx concurrently -n K8S1,LOGS,HELM 'npm run test1 k8s1' 'npm run test2 logs' 'npm run test3 helm' 
