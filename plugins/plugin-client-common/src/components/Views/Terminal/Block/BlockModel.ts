@@ -306,7 +306,7 @@ export function isReplay(block: BlockModel): boolean {
 type RerunableBlock = CompleteBlock
 type BlockBeingRerun = RerunableBlock & WithRerun
 
-/** Transform a RerunableBLock to one in the BlockBeingRerun state */
+/** Transform a RerunableBlock to one in the BlockBeingRerun state */
 export function Rerun(
   block: RerunableBlock,
   newStartEvent = block.startEvent,

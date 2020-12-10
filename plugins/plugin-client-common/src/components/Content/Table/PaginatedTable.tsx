@@ -135,7 +135,7 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
     this.state = PaginatedTable.getDerivedStateFromProps(props) as S
   }
 
-  public static getDerivedStateFromProps(props: Props, state?: State) {
+  public static getDerivedStateFromProps(props: Props, currentState?: State) {
     try {
       // assemble the data model
       const { headers, rows, footer } = kui2carbon(props.response)
@@ -150,21 +150,25 @@ export default class PaginatedTable<P extends Props, S extends State> extends Re
         (!asGrid && PaginatedTable.hasSequenceButton(props) && props.response.body.length > 1) ||
         defaultPresentation === 'sequence-diagram'
 
-      const initialState = {
+      const defaults = {
+        asTimeline: false,
+        page: 1,
+        pageSize: 10
+      }
+
+      const newState = {
         headers,
         rows,
         footer,
         asGrid,
         asSequence,
-        asTimeline: false,
-        page: 1,
-        pageSize: props.pageSize || 10
+        pageSize: props.pageSize || defaults.pageSize
       }
 
-      if (!state) {
-        return initialState
+      if (!currentState) {
+        return Object.assign(defaults, newState)
       } else {
-        return Object.assign(initialState, state)
+        return Object.assign(defaults, currentState, newState)
       }
     } catch (err) {
       console.error('Internal error preparing PaginatedTable', err)

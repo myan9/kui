@@ -265,12 +265,8 @@ export async function doTreeMMR(
         namespace: `kubectl get ns ${namespace} -o yaml`
       },
       defaultMode: isDeployed ? deployedMode : dryRunMode,
-      toolbarText: {
-        type: 'info',
-        text: strings('showSource', isDeployed ? strings('live') : strings('offline'))
-      },
       modes: [
-        await getSources(args, filepath),
+        await getSources(args, filepath, isDeployed),
         isDeployed
           ? await doDeployedMode(args, namespace, resourcesWithState, hasChanges)
           : await doDryRunMode(args, namespace, resourcesWithState),
@@ -283,7 +279,7 @@ export async function doTreeMMR(
   }
 }
 /**
- * This is the handler of `kubectl get if`, which returns
+ * This is the handler of `kubectl get -f`, which returns
  * `MultiModalResponse` with three tabs:
  * 1. tree of templates
  * 2. tree of applied resources

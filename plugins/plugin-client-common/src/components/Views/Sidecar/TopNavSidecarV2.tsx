@@ -21,6 +21,7 @@ import { Tabs, Tab } from 'carbon-components-react'
 import {
   eventChannelUnsafe,
   Tab as KuiTab,
+  ToolbarText,
   MultiModalMode,
   MultiModalResponse,
   isResourceWithMetadata,
@@ -54,6 +55,7 @@ interface HistoryEntry {
 
   buttons: Button[]
   tabs: Readonly<MultiModalMode[]>
+  toolbarText: ToolbarText
   defaultMode: number
 }
 
@@ -89,10 +91,15 @@ export function getStateFromMMR(tab: KuiTab, response: MultiModalResponse): Hist
   const buttonsFromResponse = response.buttons || []
   const buttons = buttonsFromResponse.concat(buttonsFromRegistrar)
 
+  // toolbarText: if the default mode specified one, then use it;
+  // otherwise, use the one specified by response
+  const toolbarText = tabs[defaultMode] ? tabs[defaultMode].toolbarText : response.toolbarText
+
   return {
     currentTabIndex: defaultMode,
     defaultMode,
     tabs,
+    toolbarText,
     buttons
   }
 }
@@ -135,7 +142,7 @@ export default class TopNavSidecar extends BaseSidecar<MultiModalResponse, TopNa
     state?: TopNavState
   ): TopNavState {
     if (!state || state.response !== response) {
-      return Object.assign(state || {}, { response, toolbarText: response.toolbarText }, getStateFromMMR(tab, response))
+      return Object.assign(state || {}, { response }, getStateFromMMR(tab, response))
     } else {
       return state
     }
@@ -208,7 +215,8 @@ export default class TopNavSidecar extends BaseSidecar<MultiModalResponse, TopNa
             this.broadcastFocusChange(idx)
 
             this.setState(curState => {
-              return Object.assign({}, curState, { currentTabIndex: idx })
+              const toolbarText = curState.tabs[idx].toolbarText || curState.toolbarText
+              return Object.assign({}, curState, { currentTabIndex: idx, toolbarText })
             })
           }}
         >
