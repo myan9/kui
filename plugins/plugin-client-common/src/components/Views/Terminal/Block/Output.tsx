@@ -23,6 +23,7 @@ import {
   isCommentaryResponse,
   isTabLayoutModificationResponse,
   isHTML,
+  isRadioTable,
   isReactResponse,
   isMarkdownResponse,
   isMixedResponse,
@@ -203,7 +204,10 @@ export default class Output extends React.PureComponent<Props, State> {
           className={
             'repl-result' +
             (isOops(this.props.model) ? ' oops' : '') +
-            (isWithCompleteEvent(this.props.model) && isMixedResponse(this.props.model.response) ? ' flex-column' : '')
+            (isWithCompleteEvent(this.props.model) && isMixedResponse(this.props.model.response)
+              ? ' flex-column'
+              : '') +
+            (isWithCompleteEvent(this.props.model) && isRadioTable(this.props.model.response) ? ' overflow' : '')
           }
           data-status-code={statusCode}
         >

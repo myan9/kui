@@ -284,6 +284,15 @@ export const okWithPtyOutputEventually = (expect: string, exact = false) => (res
   )
 }
 
+export const okWithDropDownList = (openAndExpectLabel: string) => (res: AppAndCount) => {
+  return okWithCustom<string>({
+    selector: Selectors.DROPDOWN
+  })(res)
+    .then(selector => res.app.client.$(selector))
+    .then(_ => _.click())
+    .then(() => res.app.client.$(Selectors.DROPDOWN_N_MENU_ITEM(res.count, openAndExpectLabel, res.splitIndex)))
+}
+
 /** as long as its ok, accept anything */
 export const okWithAny = async (res: AppAndCount) => expectOK(res)
 
