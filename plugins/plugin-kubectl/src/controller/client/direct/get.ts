@@ -22,7 +22,16 @@ import { fetchFile } from '../../../lib/util/fetch-file'
 import { getCommandFromArgs } from '../../../lib/util/util'
 import { toKuiTable, withNotFound } from '../../../lib/view/formatTable'
 
-import { KubeOptions, formatOf, getNamespace, isTableRequest, isWatchRequest } from '../../kubectl/options'
+import { doStatus } from '../../kubectl/status'
+import {
+  KubeOptions,
+  fileOf,
+  formatOf,
+  kustomizeOf,
+  getNamespace,
+  isTableRequest,
+  isWatchRequest
+} from '../../kubectl/options'
 
 import handleErrors from './errors'
 import { urlFormatterFor } from './url'
@@ -97,9 +106,11 @@ export async function get(
   names: string[],
   explainedKind: Explained,
   format: string,
-  args: Pick<Arguments<KubeOptions>, 'REPL' | 'parsedOptions' | 'execOptions'>
+  args: Arguments<KubeOptions>
 ) {
-  if (isTableRequest(args)) {
+  if (fileOf(args) || kustomizeOf(args)) {
+    return doStatus(args, 'get', drilldownCommand, undefined, undefined, undefined, false)
+  } else if (isTableRequest(args)) {
     return getTable(drilldownCommand, namespace, names, explainedKind, format, args)
   }
 
