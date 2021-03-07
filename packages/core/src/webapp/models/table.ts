@@ -209,7 +209,7 @@ export function isTableWithTimestamp(table: Table) {
 }
 
 export function isTableWithCount(table: Table) {
-  return table.body.findIndex(row => row.attributes.findIndex(_ => _.key.toLowerCase() === 'count') !== -1) !== -1
+  return table.body.findIndex(row => row.attributes.findIndex(_ => _.key && /^count$/i.test(_.key)) !== -1) !== -1
 }
 
 export function isTable<C>(model: MetadataBearing<C> | Entity): model is Table {

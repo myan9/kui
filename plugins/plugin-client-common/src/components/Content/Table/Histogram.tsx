@@ -29,6 +29,8 @@ interface Props {
 
 interface State {
   rows: Row[]
+  counts: number[]
+  scale: 'linear' | 'log'
 }
 
 export default class Histogram extends React.PureComponent<Props, State> {
@@ -48,7 +50,20 @@ export default class Histogram extends React.PureComponent<Props, State> {
   }
 
   public static getDerivedStateFromProps(props: Props, state?: State) {
-    return Object.assign({}, state, { rows: props.response.body })
+    return Object.assign({}, state, Histogram.filterRows(props.response.body))
+  }
+
+  private static filterRows(rows: Props['response']['body']): Pick<State, 'rows' | 'counts' | 'scale'> {
+    const countOf = (row: Row) => parseInt(row.attributes.find(_ => _.key === 'Count').value, 10)
+    const counts = rows.map(countOf)
+    const yMax = counts.reduce((yMax, count) => Math.max(yMax, count), 0)
+    const filteredRows = rows.filter((row, ridx) => (!Histogram.isTiny(counts[ridx], yMax) ? 1 : 0))
+
+    return {
+      rows: filteredRows,
+      counts: filteredRows.map(countOf),
+      scale: filteredRows.length === rows.length ? 'linear' : 'log'
+    }
   }
 
   /** heuristic to allow "just enough" space for axis labels */
@@ -102,20 +117,23 @@ export default class Histogram extends React.PureComponent<Props, State> {
     )
   }
 
+  private static isTiny(count: number, yMax: number): boolean {
+    return count / yMax < 0.01
+  }
+
   private bars() {
     return (
       <VictoryBar
         barWidth={this.barHeight}
+        scale={{ y: this.state.scale }}
         style={{
           data: { fill: 'var(--color-base05)', stroke: 'var(--color-base04)', strokeWidth: 0.5 },
           labels: { fontFamily: 'var(--font-sans-serif)', fontSize: 6, fill: 'var(--color-base01)' }
         }}
-        data={this.state.rows.map(row => {
-          return {
-            x: row.rowKey || row.name,
-            y: parseInt(row.attributes.find(_ => _.key === 'Count').value, 10)
-          }
-        })}
+        data={this.state.rows.map((row, ridx) => ({
+          x: row.rowKey || row.name,
+          y: this.state.counts[ridx]
+        }))}
         labels={_ => Math.round(_.datum.y)}
         labelComponent={<VictoryLabel dx={({ data, index }) => -(10 + (Math.log10(data[index].y) - 1) * 4)} />}
       />
