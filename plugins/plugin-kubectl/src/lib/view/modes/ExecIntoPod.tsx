@@ -520,6 +520,8 @@ export class Terminal<S extends TerminalState = TerminalState> extends Container
     const rendererType =
       inDebugMode() || process.env.RUNNING_SHELL_TEST || process.env.RUNNING_KUI_TEST ? 'dom' : 'canvas'
 
+    console.error('rendererType!!!!!!', rendererType)
+
     const xterm = new XTerminal({
       scrollback: 1000,
       rendererType
