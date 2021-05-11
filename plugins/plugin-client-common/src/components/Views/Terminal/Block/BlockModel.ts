@@ -45,7 +45,7 @@ type WithAnnouncement = { isAnnouncement: boolean }
 type WithPreferences = { outputOnly?: boolean }
 type WithCommandStart = { startEvent: CommandStartEvent }
 type WithCommandComplete = { completeEvent: CommandCompleteEvent }
-type WithRerun = { isRerun: true; rerunUUID: string; originalUUID: string }
+type WithRerun = { isRerun: true; originalUUID: string }
 type WithReplay = { isReplay: boolean }
 
 /** The canonical types of Blocks, which mix up the Traits as needed */
@@ -336,8 +336,8 @@ export function Rerun(
   newStartTime = newStartEvent.startTime
 ): RerunableBlock & Required<WithRerun> {
   return Object.assign(block, {
+    execUUID: newStartEvent.execUUID,
     isRerun: true as const,
-    rerunUUID: newStartEvent.execUUID, // temporay execUUID for rerunning, the block's execUUID remains the same
     originalUUID: newStartEvent.execOptions.originalUUID,
     startEvent: newStartEvent,
     command: newCommand,

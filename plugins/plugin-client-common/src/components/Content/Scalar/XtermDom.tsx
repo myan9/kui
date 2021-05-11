@@ -47,7 +47,6 @@ export default class XtermDom extends React.PureComponent<Props> {
   }
 
   public render() {
-    console.error('this.props.response', this.props.response)
     return this.props.response.rows.length === 0 ? (
       <React.Fragment />
     ) : (

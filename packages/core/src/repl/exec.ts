@@ -567,7 +567,7 @@ class InProcessExecutor implements Executor {
             console.error('done streawming', execUUID)
             resolve()
           })
-          console.error('make stream', response, execUUID)
+
           eventChannelUnsafe.emit(`/command/stdout/${tabUUID}/${execUUID}`, response)
         })
       return Promise.resolve(stream)
@@ -677,6 +677,8 @@ export const reexec = <T extends KResponse>(command: string, execOptionsWithUUID
     originalUUID: execOptionsWithUUID.execUUID,
     execUUID: undefined
   })
+
+  console.error('reexec!!!!', execOptions.originalUUID)
   return exec(command, Object.assign({ echo: true, type: ExecType.Rerun }, execOptions)) as Promise<T>
 }
 

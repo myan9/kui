@@ -88,7 +88,7 @@ type Props = {
   BlockOperationTraits
 
 interface State {
-  rerunUUID?: string
+  execUUID?: string
   alreadyListen: boolean
   assertHasContent?: boolean
   isResultRendered: boolean
@@ -118,7 +118,6 @@ export default class Output extends React.PureComponent<Props, State> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async streamingConsumer(part: Streamable) {
-    console.error('streamingConsumer', part)
     if (hasUUID(this.props.model)) {
       // part === null: the controller wants to clear any prior output
       if (part === null) {
@@ -141,41 +140,21 @@ export default class Output extends React.PureComponent<Props, State> {
   }
 
   public static getDerivedStateFromProps(props: Props, state: State) {
-    // execUUID a, not rerun
-    // rerun a, rerunUUID: b, => clear the previous run, streamingConsumer(null), off a, on b, state rerunUUID: b, alreadyListen: true, isResultRendered: false
-    // isrerun, statererunUUID === props.model.rerunUUID -> return state
-    // isFinished, off b, alreadyListen: false, isResultRendered true, rerunUUID: undefined
-    // execUUID a, rerunUUID  => off b, on, c
-    console.error(
-      'rerun, state.uuid, listen',
-      isBeingRerun(props.model) && props.model.rerunUUID,
-      state.rerunUUID,
-      state.alreadyListen
-    )
-
-    if (
-      hasUUID(props.model) &&
-      isBeingRerun(props.model) &&
-      (!state.rerunUUID || (props.model.rerunUUID !== state.rerunUUID && !state.alreadyListen))
-    ) {
-      console.error('rerun')
+    console.error('output', props.model, state.execUUID, state.alreadyListen)
+    if (hasUUID(props.model) && isBeingRerun(props.model)) {
       const tabUUID = props.uuid
+
       if (!isEmpty(props.model)) {
-        state.streamingConsumer(null)
-        if (state.rerunUUID) {
-          console.error('clear the previous rerun', state.rerunUUID)
-          eventChannelUnsafe.off(`/command/stdout/${tabUUID}/${state.rerunUUID}`, state.streamingConsumer)
-        } else {
-          console.error('clear the previous run', props.model.originalUUID)
-          eventChannelUnsafe.off(`/command/stdout/${tabUUID}/${props.model.originalUUID}`, state.streamingConsumer)
-        }
+        console.error('clear the previous', props.model.originalUUID)
+        eventChannelUnsafe.off(`/command/stdout/${tabUUID}/${props.model.originalUUID}`, state.streamingConsumer)
       }
 
-      console.error('start listening new rerun', props.model.rerunUUID)
-      eventChannelUnsafe.on(`/command/stdout/${tabUUID}/${props.model.rerunUUID}`, state.streamingConsumer)
+      console.error('start listening new rerun', props.model.execUUID)
+      eventChannelUnsafe.on(`/command/stdout/${tabUUID}/${props.model.execUUID}`, state.streamingConsumer)
+
       return {
+        nStreamingOutput: 0,
         streamingOutput: [],
-        rerunUUID: props.model.rerunUUID,
         alreadyListen: true,
         isResultRendered: false
       }
@@ -183,6 +162,7 @@ export default class Output extends React.PureComponent<Props, State> {
       console.error('isProcessing')
       const tabUUID = props.uuid
       eventChannelUnsafe.on(`/command/stdout/${tabUUID}/${props.model.execUUID}`, state.streamingConsumer)
+
       return {
         alreadyListen: true,
         isResultRendered: false,

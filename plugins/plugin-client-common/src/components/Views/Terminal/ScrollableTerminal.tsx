@@ -733,9 +733,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
     this.splice(uuid, curState => {
       const inProcessIdx = curState.blocks.findIndex(
-        _ =>
-          (isProcessing(_) && _.execUUID === event.execUUID) ||
-          (isBeingRerun(_) && _.execUUID === event.execOptions.originalUUID)
+        _ => (isProcessing(_) || isBeingRerun(_)) && _.execUUID === event.execUUID
       )
 
       if (inProcessIdx >= 0) {
