@@ -27,6 +27,9 @@ export interface ExecOptions {
   /** execution UUID */
   execUUID?: string
 
+  /** original execution UUID of re-exec */
+  originalUUID?: string
+
   /** pass through uninterpreted data */
   data?: number | string | Buffer | Record<string, any>
 

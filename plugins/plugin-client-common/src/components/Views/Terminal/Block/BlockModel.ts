@@ -45,7 +45,7 @@ type WithAnnouncement = { isAnnouncement: boolean }
 type WithPreferences = { outputOnly?: boolean }
 type WithCommandStart = { startEvent: CommandStartEvent }
 type WithCommandComplete = { completeEvent: CommandCompleteEvent }
-type WithRerun = { isRerun: true }
+type WithRerun = { isRerun: true; rerunUUID: string; originalUUID: string }
 type WithReplay = { isReplay: boolean }
 
 /** The canonical types of Blocks, which mix up the Traits as needed */
@@ -161,6 +161,10 @@ export function isAnnouncement(block: BlockModel): block is AnnouncementBlock {
 }
 
 export function hasUUID(block: BlockModel & Partial<WithUUID>): block is BlockModel & Required<WithUUID> {
+  return block && !isActive(block) && !isEmpty(block) && !isAnnouncement(block)
+}
+
+export function hasoriginalUUID(block: BlockModel & Partial<WithUUID>): block is BlockModel & Required<WithUUID> {
   return block && !isActive(block) && !isEmpty(block) && !isAnnouncement(block)
 }
 
@@ -333,6 +337,8 @@ export function Rerun(
 ): RerunableBlock & Required<WithRerun> {
   return Object.assign(block, {
     isRerun: true as const,
+    rerunUUID: newStartEvent.execUUID, // temporay execUUID for rerunning, the block's execUUID remains the same
+    originalUUID: newStartEvent.execOptions.originalUUID,
     startEvent: newStartEvent,
     command: newCommand,
     startTime: newStartTime
@@ -340,7 +346,7 @@ export function Rerun(
 }
 
 export function isRerunable(block: BlockModel): block is RerunableBlock {
-  return isOk(block) || isOops(block)
+  return isOk(block) || isOops(block) || isProcessing(block)
 }
 
 export function isBeingRerun(block: BlockModel): block is BlockBeingRerun {

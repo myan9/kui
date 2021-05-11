@@ -564,8 +564,10 @@ class InProcessExecutor implements Executor {
       const stream = (response: Streamable) =>
         new Promise<void>(resolve => {
           eventChannelUnsafe.once(`/command/stdout/done/${tabUUID}/${execUUID}`, () => {
+            console.error('done streawming', execUUID)
             resolve()
           })
+          console.error('make stream', response, execUUID)
           eventChannelUnsafe.emit(`/command/stdout/${tabUUID}/${execUUID}`, response)
         })
       return Promise.resolve(stream)
@@ -595,7 +597,9 @@ export const doEval = (tab: Tab, block: Block, command: string, execUUID?: strin
   // otherwise, this is a plain old eval, resulting from the user hitting Enter
   const defaultExecOptions = new DefaultExecOptionsForTab(tab, block, execUUID)
 
-  const execOptions = !execUUID ? defaultExecOptions : Object.assign(defaultExecOptions, { type: ExecType.Rerun })
+  const execOptions = !execUUID
+    ? defaultExecOptions
+    : Object.assign(defaultExecOptions, { type: ExecType.Rerun, execUUID: undefined, originalUUID: execUUID })
 
   return exec(command, execOptions)
 }
@@ -668,7 +672,11 @@ export const rexec = async <Raw extends RawContent>(
  * Evaluate a command and place the result in the current active view for the given tab
  *
  */
-export const reexec = <T extends KResponse>(command: string, execOptions: ExecOptionsWithUUID): Promise<T> => {
+export const reexec = <T extends KResponse>(command: string, execOptionsWithUUID: ExecOptionsWithUUID): Promise<T> => {
+  const execOptions = Object.assign(execOptionsWithUUID, {
+    originalUUID: execOptionsWithUUID.execUUID,
+    execUUID: undefined
+  })
   return exec(command, Object.assign({ echo: true, type: ExecType.Rerun }, execOptions)) as Promise<T>
 }
 

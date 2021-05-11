@@ -483,6 +483,7 @@ async function initOnMessage(
   // listeners...
   const onMessage = async (data: string | { data: string }) => {
     const msg = JSON.parse(typeof data === 'string' ? data : data.data)
+    console.error('onMessage', msg, ourUUID)
 
     if (msg.uuid !== ourUUID) {
       return
@@ -532,6 +533,7 @@ async function initOnMessage(
         // setTimeout helps with batching
         setTimeout(() => {
           terminal.write(msg.data, () => {
+            console.error('terminal.write', msg.data)
             // at this point, xterm.js has populated its data model,
             // though it may not yet have rendered the content to the
             // live DOM

@@ -657,6 +657,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       this.splice(uuid, curState => {
         const idx = curState.blocks.length - 1
 
+        const rerunIdx = event.execOptions.originalUUID
+          ? curState.blocks.findIndex(_ => hasUUID(_) && _.execUUID === event.execOptions.originalUUID)
+          : -1
+
+        console.error('found rerun', rerunIdx, event.execUUID, event.execOptions.originalUUID)
         if (typeof insertIdx === 'number') {
           // we were asked to splice in the startEvent at a particular index
           return {
@@ -665,21 +670,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
               .concat([Processing(Active(), event, event.evaluatorOptions.isExperimental)])
               .concat(curState.blocks.slice(insertIdx))
           }
-        } else if (isProcessing(curState.blocks[idx])) {
-          // the last block is Processing; this can handle if the user
-          // causes a pexec to be sent to a split that is already
-          // processing
-          return {
-            blocks: curState.blocks.concat(processing(Active()))
-          }
-        }
-
-        const rerunIdx =
-          event.execType === ExecType.Rerun
-            ? curState.blocks.findIndex(_ => hasUUID(_) && _.execUUID === event.execUUID)
-            : -1
-
-        if (rerunIdx >= 0) {
+        } else if (rerunIdx >= 0) {
           const block = curState.blocks[rerunIdx]
           // The use case here is that the user clicked the Rerun
           // button in the UI or clicked on an Input and hit Enter. In
@@ -692,6 +683,13 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
               .slice(0, rerunIdx) // everything before
               .concat(isRerunable(block) ? [Rerun(block, event)] : [])
               .concat(curState.blocks.slice(rerunIdx + 1)) // everything after
+          }
+        } else if (isProcessing(curState.blocks[idx])) {
+          // the last block is Processing; this can handle if the user
+          // causes a pexec to be sent to a split that is already
+          // processing
+          return {
+            blocks: curState.blocks.concat(processing(Active()))
           }
         } else {
           // Transform the last block to Processing
@@ -735,7 +733,9 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
     this.splice(uuid, curState => {
       const inProcessIdx = curState.blocks.findIndex(
-        _ => (isProcessing(_) || isBeingRerun(_)) && _.execUUID === event.execUUID
+        _ =>
+          (isProcessing(_) && _.execUUID === event.execUUID) ||
+          (isBeingRerun(_) && _.execUUID === event.execOptions.originalUUID)
       )
 
       if (inProcessIdx >= 0) {
@@ -763,7 +763,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
             throw err
           }
         } else {
-          console.error('invalid state: got a command completion event for a block that is not processing', event)
+          console.error(
+            'invalid state: got a command completion event for a block that is not processing',
+            event,
+            inProcess
+          )
         }
       } else if (event.cancelled) {
         // we get here if the user just types ctrl+c without having executed any command. add a new block if needed!
@@ -779,7 +783,11 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
           blocks
         }
       } else {
-        console.error('invalid state: got a command completion event, but never got command start event', event)
+        console.error(
+          'invalid state: got a command completion event, but never got command start event',
+          event,
+          curState.blocks
+        )
       }
     })
   }
