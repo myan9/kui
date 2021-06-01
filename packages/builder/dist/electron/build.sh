@@ -339,7 +339,6 @@ function builddeps {
 
 # this is the main routine
 function build {
-    echo "native" && native
     echo "builddeps" && builddeps
     echo "theme" && theme
     echo "win32" && win32 x64

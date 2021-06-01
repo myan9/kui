@@ -55,6 +55,8 @@ const notarize = require('./notarize')
 const nodePty = 'node-pty-prebuilt-multiarch'
 
 async function buildWebpack(buildPath) {
+  console.log('buildPath', buildPath)
+
   if (process.env.KUI_HEADLESS_WEBPACK) {
     console.log('Building headless bundles via webpack')
     await new Promise((resolve, reject) => {
@@ -91,10 +93,8 @@ async function buildWebpack(buildPath) {
 }
 
 /** afterCopy hook to copy in the platform-specific node-pty build */
-async function build(buildPath, electronVersion, targetPlatform, targetArch, callback) {
-  console.log('buildPath', buildPath)
-  await buildWebpack(buildPath)
-  console.log('copying node pty', process.platform, targetPlatform, targetArch, osArch())
+async function copyNodePty(buildPath, electronVersion, targetPlatform, targetArch, callback) {
+  console.log('copying node pty')
   if (process.platform === targetPlatform && targetArch === osArch()) {
     // if the current platform matches the target platform, there is
     // nothing to do
@@ -205,7 +205,7 @@ function package(baseArgs /*: { dir: string, name: string, platform: string, arc
     },
 
     // lifecycle hooks to copy in our extra bits
-    afterCopy: [build, copySignableBits(baseArgs)]
+    afterCopy: [buildWebpack, copyNodePty, copySignableBits(baseArgs)]
   })
 
   console.error('args', args)
