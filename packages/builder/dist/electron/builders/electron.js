@@ -47,11 +47,34 @@ const { basename, join } = require('path')
 const packager = require('electron-packager')
 const { copy, emptyDir } = require('fs-extra')
 const { createReadStream, createWriteStream, readdir } = require('fs')
+const { exec } = require('child_process')
 
 const sign = require('./sign')
 const notarize = require('./notarize')
 
 const nodePty = 'node-pty-prebuilt-multiarch'
+
+async function buildWebpack(buildPath, electronVersion, targetPlatform, targetArch, callback) {
+  console.log('buildPath', buildPath)
+
+  console.log('Building electron bundles via webpack')
+  await new Promise((resolve, reject) => {
+    exec(
+      `TARGET=electron-renderer MODE=production CLIENT_HOME="${buildPath}" KUI_STAGE="${buildPath}" npx --no-install webpack-cli --mode=production --config "${buildPath}/node_modules/@kui-shell/webpack/webpack.config.js"`,
+      (err, stdout, stderr) => {
+        console.log('stdout', stdout)
+        if (err) {
+          console.error(err)
+          reject(stderr)
+        } else {
+          resolve()
+        }
+      }
+    )
+  })
+
+  callback()
+}
 
 /** afterCopy hook to copy in the platform-specific node-pty build */
 async function copyNodePty(buildPath, electronVersion, targetPlatform, targetArch, callback) {
@@ -164,9 +187,10 @@ function package(baseArgs /*: { dir: string, name: string, platform: string, arc
     },
 
     // lifecycle hooks to copy in our extra bits
-    afterCopy: [copyNodePty, copySignableBits(baseArgs)]
+    afterCopy: [copyNodePty, buildWebpack, copySignableBits(baseArgs)]
   })
 
+  console.error('args', args)
   if (process.env.APP_BUNDLE_ID) {
     // this part of electron-packager seems weird; we need to set the
     // macOS bundleID here (i.e. HERE ALSO!! we of course need to pass
