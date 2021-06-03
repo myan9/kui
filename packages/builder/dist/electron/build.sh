@@ -40,8 +40,7 @@ export KUI_HEADLESS_WEBPACK
 # ignore these files when bundling the ASAR (this is a regexp, not glob pattern)
 # see the electron-packager docs for --ignore
 #
-# FIXME: now we build webpack bundle in the electron-packager after copy, so we need to pick up all the related devDependencies to that node_moduels, otherwise webpack build will fail
-# export IGNORE='(~$)|(\.ts$)|(lerna\.json)|(@types)|(tsconfig\.json)|(webpack\.config\.json)|(\.cache)|(\.map$)|(jquery)|(/node_modules/d3)|(/node_modules/elkjs)|(monaco-editor)|(xterm)|(bak\.json)|(@kui-shell/.*/mdist)|(node_modules/.*/fonts/)|(\.scss$)|(\.woff$)|(/node_modules/@carbon)|(/node_modules/@patternfly)|(/node_modules/@emotion)|(/node_modules/babel-plugin-emotion)|(/node_modules/core-js)|(/node_modules/cssstyle)|(/node_modules/lodash)|(/node_modules/carbon-icons)|(/node_modules/@fortawesome)|(/node_modules/@babel)|(/node_modules/carbon-components)|(/node_modules/@kui-shell/plugin-.*/node_modules/)|(node_modules/trie-search/dictionary.json)|(node_modules/apexcharts/src)'
+export IGNORE='(~$)|(\.ts$)|(lerna\.json)|(@types)|(tsconfig\.json)|(webpack\.config\.json)|(\.cache)|(\.map$)|(jquery)|(/node_modules/d3)|(/node_modules/elkjs)|(monaco-editor)|(xterm)|(bak\.json)|(packages/.*/mdist)|(@kui-shell/.*/mdist)|(node_modules/.*/fonts/)|(\.scss$)|(\.woff$)|(/node_modules/@carbon)|(/node_modules/@patternfly)|(/node_modules/@emotion)|(/node_modules/babel-plugin-emotion)|(/node_modules/core-js)|(/node_modules/cssstyle)|(/node_modules/lodash)|(/node_modules/carbon-icons)|(/node_modules/@fortawesome)|(/node_modules/@babel)|(/node_modules/carbon-components)|(/node_modules/@kui-shell/plugin-.*/node_modules/)|(node_modules/trie-search/dictionary.json)|(node_modules/apexcharts/src)|(node_modules/victory-*)|(packages/builder)|(packages/test)|(tmp/)'
 
 #
 # client version; note rcedit.exe fails if the VERSION is "dev"
@@ -166,7 +165,7 @@ fi
             ls -l "$KUI_LAUNCHER"
         fi
 
-        (cd "$BUILDER_HOME/dist/electron" && NO_PRUNE=true node builders/electron.js "$CLIENT_HOME" "${PRODUCT_NAME}" darwin $ARCH $ICON_MAC "$KUI_LAUNCHER")
+        (cd "$BUILDER_HOME/dist/electron" && node builders/electron.js "$CLIENT_HOME" "${PRODUCT_NAME}" darwin $ARCH $ICON_MAC "$KUI_LAUNCHER")
 
         # use a custom icon for mac
         # cp $ICON_MAC "$BUILDDIR/${PRODUCT_NAME}-darwin-$ARCH/${PRODUCT_NAME}.app/Contents/Resources/electron.icns"
@@ -324,7 +323,7 @@ function webpack {
 
 # install the electron-packager dependencies
 function builddeps {
-    (cd "$BUILDER_HOME/dist/electron" && npm install)
+    (cd "$BUILDER_HOME/dist/electron" && npm ci)
 
     export ELECTRON_VERSION=$(BUILDER_HOME=$BUILDER_HOME node -e 'console.log((require(require("path").join(process.env.BUILDER_HOME, "dist/electron/package.json")).devDependencies.electron).replace(/^[~^]/, ""))')
     echo "ELECTRON_VERSION=$ELECTRON_VERSION"
