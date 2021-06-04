@@ -45,6 +45,7 @@ const { arch: osArch } = require('os')
 const { createGunzip } = require('zlib')
 const { basename, join } = require('path')
 const packager = require('electron-packager')
+const builder = require('electron-builder')
 const { copy, emptyDir, remove } = require('fs-extra')
 const { createReadStream, createWriteStream, readdir } = require('fs')
 const { exec } = require('child_process')
@@ -203,7 +204,7 @@ function package(baseArgs /*: { dir: string, name: string, platform: string, arc
     icon: join(client, iconSpecifiedByClient),
 
     // version settings
-    appVersion: process.env.VERSION,
+    // appVersion: process.env.VERSION,
     buildVersion: process.env.VERSION,
     electronVersion: process.env.ELECTRON_VERSION,
 
@@ -253,9 +254,79 @@ const launcher = process.argv[4]
 //
 // invoke electron-packager, catching any errors it might throw
 //
-package({ dir, name, platform, arch, launcher })
-  .then(sign(name, platform))
-  .then(notarize(name, platform))
+// package({ dir, name, platform, arch, launcher })
+//   .then(sign(name, platform))
+//   .then(notarize(name, platform))
+//   .then(() => {
+//     console.log('success')
+//     process.exit(0)
+//   })
+//   .catch(err => {
+//     console.error(err)
+//     process.exit(1)
+//   })
+
+/**
+ * Use electron-builer to create the application package
+ *
+ */
+function build(baseArgs /*: { dir: string, name: string, platform: string, arch: string, icon: string } */) {
+  const client = join(baseArgs.dir, 'node_modules', '@kui-shell', 'client')
+  const iconSpecifiedByClient = require(join(client, 'config.d', 'icons')).filesystem[baseArgs.platform]
+
+  const args = Object.assign({
+    x64: true, //FIXME
+    dir: baseArgs.dir,
+    config: {
+      productName: baseArgs.name,
+      // platform: baseArgs.platform,
+      // arch: baseArgs.arch,
+      icon: join(client, iconSpecifiedByClient),
+      directories: {
+        app: dir /** The application directory (containing the application package.json). */,
+        buildResources: dir /** path to build resources */,
+        output: process.env.BUILDDIR /** output directory */
+      },
+      // version settings
+      // appVersion: process.env.VERSION,
+      buildVersion: process.env.VERSION,
+      electronVersion: process.env.ELECTRON_VERSION,
+
+      // a regexp that will let us exclude specified files from the
+      // final tarball
+      // ignore: process.env.IGNORE,
+
+      // asar is desirable, as it packs the zillions of node_modules
+      // files into a single file; faster installation on users'
+      // machines; but we have to be careful w.r.t. native modules
+      asarUnpack: '*.{node,dll}', // <-- avoids loading/signing issues with native modules
+      // mac: {
+      //   asar: {
+      //     asarUnpack: '*.{node,dll}' // <-- avoids loading/signing issues with native modules
+      //   }
+      // },
+
+      // lifecycle hooks to copy in our extra bits
+      // afterCopy: [buildWebpack.bind(baseArgs), copyNodePty, copySignableBits.bind(baseArgs)],
+      files: {
+        filter: []
+      }
+    }
+  })
+
+  if (process.env.APP_BUNDLE_ID) {
+    // this part of electron-packager seems weird; we need to set the
+    // macOS bundleID here (i.e. HERE ALSO!! we of course need to pass
+    // it to the osx signer, below), otherwise the packager places a generic
+    // bundleId in the macOS App (something like
+    // com.electron.<myElectronAppName>)
+    args.appID = process.env.APP_BUNDLE_ID
+  }
+
+  return builder.build(args)
+}
+
+build({ dir, name, platform, arch, launcher })
   .then(() => {
     console.log('success')
     process.exit(0)

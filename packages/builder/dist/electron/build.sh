@@ -290,7 +290,7 @@ function tarball {
 
 # install the electron-packager dependencies
 function builddeps {
-    (cd "$BUILDER_HOME/dist/electron" && npm ci)
+    # (cd "$BUILDER_HOME/dist/electron" && npm ci)
 
     export ELECTRON_VERSION=$(BUILDER_HOME=$BUILDER_HOME node -e 'console.log((require(require("path").join(process.env.BUILDER_HOME, "dist/electron/package.json")).devDependencies.electron).replace(/^[~^]/, ""))')
     echo "ELECTRON_VERSION=$ELECTRON_VERSION"
