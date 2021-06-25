@@ -20,7 +20,7 @@ import TurndownService from 'turndown'
 const ReactMarkdown = React.lazy(() => import('react-markdown'))
 import { dirname, isAbsolute, join, relative } from 'path'
 import { List, ListComponent, ListItem } from '@patternfly/react-core'
-import { REPL, Tab as KuiTab, getPrimaryTabId, pexecInCurrentTab } from '@kui-shell/core'
+import { maybeKuiLink, REPL, Tab as KuiTab, getPrimaryTabId, pexecInCurrentTab } from '@kui-shell/core'
 
 // GitHub Flavored Markdown plugin; see https://github.com/IBM/kui/issues/6563
 import gfm from 'remark-gfm'
@@ -28,6 +28,7 @@ import gfm from 'remark-gfm'
 const Tooltip = React.lazy(() => import('../spi/Tooltip'))
 const CodeSnippet = React.lazy(() => import('../spi/CodeSnippet'))
 const SimpleEditor = React.lazy(() => import('./Editor/SimpleEditor'))
+const TaskStatus = React.lazy(() => import('./TaskStatus'))
 
 interface Props {
   source: string
@@ -158,7 +159,12 @@ export default class Markdown extends React.PureComponent<Props> {
               } else if (/a href="#/.test(props.value)) {
                 const hrefMatch = props.value.match(/href="?([^"\s]+)"?/)
                 if (hrefMatch) {
-                  return <a href={hrefMatch[1]} />
+                  const kuiLink = maybeKuiLink(hrefMatch[1])
+                  if (kuiLink) {
+                    return <TaskStatus link={kuiLink} />
+                  } else {
+                    return <a href={hrefMatch[1]} />
+                  }
                 }
               } else if (/<\/a>/.test(props.value)) {
                 // FIXME: react-markdown v5 doens't parse html properly,

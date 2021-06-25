@@ -62,6 +62,8 @@ export interface BlockOperationTraits {
   willUpdateExecutable?: () => void
 
   willInsertSection?: (idx: number) => void
+
+  willLinkifyBlock?: (idx: number) => void
 }
 
 type Props = InputOptions & {

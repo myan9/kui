@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { v5 } from 'uuid'
+import { v4, v5 } from 'uuid'
 import React from 'react'
 
 import {
@@ -66,6 +66,8 @@ import {
   isActive,
   isAnnouncement,
   isEmpty,
+  isFinished,
+  isLinkified,
   isSectionBreak,
   isWithCompleteEvent,
   isOk,
@@ -181,6 +183,22 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     }
 
     this.initSnapshotEvents()
+    this.initProgressEvents()
+  }
+
+  private initProgressEvents() {
+    eventChannelUnsafe.on('block/status/get', (link: string) => {
+      this.state.splits.find(({ blocks }) =>
+        blocks.find(_ => {
+          if (isLinkified(_) && _.link === link) {
+            const status = !hasBeenRerun(_) ? [0, 0] : isOk(_) ? [1, 0] : [0, 1]
+
+            eventChannelUnsafe.emit(`/block/update/${_.link}`, status)
+            return true
+          }
+        })
+      )
+    })
   }
 
   /** replay the splits and blocks from snapshot */
@@ -386,6 +404,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       setActiveBlock: undefined,
       willFocusBlock: undefined,
       willRemoveBlock: undefined,
+      willLinkifyBlock: undefined,
       willUpdateCommand: undefined,
       willUpdateExecutable: undefined,
       willInsertSection: undefined,
@@ -482,6 +501,27 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     }
 
     state.willUpdateExecutable = () => this.updateExecutable()
+
+    state.willLinkifyBlock = (idx: number) => {
+      const block = state.blocks[idx]
+      if (isFinished(block)) {
+        // 1. generate an anchor -> kui-anchor-uuid()
+        const uuid = hasUUID(block) ? `${block.execUUID}` : `${v4()}`
+        const link = `kui-link-${uuid}`
+        // 2. block.isLinkified = anchor
+        block.link = link
+        // 2.1 copy the anchor
+        const anchor = `<a href="#${link}" />`
+        navigator.clipboard.writeText(anchor)
+        // 3.1 when render this block, if this has been rerun and ok, eventChannelunsafe.emit(/{block.anchor}/, status)
+        // 2.2 when render this block, eventBus.on({block.anchor}/get, return it's status)
+
+        // markdown side
+        // <a href="#${anchor}" /> -> kui-anchor -> this link will become a status widget
+        // once the widget initialized -> eventBus.emit('block.anchor/get')
+        // once the widget initialized -> eventBus.on('block.anchor/update', report status)
+      }
+    }
 
     state.willInsertSection = (idx: number) => {
       setTimeout(() => {
@@ -828,6 +868,12 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
             // indicate an empty comment
             const outputOnly = event.evaluatorOptions && event.evaluatorOptions.outputOnly && event.response !== true
             const finishedBlock = Finished(inProcess, event, outputOnly, asReplay)
+
+            if (isLinkified(finishedBlock)) {
+              const status = !hasBeenRerun(finishedBlock) ? [0, 0] : isOk(finishedBlock) ? [1, 0] : [0, 1]
+
+              eventChannelUnsafe.emit(`/block/update/${finishedBlock.link}`, status)
+            }
 
             const blocks = curState.blocks
               .slice(0, inProcessIdx) // everything before
@@ -1373,6 +1419,7 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
           willRemove={scrollback.willRemoveBlock}
           willFocusBlock={scrollback.willFocusBlock}
           willInsertSection={scrollback.willInsertSection}
+          willLinkifyBlock={isFinished(_) && scrollback.willLinkifyBlock}
           willUpdateCommand={scrollback.willUpdateCommand}
           willUpdateExecutable={scrollback.willUpdateExecutable}
           isExperimental={hasCommand(_) && _.isExperimental}
