@@ -20,6 +20,7 @@ import {
   EraserIcon as Clear,
   CameraIcon as Screenshot,
   CameraRetroIcon as ScreenshotInProgress,
+  CircleIcon as Circle,
   CheckCircleIcon as Checkmark,
   ChartBarIcon as ChartBar,
   CopyIcon as Copy,
@@ -166,6 +167,8 @@ export default function PatternFly4Icons(props: Props) {
       return <Warning {...props} />
     case 'Up':
       return <Up {...props} />
+    case 'Waiting':
+      return <Circle {...props} />
     case 'WindowClose':
       return <WindowClose style={Sidecar} {...props} />
     case 'WindowMaximize':

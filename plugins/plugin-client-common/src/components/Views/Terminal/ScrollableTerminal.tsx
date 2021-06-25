@@ -20,6 +20,9 @@ import React from 'react'
 import {
   i18n,
   eventBus,
+  isCommentarySection,
+  extractCommentarySection,
+  extractCommentaryTask,
   eventChannelUnsafe,
   isAbortableResponse,
   ScalarResponse,
@@ -41,7 +44,9 @@ import {
   isWatchable,
   promiseEach,
   Notebook,
-  SnapshotRequestEvent
+  SnapshotRequestEvent,
+  isCommentaryResponse,
+  isCommentaryTask
 } from '@kui-shell/core'
 
 import ScrollbackState, { ScrollbackOptions, Cleaner } from './ScrollbackState'
@@ -156,6 +161,9 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
 
   private cleaners: Cleaner[] = []
 
+  private tasks: Record<string, number[]> = {}
+  private sections: Record<string, number[]> = {}
+
   public constructor(props: Props) {
     super(props)
 
@@ -180,7 +188,30 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
       }
     }
 
+    this.initSectionsEvents()
     this.initSnapshotEvents()
+  }
+
+  private updateSection(type: 'section' | 'task', name: string, status: number[]) {
+    if (type === 'task') {
+      this.tasks[name] = status
+      eventChannelUnsafe.emit(`/${type}/status/update/${name}`, this.tasks[name])
+    } else {
+      this.sections[name] = status
+      eventChannelUnsafe.emit(`/${type}/status/update/${name}`, this.sections[name])
+    }
+  }
+
+  private initSectionsEvents() {
+    ;['section', 'task'].forEach(type => {
+      eventChannelUnsafe.on(`/${type}/status/get`, (name: string) => {
+        if (type === 'step' && this.tasks[name]) {
+          eventChannelUnsafe.emit(`/step/status/update/${name}`, this.tasks[name])
+        } else if (type === 'section' && this.sections[name]) {
+          eventChannelUnsafe.emit(`/section/status/update/${name}`, this.sections[name])
+        }
+      })
+    })
   }
 
   /** replay the splits and blocks from snapshot */
@@ -1311,7 +1342,12 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
     let sectionIdx = scrollback.nSectionBreak > 0 ? 1 : 0
     let subSectionIdx = 0
 
-    return blocks.map((_, idx) => {
+    const sections = {}
+    let inSection: string
+    const tasks = {}
+    let inTask: string
+
+    const renderedBlocks = blocks.map((_, idx) => {
       if (!isAnnouncement(_) && !isOutputOnly(_)) {
         displayedIdx++
       }
@@ -1355,6 +1391,42 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
         ? true
         : this.state.executable.blockidx === idx && this.state.executable.sbidx === sbidx
 
+      if (isWithCompleteEvent(_) && isCommentaryResponse(_.completeEvent.response)) {
+        if (isCommentarySection(_.completeEvent.response)) {
+          const sectionName = extractCommentarySection(_.completeEvent.response)
+          inSection = sectionName
+          sections[inSection] = [0, 0, 0, 0]
+        } else if (isCommentaryTask(_.completeEvent.response)) {
+          const stepName = extractCommentaryTask(_.completeEvent.response)
+          inTask = stepName
+          tasks[inTask] = [0, 0, 0, 0]
+        } else {
+          inTask = undefined
+        }
+      } else if (isRerunable(_) && !isOutputOnly(_) && !isAnnouncement(_)) {
+        const waiting = !hasBeenRerun(_)
+        const ok = isOk(_)
+
+        if (inTask) {
+          tasks[inTask][3]++
+          if (inSection) {
+            sections[inSection][3]++
+          }
+          if (waiting) {
+            tasks[inTask][2]++
+            sections[inSection][2]++
+          } else {
+            if (ok) {
+              tasks[inTask][0]++
+              sections[inSection][0]++
+            } else {
+              tasks[inTask][1]++
+              sections[inSection][1]++
+            }
+          }
+        }
+      }
+
       return (
         <Block
           key={hasUUID(_) ? _.execUUID : `${idx}-${isActive(_)}-${isCancelled(_)}`}
@@ -1386,6 +1458,16 @@ export default class ScrollableTerminal extends React.PureComponent<Props, State
         />
       )
     })
+
+    console.error('tasks?', tasks)
+    Object.keys(sections).map(name => {
+      this.updateSection('section', name, sections[name])
+    })
+    Object.keys(tasks).map(name => {
+      this.updateSection('task', name, tasks[name])
+    })
+
+    return renderedBlocks
   }
 
   /** Render one split */

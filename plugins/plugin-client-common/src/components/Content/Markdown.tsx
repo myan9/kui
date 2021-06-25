@@ -28,6 +28,7 @@ import gfm from 'remark-gfm'
 const Tooltip = React.lazy(() => import('../spi/Tooltip'))
 const CodeSnippet = React.lazy(() => import('../spi/CodeSnippet'))
 const SimpleEditor = React.lazy(() => import('./Editor/SimpleEditor'))
+const SectionStatus = React.lazy(() => import('./SectionStatus'))
 
 interface Props {
   source: string
@@ -224,9 +225,18 @@ export default class Markdown extends React.PureComponent<Props> {
                     )}\n\n\`Link will execute a command\``
                   : `### External Link\n#### ${props.href}\n\n\`Link will open in a separate window\``
 
+                const linkStatusIndicator = /#section-/.test(props.href) ? (
+                  <SectionStatus name={props.href.slice(1)} type="section" />
+                ) : /#task-/.test(props.href) ? (
+                  <SectionStatus name={props.href.slice(1)} type="task" />
+                ) : (
+                  <React.Fragment />
+                )
+
                 return (
                   <Tooltip markdown={tip}>
                     <a {...props} href={isKuiCommand ? '#' : props.href} target={target} onClick={onClick} />
+                    {linkStatusIndicator}
                   </Tooltip>
                 )
               }

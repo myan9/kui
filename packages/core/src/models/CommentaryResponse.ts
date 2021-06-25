@@ -45,3 +45,21 @@ export function isCommentaryResponse(entity: Entity): entity is CommentaryRespon
 export function isCommentarySectionBreak(entity: Entity): boolean {
   return entity && isCommentaryResponse(entity) && entity.props.children === '---'
 }
+
+export function isCommentaryTask(entity: Entity): boolean {
+  return entity && isCommentaryResponse(entity) && entity.props.children.includes('<a name="task')
+}
+
+export function extractCommentaryTask(response: CommentaryResponse): string {
+  const nameMatch = response.props.children.match(/name="?([^"\s]+)"?/)
+  return nameMatch && nameMatch[1]
+}
+
+export function isCommentarySection(entity: Entity): boolean {
+  return entity && isCommentaryResponse(entity) && entity.props.children.includes('<a name="section')
+}
+
+export function extractCommentarySection(response: CommentaryResponse): string {
+  const nameMatch = response.props.children.match(/name="?([^"\s]+)"?/)
+  return nameMatch && nameMatch[1]
+}

@@ -62,6 +62,7 @@ export type SupportedIcon =
   | 'Theme'
   | 'Up'
   | 'Warning'
+  | 'Waiting'
   | 'WindowMaximize'
   | 'WindowMinimize'
   | 'WindowClose'
