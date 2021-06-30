@@ -35,8 +35,7 @@ enum Status {
   Online = 'green-background'
 }
 
-// TODO: enable this once proxy can find $HOME on travis
-Common.localDescribe('kubectl context switching', function(this: Common.ISuite) {
+describe('kubectl context switching', function(this: Common.ISuite) {
   before(Common.before(this))
   after(
     Common.after(this, () => {
@@ -104,23 +103,16 @@ Common.localDescribe('kubectl context switching', function(this: Common.ISuite) 
       }
     }
 
+    let newOnesFilepath: string
     const addNamespaceToKUBECONFIG = (ns: string, contextName: string) => {
       it('should add a new context', async () => {
         try {
           const kconfig = parseYAML(getKUBECONFIG().toString())
-          const newOnesFilepath = path.join(path.dirname(getKUBECONFIGFilepath()), 'forTesting.yml')
+          newOnesFilepath = path.join(path.dirname(getKUBECONFIGFilepath()), 'forTesting.yml')
 
           kconfig['contexts'][0].context.namespace = ns
           kconfig['contexts'][0].name = contextName
           writeFileSync(newOnesFilepath, dump(kconfig))
-
-          await this.app.client.execute(
-            (defaultFilepath: string, newOnesFilepath: string) => {
-              process.env.KUBECONFIG = `${process.env.KUBECONFIG || defaultFilepath}:${newOnesFilepath}`
-            },
-            defaultFilepath,
-            newOnesFilepath
-          )
         } catch (err) {
           return Common.oops(this, true)(err)
         }
@@ -246,6 +238,13 @@ Common.localDescribe('kubectl context switching', function(this: Common.ISuite) 
           .catch(Common.oops(this, true)))
     }
 
+    const setKubeConfigEnv = () => {
+      it('should set process.env.kubeconfig', () =>
+        CLI.command(`export KUBECONFIG=${process.env.KUBECONFIG || defaultFilepath}:${newOnesFilepath}`, this.app)
+          .then(ReplExpect.ok)
+          .catch(Common.oops(this, true)))
+    }
+
     const switchToTab1 = () => {
       it(`switch back to first tab via command`, () =>
         CLI.command('tab switch 1', this.app)
@@ -302,6 +301,7 @@ Common.localDescribe('kubectl context switching', function(this: Common.ISuite) 
     listContextsAndExpectDefault()
     createIt(ns)
     addNamespaceToKUBECONFIG(ns, 'holla') // add holla to the KUBECONFIG contexts
+    setKubeConfigEnv()
     listContextsAndExpectGiven('holla')
     listPodsAndExpectNone(ns)
     createPod(ns) // create a pod in holla
@@ -328,6 +328,7 @@ Common.localDescribe('kubectl context switching', function(this: Common.ISuite) 
         })
         .catch(Common.oops(this, true)))
     createNewTab()
+    setKubeConfigEnv()
     switchToContextByCommand('holla')
     showCurrentNamespace(ns)
     showCurrentNamespaceViaWidget(ns)
